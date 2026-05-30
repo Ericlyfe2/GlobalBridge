@@ -10,7 +10,7 @@ export const authRouter = Router();
 
 const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 5,
+  max: 20,
   message: { error: "Too many registration attempts from this IP." },
   standardHeaders: true,
   legacyHeaders: false,

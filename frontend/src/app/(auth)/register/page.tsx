@@ -30,9 +30,9 @@ export default function RegisterPage() {
       // Persist country (auth lib stores name/email/role/initials already)
       try { localStorage.setItem("user-country", form.country_of_origin); } catch {}
 
-      const role = localStorage.getItem("user-role");
-      if (role === "mentor") window.location.href = "/dashboard/mentor";
-      else if (role === "employer") window.location.href = "/dashboard/employer";
+      const savedRole = localStorage.getItem("user-role");
+      if (savedRole === "mentor") window.location.href = "/dashboard/mentor";
+      else if (savedRole === "employer") window.location.href = "/dashboard/employer";
       else {
         const onboarded = typeof window !== "undefined" && localStorage.getItem("onboarded");
         window.location.href = onboarded ? "/dashboard" : "/onboarding";

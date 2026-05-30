@@ -86,7 +86,13 @@ export async function login(email: string, password: string) {
   }
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.error || data.message || "Login failed");
+    let msg = data.error || data.message || "Login failed";
+    if (data.details?.length) {
+      msg += ": " + data.details.map((d: { path: string[]; message: string }) =>
+        `${d.path.join(".")} — ${d.message}`
+      ).join("; ");
+    }
+    throw new Error(msg);
   }
   setSession(data.token, data.user);
 }
@@ -107,7 +113,13 @@ export async function register(payload: {
   }
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.error || data.message || "Registration failed");
+    let msg = data.error || data.message || "Registration failed";
+    if (data.details?.length) {
+      msg += ": " + data.details.map((d: { path: string[]; message: string }) =>
+        `${d.path.join(".")} — ${d.message}`
+      ).join("; ");
+    }
+    throw new Error(msg);
   }
   setSession(data.token, data.user);
 }

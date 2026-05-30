@@ -8,10 +8,10 @@ CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 -- =====================
 -- USERS & AUTH
 -- =====================
-CREATE TYPE user_role AS ENUM ('student', 'mentor', 'employer', 'admin');
-CREATE TYPE verification_status AS ENUM ('pending', 'verified', 'rejected');
+DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN CREATE TYPE user_role AS ENUM ('student', 'mentor', 'employer', 'admin'); END IF; END $$;
+DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'verification_status') THEN CREATE TYPE verification_status AS ENUM ('pending', 'verified', 'rejected'); END IF; END $$;
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL CHECK (length(password_hash) >= 60),
@@ -30,11 +30,11 @@ CREATE TABLE users (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_users_role ON users(role);
-CREATE INDEX idx_users_country ON users(country_of_residence);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_country ON users(country_of_residence);
 
 -- Mentor extended profile
-CREATE TABLE mentor_profiles (
+CREATE TABLE IF NOT EXISTS mentor_profiles (
     user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     expertise_areas TEXT[],
     years_abroad INT,
@@ -46,7 +46,7 @@ CREATE TABLE mentor_profiles (
 );
 
 -- Employer extended profile
-CREATE TABLE employer_profiles (
+CREATE TABLE IF NOT EXISTS employer_profiles (
     user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     company_name VARCHAR(255) NOT NULL,
     company_website TEXT,
@@ -59,9 +59,9 @@ CREATE TABLE employer_profiles (
 -- =====================
 -- OPPORTUNITY LISTINGS
 -- =====================
-CREATE TYPE opportunity_type AS ENUM ('scholarship', 'work_study', 'exchange', 'internship', 'job');
+DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'opportunity_type') THEN CREATE TYPE opportunity_type AS ENUM ('scholarship', 'work_study', 'exchange', 'internship', 'job'); END IF; END $$;
 
-CREATE TABLE opportunities (
+CREATE TABLE IF NOT EXISTS opportunities (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     posted_by UUID REFERENCES users(id) ON DELETE SET NULL,
     type opportunity_type NOT NULL,
@@ -83,17 +83,17 @@ CREATE TABLE opportunities (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_opportunities_type ON opportunities(type);
-CREATE INDEX idx_opportunities_country ON opportunities(country);
-CREATE INDEX idx_opportunities_deadline ON opportunities(deadline);
-CREATE INDEX idx_opportunities_search ON opportunities USING gin(title gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_opportunities_type ON opportunities(type);
+CREATE INDEX IF NOT EXISTS idx_opportunities_country ON opportunities(country);
+CREATE INDEX IF NOT EXISTS idx_opportunities_deadline ON opportunities(deadline);
+CREATE INDEX IF NOT EXISTS idx_opportunities_search ON opportunities USING gin(title gin_trgm_ops);
 
 -- =====================
 -- HOUSING MARKETPLACE
 -- =====================
-CREATE TYPE listing_status AS ENUM ('draft', 'pending_review', 'active', 'rented', 'archived');
+DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'listing_status') THEN CREATE TYPE listing_status AS ENUM ('draft', 'pending_review', 'active', 'rented', 'archived'); END IF; END $$;
 
-CREATE TABLE housing_listings (
+CREATE TABLE IF NOT EXISTS housing_listings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     landlord_id UUID REFERENCES users(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
@@ -117,10 +117,10 @@ CREATE TABLE housing_listings (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_housing_city ON housing_listings(city, country);
-CREATE INDEX idx_housing_status ON housing_listings(status);
+CREATE INDEX IF NOT EXISTS idx_housing_city ON housing_listings(city, country);
+CREATE INDEX IF NOT EXISTS idx_housing_status ON housing_listings(status);
 
-CREATE TABLE roommate_preferences (
+CREATE TABLE IF NOT EXISTS roommate_preferences (
     user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     budget_min NUMERIC(10, 2),
     budget_max NUMERIC(10, 2),
@@ -134,7 +134,7 @@ CREATE TABLE roommate_preferences (
 -- =====================
 -- FORUMS & Q&A
 -- =====================
-CREATE TABLE forum_categories (
+CREATE TABLE IF NOT EXISTS forum_categories (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(100) NOT NULL,
     slug VARCHAR(100) UNIQUE NOT NULL,
@@ -143,7 +143,7 @@ CREATE TABLE forum_categories (
     post_count INT DEFAULT 0
 );
 
-CREATE TABLE forum_posts (
+CREATE TABLE IF NOT EXISTS forum_posts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     category_id UUID REFERENCES forum_categories(id),
     author_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -156,7 +156,7 @@ CREATE TABLE forum_posts (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE forum_replies (
+CREATE TABLE IF NOT EXISTS forum_replies (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     post_id UUID REFERENCES forum_posts(id) ON DELETE CASCADE,
     author_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -170,7 +170,7 @@ CREATE TABLE forum_replies (
 -- =====================
 -- PRIVATE MESSAGING
 -- =====================
-CREATE TABLE conversations (
+CREATE TABLE IF NOT EXISTS conversations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     participant_a UUID REFERENCES users(id) ON DELETE CASCADE,
     participant_b UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -179,7 +179,7 @@ CREATE TABLE conversations (
     UNIQUE(participant_a, participant_b)
 );
 
-CREATE TABLE messages (
+CREATE TABLE IF NOT EXISTS messages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE,
     sender_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -189,12 +189,12 @@ CREATE TABLE messages (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_messages_conversation ON messages(conversation_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id, created_at DESC);
 
 -- =====================
 -- AI ASSISTANT
 -- =====================
-CREATE TABLE ai_conversations (
+CREATE TABLE IF NOT EXISTS ai_conversations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     title VARCHAR(255),
@@ -204,7 +204,7 @@ CREATE TABLE ai_conversations (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE ai_messages (
+CREATE TABLE IF NOT EXISTS ai_messages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     conversation_id UUID REFERENCES ai_conversations(id) ON DELETE CASCADE,
     role VARCHAR(20) NOT NULL,
@@ -213,7 +213,7 @@ CREATE TABLE ai_messages (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE visa_checklists (
+CREATE TABLE IF NOT EXISTS visa_checklists (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     origin_country VARCHAR(100) NOT NULL,
@@ -227,9 +227,9 @@ CREATE TABLE visa_checklists (
 -- =====================
 -- MODERATION & REPORTS
 -- =====================
-CREATE TYPE report_status AS ENUM ('pending', 'reviewing', 'resolved', 'dismissed');
+DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'report_status') THEN CREATE TYPE report_status AS ENUM ('pending', 'reviewing', 'resolved', 'dismissed'); END IF; END $$;
 
-CREATE TABLE reports (
+CREATE TABLE IF NOT EXISTS reports (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     reporter_id UUID REFERENCES users(id),
     target_type VARCHAR(50) NOT NULL,
@@ -242,7 +242,7 @@ CREATE TABLE reports (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE scam_alerts (
+CREATE TABLE IF NOT EXISTS scam_alerts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     reported_by UUID REFERENCES users(id),
     title VARCHAR(255) NOT NULL,
@@ -263,4 +263,5 @@ INSERT INTO forum_categories (name, slug, description, icon) VALUES
     ('Housing', 'housing', 'Finding accommodation abroad', 'home'),
     ('Career & Jobs', 'careers', 'Internships, jobs, and work permits', 'briefcase'),
     ('Cultural Integration', 'culture', 'Adapting to life in a new country', 'globe'),
-    ('Banking & Finance', 'finance', 'Setting up accounts, transfers, taxes', 'dollar');
+    ('Banking & Finance', 'finance', 'Setting up accounts, transfers, taxes', 'dollar')
+ON CONFLICT (slug) DO NOTHING;
