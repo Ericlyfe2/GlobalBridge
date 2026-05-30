@@ -1,6 +1,23 @@
 import type { NextConfig } from "next";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+/** Backend API URL. Set NEXT_PUBLIC_API_URL on Vercel to your deployed backend URL. */
+const API = process.env.NEXT_PUBLIC_API_URL;
+
+// Only apply rewrites when API is configured and reachable.
+// In dev, set NEXT_PUBLIC_API_URL=http://localhost:4000 in .env.local.
+// On Vercel, set it to your deployed backend (e.g. https://api.globalpath.com).
+const REWRITE_PATHS = API
+  ? [
+      "/api/auth/:path*",
+      "/api/users/:path*",
+      "/api/opportunities/:path*",
+      "/api/housing/:path*",
+      "/api/forums/:path*",
+      "/api/messages/:path*",
+      "/api/moderation/:path*",
+      "/api/content/:path*",
+    ].map((source) => ({ source, destination: `${API}${source}` }))
+  : [];
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -11,18 +28,8 @@ const nextConfig: NextConfig = {
     ],
   },
   // Proxy backend routes through Next so frontend can call /api/* without CORS hassles.
-  // /api/ai/* stays local (Next route handlers) for direct Claude calls.
   async rewrites() {
-    return [
-      { source: "/api/auth/:path*",          destination: `${API}/api/auth/:path*` },
-      { source: "/api/users/:path*",         destination: `${API}/api/users/:path*` },
-      { source: "/api/opportunities/:path*", destination: `${API}/api/opportunities/:path*` },
-      { source: "/api/housing/:path*",       destination: `${API}/api/housing/:path*` },
-      { source: "/api/forums/:path*",        destination: `${API}/api/forums/:path*` },
-      { source: "/api/messages/:path*",      destination: `${API}/api/messages/:path*` },
-      { source: "/api/moderation/:path*",    destination: `${API}/api/moderation/:path*` },
-      { source: "/api/content/:path*",       destination: `${API}/api/content/:path*` },
-    ];
+    return REWRITE_PATHS;
   },
 };
 

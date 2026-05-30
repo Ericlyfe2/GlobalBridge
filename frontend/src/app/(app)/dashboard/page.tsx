@@ -15,6 +15,17 @@ import {
   Loader2,
 } from "lucide-react";
 
+async function fetchWithTimeout(url: string, ms = 5000) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    return res;
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 export default function DashboardPage() {
   const [name, setName] = useState<string>("");
   const [origin, setOrigin] = useState<string>("");
@@ -140,16 +151,14 @@ function RecentOpportunities() {
   const [opps, setOpps] = useState<Opp[] | null>(null);
 
   useEffect(() => {
-    const ctrl = new AbortController();
     (async () => {
       try {
-        const res = await fetch("/api/opportunities?limit=3", { signal: ctrl.signal });
+        const res = await fetchWithTimeout("/api/opportunities?limit=3");
         const data = await res.json();
         if (res.ok) setOpps(data.opportunities as Opp[]);
         else setOpps([]);
       } catch { setOpps([]); }
     })();
-    return () => ctrl.abort();
   }, []);
 
   return (
@@ -236,10 +245,9 @@ function HousingSnapshot() {
   const [data, setData] = useState<{ count: number; avg: number; currency: string; city: string } | null>(null);
 
   useEffect(() => {
-    const ctrl = new AbortController();
     (async () => {
       try {
-        const res = await fetch("/api/housing?limit=20", { signal: ctrl.signal });
+        const res = await fetchWithTimeout("/api/housing?limit=20");
         const json = await res.json();
         const list = (json.listings ?? []) as Listing[];
         if (!list.length) { setData({ count: 0, avg: 0, currency: "", city: "" }); return; }
@@ -249,7 +257,6 @@ function HousingSnapshot() {
         setData({ count: list.length, avg, currency, city: list[0].city });
       } catch { setData({ count: 0, avg: 0, currency: "", city: "" }); }
     })();
-    return () => ctrl.abort();
   }, []);
 
   return (
@@ -285,15 +292,13 @@ function ScamAlert() {
   const [alert, setAlert] = useState<Alert | null>(null);
 
   useEffect(() => {
-    const ctrl = new AbortController();
     (async () => {
       try {
-        const res = await fetch("/api/moderation/scam-alerts", { signal: ctrl.signal });
+        const res = await fetchWithTimeout("/api/moderation/scam-alerts");
         const json = await res.json();
         if (res.ok && json.alerts?.length) setAlert(json.alerts[0]);
       } catch { /* ignore */ }
     })();
-    return () => ctrl.abort();
   }, []);
 
   return (

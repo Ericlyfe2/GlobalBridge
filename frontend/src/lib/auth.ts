@@ -45,38 +45,69 @@ export function clearSession() {
   } catch {}
 }
 
+const FETCH_TIMEOUT = 8000;
+
+async function timedFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT);
+  try {
+    const res = await fetch(input, { ...init, signal: ctrl.signal });
+    return res;
+  } finally {
+    clearTimeout(id);
+  }
+}
+
+function apiError(msg: string): never {
+  throw new Error(
+    `${msg}\n\nMake sure your backend is running and NEXT_PUBLIC_API_URL is set correctly in .env.local (dev) or Vercel environment variables (production).`,
+  );
+}
+
 /** Fetch wrapper that auto-attaches Authorization: Bearer <token> when present. */
 export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}) {
   const token = getToken();
   const headers = new Headers(init.headers);
   if (token && !headers.has("Authorization")) headers.set("Authorization", `Bearer ${token}`);
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
-  return fetch(input, { ...init, headers });
+  return timedFetch(input, { ...init, headers });
 }
 
 export async function login(email: string, password: string) {
-  const res = await fetch("/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
+  let res: Response;
+  try {
+    res = await timedFetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+  } catch {
+    return apiError("Login failed — could not reach the API.");
+  }
   const data = await res.json();
-  if (!res.ok) throw new Error(data?.error || "Login failed");
+  if (!res.ok) {
+    throw new Error(data.error || data.message || "Login failed");
+  }
   setSession(data.token, data.user);
-  return data;
 }
 
 export async function register(payload: {
   email: string; password: string; full_name: string;
   role: SessionUser["role"]; country_of_origin?: string;
 }) {
-  const res = await fetch("/api/auth/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  let res: Response;
+  try {
+    res = await timedFetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    return apiError("Registration failed — could not reach the API.");
+  }
   const data = await res.json();
-  if (!res.ok) throw new Error(data?.error || "Registration failed");
+  if (!res.ok) {
+    throw new Error(data.error || data.message || "Registration failed");
+  }
   setSession(data.token, data.user);
-  return data;
 }

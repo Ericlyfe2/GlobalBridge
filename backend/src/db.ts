@@ -3,8 +3,9 @@ import Redis from "ioredis";
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 20,
-  idleTimeoutMillis: 30000,
+  max: 10,
+  idleTimeoutMillis: 5000,
+  connectionTimeoutMillis: 3000,
 });
 
 pool.on("error", (err) => console.error("Postgres pool error", err));
