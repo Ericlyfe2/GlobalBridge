@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Bot,
@@ -14,6 +18,8 @@ import {
   FileCheck,
   Sparkles,
   ClipboardList,
+  Calendar,
+  Star,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -22,7 +28,9 @@ import { CommandPalette, CommandTrigger } from "@/components/CommandPalette";
 import { MobileSidebar } from "@/components/MobileSidebar";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
-const navItems = [
+type Role = "student" | "mentor" | "employer" | "admin" | null;
+
+const STUDENT_NAV = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/assistant", icon: Bot, label: "AI Assistant" },
   { href: "/opportunities", icon: Award, label: "Opportunities" },
@@ -37,7 +45,49 @@ const navItems = [
   { href: "/tools/timeline", icon: ClipboardList, label: "Timeline Planner" },
 ];
 
+const MENTOR_NAV = [
+  { href: "/dashboard/mentor", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/dashboard/mentor", icon: Calendar, label: "My Sessions" },
+  { href: "/messages", icon: MessageSquare, label: "Messages" },
+  { href: "/community", icon: Users, label: "Community" },
+  { href: "/notifications", icon: Bell, label: "Notifications" },
+  { href: "/toolkit", icon: LifeBuoy, label: "Toolkit" },
+  { href: "/assistant", icon: Bot, label: "AI Assistant" },
+];
+
+const EMPLOYER_NAV = [
+  { href: "/dashboard/employer", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/jobs", icon: Briefcase, label: "My Postings" },
+  { href: "/community", icon: Users, label: "Candidates" },
+  { href: "/messages", icon: MessageSquare, label: "Messages" },
+  { href: "/notifications", icon: Bell, label: "Notifications" },
+  { href: "/assistant", icon: Bot, label: "AI Assistant" },
+];
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [role, setRole] = useState<Role>(null);
+
+  useEffect(() => {
+    try {
+      setRole(localStorage.getItem("user-role") as Role);
+    } catch { /* ignore */ }
+  }, []);
+
+  const navItems = role === "mentor" ? MENTOR_NAV
+    : role === "employer" ? EMPLOYER_NAV
+    : STUDENT_NAV;
+
+  function signOut() {
+    try {
+      ["gb-token", "gb-user", "user-name", "user-email", "user-initials", "user-role", "user-country", "onboarded"].forEach(
+        (k) => localStorage.removeItem(k),
+      );
+    } catch { /* ignore */ }
+    router.push("/");
+  }
+
   return (
     <div className="min-h-screen flex bg-cream-50">
       <CommandPalette />
@@ -47,23 +97,30 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItems.map((n) => (
-            <Link
-              key={n.href}
-              href={n.href}
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-cream-200 transition"
-            >
-              <n.icon size={16} />
-              {n.label}
-            </Link>
-          ))}
+          {navItems.map((n) => {
+            const active = pathname === n.href || pathname.startsWith(n.href + "/");
+            return (
+              <Link
+                key={n.href}
+                href={n.href}
+                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition ${
+                  active
+                    ? "bg-clay-500/12 text-clay-600 font-medium"
+                    : "text-ink-700 hover:bg-cream-200"
+                }`}
+              >
+                <n.icon size={16} />
+                {n.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="border-t border-cream-200 p-3 space-y-1">
           <Link href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-cream-200 transition">
             <Settings size={16} /> Settings
           </Link>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-cream-200 transition">
+          <button onClick={signOut} className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-cream-200 transition">
             <LogOut size={16} /> Sign out
           </button>
         </div>

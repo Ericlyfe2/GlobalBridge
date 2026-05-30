@@ -28,7 +28,11 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(form.email, form.password);
-      window.location.href = "/dashboard";
+      const role = localStorage.getItem("user-role");
+      if (role === "mentor") window.location.href = "/dashboard/mentor";
+      else if (role === "employer") window.location.href = "/dashboard/employer";
+      else if (role === "admin") window.location.href = "/admin";
+      else window.location.href = "/dashboard";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

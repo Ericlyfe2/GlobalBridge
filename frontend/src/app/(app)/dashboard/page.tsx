@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Bot,
@@ -27,17 +28,22 @@ async function fetchWithTimeout(url: string, ms = 5000) {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [name, setName] = useState<string>("");
   const [origin, setOrigin] = useState<string>("");
   const [destination, setDestination] = useState<string>("");
 
   useEffect(() => {
     try {
+      const role = localStorage.getItem("user-role");
+      if (role === "mentor") router.replace("/dashboard/mentor");
+      else if (role === "employer") router.replace("/dashboard/employer");
+
       setName((localStorage.getItem("user-name") || "").split(" ")[0] || "");
       setOrigin(localStorage.getItem("user-country") || "");
       setDestination(localStorage.getItem("user-destination") || "");
     } catch { /* ignore */ }
-  }, []);
+  }, [router]);
 
   const journey = origin && destination
     ? `${origin} → ${destination}`

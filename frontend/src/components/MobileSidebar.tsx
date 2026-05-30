@@ -11,34 +11,60 @@ import { Logo } from "./Logo";
 
 export type SidebarPreset = "app" | "admin";
 
-const navs: Record<SidebarPreset, { href: string; label: string; Icon: React.ComponentType<{ size?: number }> }[]> = {
-  app: [
-    { href: "/dashboard",                  label: "Dashboard",         Icon: LayoutDashboard },
-    { href: "/assistant",                  label: "AI Assistant",      Icon: Bot },
-    { href: "/opportunities",              label: "Opportunities",     Icon: Award },
-    { href: "/housing",                    label: "Housing",           Icon: Home },
-    { href: "/community",                  label: "Community",         Icon: Users },
-    { href: "/jobs",                       label: "Jobs",              Icon: Briefcase },
-    { href: "/messages",                   label: "Messages",          Icon: MessageSquare },
-    { href: "/notifications",              label: "Notifications",     Icon: Bell },
-    { href: "/toolkit",                    label: "Toolkit",           Icon: LifeBuoy },
-    { href: "/tools/doc-checker",          label: "Doc Checker",       Icon: FileCheck },
-    { href: "/tools/scholarship-matcher",  label: "Scholarship Match", Icon: Sparkles },
-    { href: "/tools/timeline",             label: "Timeline Planner",  Icon: ClipboardList },
-  ],
-  admin: [
-    { href: "/admin",                label: "Overview",      Icon: LayoutDashboard },
-    { href: "/admin/users",          label: "Users",         Icon: Users },
-    { href: "/admin/verifications",  label: "Verifications", Icon: ShieldCheck },
-    { href: "/admin/listings",       label: "Listings",      Icon: FileText },
-    { href: "/admin/reports",        label: "Reports",       Icon: Flag },
-    { href: "/admin/ai",             label: "AI Config",     Icon: Bot },
-  ],
-};
+const ADMIN_NAV = [
+  { href: "/admin",                label: "Overview",      Icon: LayoutDashboard },
+  { href: "/admin/users",          label: "Users",         Icon: Users },
+  { href: "/admin/verifications",  label: "Verifications", Icon: ShieldCheck },
+  { href: "/admin/listings",       label: "Listings",      Icon: FileText },
+  { href: "/admin/reports",        label: "Reports",       Icon: Flag },
+  { href: "/admin/ai",             label: "AI Config",     Icon: Bot },
+];
+
+const STUDENT_NAV = [
+  { href: "/dashboard",                  label: "Dashboard",         Icon: LayoutDashboard },
+  { href: "/assistant",                  label: "AI Assistant",      Icon: Bot },
+  { href: "/opportunities",              label: "Opportunities",     Icon: Award },
+  { href: "/housing",                    label: "Housing",           Icon: Home },
+  { href: "/community",                  label: "Community",         Icon: Users },
+  { href: "/jobs",                       label: "Jobs",              Icon: Briefcase },
+  { href: "/messages",                   label: "Messages",          Icon: MessageSquare },
+  { href: "/notifications",              label: "Notifications",     Icon: Bell },
+  { href: "/toolkit",                    label: "Toolkit",           Icon: LifeBuoy },
+  { href: "/tools/doc-checker",          label: "Doc Checker",       Icon: FileCheck },
+  { href: "/tools/scholarship-matcher",  label: "Scholarship Match", Icon: Sparkles },
+  { href: "/tools/timeline",             label: "Timeline Planner",  Icon: ClipboardList },
+];
+
+const MENTOR_NAV = [
+  { href: "/dashboard/mentor", label: "Dashboard",    Icon: LayoutDashboard },
+  { href: "/messages",         label: "Messages",     Icon: MessageSquare },
+  { href: "/community",        label: "Community",    Icon: Users },
+  { href: "/notifications",    label: "Notifications",Icon: Bell },
+  { href: "/toolkit",          label: "Toolkit",      Icon: LifeBuoy },
+  { href: "/assistant",        label: "AI Assistant", Icon: Bot },
+];
+
+const EMPLOYER_NAV = [
+  { href: "/dashboard/employer", label: "Dashboard",   Icon: LayoutDashboard },
+  { href: "/jobs",               label: "My Postings", Icon: Briefcase },
+  { href: "/community",          label: "Candidates",  Icon: Users },
+  { href: "/messages",           label: "Messages",    Icon: MessageSquare },
+  { href: "/notifications",      label: "Notifications", Icon: Bell },
+  { href: "/assistant",          label: "AI Assistant", Icon: Bot },
+];
 
 export function MobileSidebar({ preset }: { preset: SidebarPreset }) {
   const [open, setOpen] = useState(false);
-  const items = navs[preset];
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    try { setRole(localStorage.getItem("user-role")); } catch { /* ignore */ }
+  }, []);
+
+  const items = preset === "admin" ? ADMIN_NAV
+    : role === "mentor" ? MENTOR_NAV
+    : role === "employer" ? EMPLOYER_NAV
+    : STUDENT_NAV;
 
   useEffect(() => {
     function close() { setOpen(false); }
