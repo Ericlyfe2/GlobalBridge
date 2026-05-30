@@ -14,6 +14,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { UserMenu } from "@/components/UserMenu";
 import { CommandPalette, CommandTrigger } from "@/components/CommandPalette";
 import { MobileSidebar } from "@/components/MobileSidebar";
+import { AdminGuard } from "@/components/AdminGuard";
 
 const navItems = [
   { href: "/admin", icon: LayoutDashboard, label: "Overview" },
@@ -26,6 +27,7 @@ const navItems = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
+    <AdminGuard>
     <div className="min-h-screen flex bg-cream-50">
       <CommandPalette />
       <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-cream-200 bg-cream-100">
@@ -76,8 +78,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 overflow-auto">{children}      </main>
       </div>
     </div>
+    </AdminGuard>
   );
 }
