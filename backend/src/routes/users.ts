@@ -88,19 +88,20 @@ usersRouter.get("/", requireAuth, requireRole("admin"), async (req, res, next) =
 // Admin: platform summary stats (must be before /:id)
 usersRouter.get("/summary/all", requireAuth, requireRole("admin"), async (_req, res, next) => {
   try {
-    const [totalUsers, verifications, reports, listings] = await Promise.all([
-      queryOne<{ count: number }>(`SELECT COUNT(*)::int AS count FROM users`),
-      queryOne<{ count: number }>(`SELECT COUNT(*)::int AS count FROM users WHERE verification_status = 'pending'`),
-      queryOne<{ count: number }>(`SELECT COUNT(*)::int AS count FROM reports WHERE status = 'pending'`),
-      queryOne<{ count: number }>(`SELECT COUNT(*)::int AS count FROM housing_listings WHERE status = 'active'`),
-    ]);
+    const result = await queryOne<{
+      total_users: number;
+      pending_verifications: number;
+      open_reports: number;
+      active_listings: number;
+    }>(`
+      SELECT
+        (SELECT COUNT(*)::int FROM users) AS total_users,
+        (SELECT COUNT(*)::int FROM users WHERE verification_status = 'pending') AS pending_verifications,
+        (SELECT COUNT(*)::int FROM reports WHERE status = 'pending') AS open_reports,
+        (SELECT COUNT(*)::int FROM housing_listings WHERE status = 'active') AS active_listings
+    `);
     res.json({
-      stats: {
-        total_users: totalUsers?.count ?? 0,
-        pending_verifications: verifications?.count ?? 0,
-        open_reports: reports?.count ?? 0,
-        active_listings: listings?.count ?? 0,
-      },
+      stats: result ?? { total_users: 0, pending_verifications: 0, open_reports: 0, active_listings: 0 },
     });
   } catch (err) {
     next(err);

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { LogOut, Settings, User, ShieldCheck, GraduationCap, Users, Briefcase, AlertOctagon } from "lucide-react";
+import { clearSession } from "@/lib/auth";
 
 type Role = "student" | "mentor" | "employer" | "admin";
 
@@ -70,11 +71,7 @@ export function UserMenu() {
   }, []);
 
   function signOut() {
-    try {
-      ["user-name", "user-email", "user-initials", "user-role", "user-country"].forEach((k) =>
-        localStorage.removeItem(k),
-      );
-    } catch {}
+    clearSession();
   }
 
   const presenceColor = online ? "bg-emerald-500" : "bg-amber-500";
@@ -138,7 +135,7 @@ export function UserMenu() {
 
           <div className="border-t border-cream-200 py-1">
             <Link
-              href="/login"
+              href="/auth?mode=signin"
               onClick={signOut}
               className="flex items-center gap-2 px-4 py-2 text-sm text-ink-700 hover:bg-cream-100 transition"
             >

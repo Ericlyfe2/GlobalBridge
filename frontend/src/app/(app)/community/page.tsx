@@ -90,7 +90,7 @@ export default function CommunityPage() {
           <div className="card text-center py-10 text-ink-500">No verified mentors yet.</div>
         )}
         {mentors && mentors.length > 0 && (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {mentors.map((m) => (
               <div key={m.id} className="card flex items-start gap-4">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-clay-500 to-clay-700 text-white flex items-center justify-center font-medium shrink-0">
@@ -117,7 +117,7 @@ export default function CommunityPage() {
         )}
       </section>
 
-      <section className="grid md:grid-cols-2 gap-6">
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="card">
           <div className="flex items-center gap-2 mb-4">
             <Globe size={18} className="text-clay-500" />

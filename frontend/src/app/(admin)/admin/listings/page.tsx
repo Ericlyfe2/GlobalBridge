@@ -121,7 +121,7 @@ export default function ListingsPage() {
         </select>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filtered.map((l) => (
           <div key={l.id} className={`card ${l.state === "flagged" ? "border-red-300 dark:border-red-900/40" : ""}`}>
             <div className="flex items-start justify-between gap-2">

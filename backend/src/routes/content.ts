@@ -9,15 +9,18 @@ export const contentRouter = Router();
 contentRouter.get("/stories", async (_req, res, next) => {
   try {
     const stories = await query(
-      `SELECT * FROM success_stories ORDER BY created_at DESC LIMIT 50`
+      `SELECT id, name, origin_country, dest_country, outcome, story,
+              flag_from, flag_to, public, completed, created_at
+       FROM success_stories ORDER BY created_at DESC LIMIT 50`
     );
+    res.set("Cache-Control", "public, max-age=120");
     res.json({ stories });
   } catch (err) { next(err); }
 });
 
 contentRouter.get("/stories/:id", async (req, res, next) => {
   try {
-    const story = await queryOne(`SELECT * FROM success_stories WHERE id = $1`, [req.params.id]);
+    const story = await queryOne(`SELECT id, name, origin_country, dest_country, outcome, story, flag_from, flag_to, public, completed, created_at FROM success_stories WHERE id = $1`, [req.params.id]);
     if (!story) return res.status(404).json({ error: "Story not found" });
     const related = await query(
       `SELECT id, name, outcome FROM success_stories WHERE id != $1 ORDER BY created_at DESC LIMIT 3`,
@@ -31,7 +34,8 @@ contentRouter.get("/stories/:id", async (req, res, next) => {
 contentRouter.get("/notifications", requireAuth, async (req, res, next) => {
   try {
     const notes = await query(
-      `SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50`,
+      `SELECT id, kind, title, body, href, read, created_at
+       FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50`,
       [req.user!.sub]
     );
     res.json({ notifications: notes });
@@ -58,9 +62,11 @@ const saveSchema = z.object({
 
 contentRouter.get("/saved", requireAuth, async (req, res, next) => {
   try {
+    const { limit: savedLimit } = z.object({ limit: z.coerce.number().int().min(1).max(100).default(50) }).parse(req.query);
     const items = await query(
-      `SELECT * FROM saved_items WHERE user_id = $1 ORDER BY created_at DESC`,
-      [req.user!.sub]
+      `SELECT id, item_type, item_id, created_at
+       FROM saved_items WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2`,
+      [req.user!.sub, savedLimit]
     );
     res.json({ saved: items });
   } catch (err) { next(err); }
@@ -74,7 +80,7 @@ contentRouter.post("/saved", requireAuth, async (req, res, next) => {
        ON CONFLICT (user_id, item_type, item_id) DO NOTHING RETURNING *`,
       [req.user!.sub, b.item_type, b.item_id]
     );
-    res.json({ saved: item, ok: true });
+    res.status(201).json({ saved: item, ok: true });
   } catch (err) { next(err); }
 });
 
@@ -90,21 +96,24 @@ contentRouter.delete("/saved", requireAuth, async (req, res, next) => {
 });
 
 // ===== Mentor bookings =====
-const bookingSchema = z.object({
+  const bookingSchema = z.object({
   mentor_id: z.string().uuid(),
   slot_date: z.string(),
   slot_time: z.string(),
   duration_min: z.number().int().optional(),
-  goal: z.string().optional(),
+  goal: z.string().max(500).optional(),
 });
 
 contentRouter.get("/bookings", requireAuth, async (req, res, next) => {
   try {
+    const { limit: bookingLimit } = z.object({ limit: z.coerce.number().int().min(1).max(100).default(50) }).parse(req.query);
     const bookings = await query(
-      `SELECT b.*, m.full_name AS mentor_name FROM mentor_bookings b
+      `SELECT b.id, b.mentor_id, b.slot_date, b.slot_time, b.duration_min, b.goal, b.created_at,
+              m.full_name AS mentor_name
+       FROM mentor_bookings b
        JOIN users m ON m.id = b.mentor_id
-       WHERE b.student_id = $1 ORDER BY b.slot_date ASC`,
-      [req.user!.sub]
+       WHERE b.student_id = $1 ORDER BY b.slot_date ASC LIMIT $2`,
+      [req.user!.sub, bookingLimit]
     );
     res.json({ bookings });
   } catch (err) { next(err); }
@@ -128,9 +137,9 @@ contentRouter.post("/bookings", requireAuth, async (req, res, next) => {
     // Notify the mentor
     await query(
       `INSERT INTO notifications (user_id, kind, title, body, href)
-       VALUES ($1, 'message', 'New mentorship booking', $2, '/messages')`,
+       VALUES ($1, 'message', 'New mentorship booking', $2, '/messages?tab=bookings')`,
       [b.mentor_id, `A student booked a ${b.duration_min ?? 30}-min session on ${b.slot_date} at ${b.slot_time}.`]
     );
-    res.json({ booking });
+    res.status(201).json({ booking });
   } catch (err) { next(err); }
 });

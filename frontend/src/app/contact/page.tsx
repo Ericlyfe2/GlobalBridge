@@ -53,7 +53,7 @@ export default function ContactPage() {
           </p>
         </div>
 
-        <div className="mt-12 grid lg:grid-cols-3 gap-8">
+        <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Form */}
           <div className="lg:col-span-2">
             {sent ? (

@@ -1,15 +1,55 @@
 -- GlobalBridge seed data
 -- Idempotent: safe to re-run.
+-- Run after schema.sql.
+
+-- Forum categories
+INSERT INTO forum_categories (name, slug, description, icon) VALUES
+    ('Visa & Immigration', 'visa-immigration', 'Questions about visas, permits, and immigration', 'passport'),
+    ('Scholarships', 'scholarships', 'Funding opportunities and applications', 'award'),
+    ('Housing', 'housing', 'Finding accommodation abroad', 'home'),
+    ('Career & Jobs', 'careers', 'Internships, jobs, and work permits', 'briefcase'),
+    ('Cultural Integration', 'culture', 'Adapting to life in a new country', 'globe'),
+    ('Banking & Finance', 'finance', 'Setting up accounts, transfers, taxes', 'dollar')
+ON CONFLICT (slug) DO NOTHING;
+
+-- Success stories
+INSERT INTO success_stories (author_id, name, origin, origin_flag, destination, dest_flag, program, outcome, year, quote, before_text, after_text, body)
+VALUES
+ ('66666666-6666-6666-6666-666666666666', 'Amara O.', 'Lagos, Nigeria', 'ng', 'Toronto, Canada', 'ca',
+  'MSc Computer Science · University of Toronto', 'Admission + visa approved', '2025',
+  'The AI assistant walked me through my Canada study permit in 20 minutes. Saved me $400 on a consultant.',
+  '3 visa rejection scares, 2 fake agents contacted me',
+  'Permit approved in 4 weeks. Now interning at a startup.',
+  'Three rejections in nine months. Two fake visa agents in my DMs. This is how I got my Canadian Study Permit using GlobalBridge.'),
+ ('22222222-2222-2222-2222-222222222222', 'Kwame A.', 'Accra, Ghana', 'gh', 'Manchester, UK', 'gb',
+  'MSc Finance · Alliance Manchester', 'Verified housing', '2026',
+  'I found verified housing two weeks before flying out. No scams, no surprises. Met my roommate via the matching tool.',
+  'Almost wired £1,200 deposit to a fake landlord on Facebook',
+  '£700/month studio walking distance to campus. Roommate became my best friend.',
+  'Housing was my biggest fear. The verified marketplace removed it entirely.'),
+ ('33333333-3333-3333-3333-333333333333', 'Adaeze N.', 'Abuja, Nigeria', 'ng', 'Berlin, Germany', 'de',
+  'B.Eng Mechanical · TU Berlin', 'Full scholarship', '2025',
+  'Connected with three Ghanaian alumni from my target university before I even applied. Game changer.',
+  'Could not afford private school tuition',
+  'Full DAAD scholarship covering tuition + €934/month stipend.',
+  'Mentors who had walked the exact path made all the difference.'),
+ ('55555555-5555-5555-5555-555555555555', 'Priya S.', 'Mumbai, India', 'in', 'London, UK', 'gb',
+  'MSc Data Science · Imperial', 'Visa-sponsor job', '2024',
+  'Got my Tier 4 to Skilled Worker conversion at TechCo. The visa-sponsor filter showed me 40+ companies that actually sponsor.',
+  'Generic job boards = 200 applications, 0 callbacks',
+  '5 interviews, 2 offers, sponsorship at a Series B fintech.',
+  'The sponsorship tracker turned a hopeless search into a focused one.')
+ON CONFLICT DO NOTHING;
 
 -- Sample users (mentors + admins). Password hashes are bcrypt of "testpass123".
 INSERT INTO users (id, email, password_hash, full_name, role, verification_status, country_of_origin, country_of_residence, bio, trust_score, email_verified)
 VALUES
-  ('11111111-1111-1111-1111-111111111111', 'ama@globalbridge.app',     '$2a$10$KIXn8.UQQ2DvP3wbf0Z2bO5cYrG6NQp9R3OQp2eK0KqxAaq.Xy/Wu', 'Ama Owusu',     'mentor',   'verified', 'Ghana',   'Canada',         '5 years in Toronto. Software engineer.', 92, true),
-  ('22222222-2222-2222-2222-222222222222', 'kwame@globalbridge.app',   '$2a$10$KIXn8.UQQ2DvP3wbf0Z2bO5cYrG6NQp9R3OQp2eK0KqxAaq.Xy/Wu', 'Kwame Adjei',   'mentor',   'verified', 'Ghana',   'United Kingdom', 'MSc Finance, Manchester.',                 85, true),
-  ('33333333-3333-3333-3333-333333333333', 'yaa@globalbridge.app',     '$2a$10$KIXn8.UQQ2DvP3wbf0Z2bO5cYrG6NQp9R3OQp2eK0KqxAaq.Xy/Wu', 'Yaa Boateng',   'mentor',   'verified', 'Ghana',   'Germany',        'PhD candidate, TU Berlin. DAAD scholar.',  88, true),
-  ('44444444-4444-4444-4444-444444444444', 'admin@globalbridge.app',   '$2a$10$KIXn8.UQQ2DvP3wbf0Z2bO5cYrG6NQp9R3OQp2eK0KqxAaq.Xy/Wu', 'Sarah Admin',   'admin',    'verified', NULL,      NULL,             'GlobalBridge platform admin.',             100, true),
-  ('55555555-5555-5555-5555-555555555555', 'priya@globalbridge.app',   '$2a$10$KIXn8.UQQ2DvP3wbf0Z2bO5cYrG6NQp9R3OQp2eK0KqxAaq.Xy/Wu', 'Priya Sharma',  'mentor',   'verified', 'India',   'United Kingdom', 'Data scientist at Revolut.',               80, true),
-  ('66666666-6666-6666-6666-666666666666', 'tunde@globalbridge.app',   '$2a$10$KIXn8.UQQ2DvP3wbf0Z2bO5cYrG6NQp9R3OQp2eK0KqxAaq.Xy/Wu', 'Tunde Adebayo', 'mentor',   'verified', 'Nigeria', 'Canada',         'Software engineer at Shopify, Toronto.',   91, true)
+  ('11111111-1111-1111-1111-111111111111', 'ama@globalbridge.app',     '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Ama Owusu',     'mentor',   'verified', 'Ghana',   'Canada',         '5 years in Toronto. Software engineer.', 92, true),
+  ('22222222-2222-2222-2222-222222222222', 'kwame@globalbridge.app',   '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Kwame Adjei',   'mentor',   'verified', 'Ghana',   'United Kingdom', 'MSc Finance, Manchester.',                 85, true),
+  ('33333333-3333-3333-3333-333333333333', 'yaa@globalbridge.app',     '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Yaa Boateng',   'mentor',   'verified', 'Ghana',   'Germany',        'PhD candidate, TU Berlin. DAAD scholar.',  88, true),
+  ('44444444-4444-4444-4444-444444444444', 'admin@globalbridge.app',   '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Sarah Admin',   'admin',    'verified', NULL,      NULL,             'GlobalBridge platform admin.',             100, true),
+  ('55555555-5555-5555-5555-555555555555', 'priya@globalbridge.app',   '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Priya Sharma',  'mentor',   'verified', 'India',   'United Kingdom', 'Data scientist at Revolut.',               80, true),
+  ('66666666-6666-6666-6666-666666666666', 'tunde@globalbridge.app',   '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Tunde Adebayo', 'mentor',   'verified', 'Nigeria', 'Canada',         'Software engineer at Shopify, Toronto.',   91, true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Opportunities

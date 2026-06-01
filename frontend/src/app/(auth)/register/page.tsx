@@ -118,6 +118,7 @@ export default function RegisterPage() {
               value={form.password}
               onChange={(v) => setForm({ ...form, password: v })}
               placeholder="At least 8 characters"
+              minLength={8}
             />
             <Field
               icon={Globe}
@@ -162,6 +163,7 @@ function Field({
   value,
   onChange,
   placeholder,
+  minLength,
 }: {
   icon: typeof Mail;
   label: string;
@@ -169,6 +171,7 @@ function Field({
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
+  minLength?: number;
 }) {
   return (
     <div>
@@ -178,6 +181,7 @@ function Field({
         <input
           type={type}
           required
+          minLength={minLength}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="input pl-10"

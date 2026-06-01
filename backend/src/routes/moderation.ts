@@ -8,8 +8,8 @@ export const moderationRouter = Router();
 const reportSchema = z.object({
   target_type: z.enum(["user", "post", "reply", "listing", "opportunity", "message"]),
   target_id: z.string().uuid(),
-  reason: z.string().min(2),
-  details: z.string().optional(),
+  reason: z.string().min(2).max(500),
+  details: z.string().max(2000).optional(),
 });
 
 moderationRouter.post("/report", requireAuth, async (req, res, next) => {
@@ -20,7 +20,7 @@ moderationRouter.post("/report", requireAuth, async (req, res, next) => {
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
       [req.user!.sub, b.target_type, b.target_id, b.reason, b.details]
     );
-    res.json({ report });
+    res.status(201).json({ report });
   } catch (err) {
     next(err);
   }
@@ -71,10 +71,10 @@ moderationRouter.get("/scam-alerts", async (_req, res, next) => {
 });
 
 const alertSchema = z.object({
-  title: z.string().min(5),
-  description: z.string().min(20),
-  scam_type: z.string().optional(),
-  affected_countries: z.array(z.string()).optional(),
+  title: z.string().min(5).max(200),
+  description: z.string().min(20).max(5000),
+  scam_type: z.string().max(100).optional(),
+  affected_countries: z.array(z.string().max(100)).max(50).optional(),
 });
 
 moderationRouter.post("/scam-alerts", requireAuth, async (req, res, next) => {
@@ -85,7 +85,7 @@ moderationRouter.post("/scam-alerts", requireAuth, async (req, res, next) => {
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
       [req.user!.sub, b.title, b.description, b.scam_type, b.affected_countries]
     );
-    res.json({ alert });
+    res.status(201).json({ alert });
   } catch (err) {
     next(err);
   }

@@ -42,7 +42,7 @@ export function SaveButton({ type, id, className = "" }: { type: ItemType; id: s
     listeners.add(rerender);
     ensureLoaded().then(rerender);
     return () => { listeners.delete(rerender); };
-  }, []);
+  }, [k]);
 
   const saved = cache?.has(k) ?? false;
 

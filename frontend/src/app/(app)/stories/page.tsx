@@ -113,7 +113,7 @@ export default function StoriesPage() {
       )}
 
       {/* Stories grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filtered.map((s) => (
           <Link key={s.id} href={`/stories/${s.id}`} className="card flex flex-col hover:border-clay-300 transition">
             <Quote size={20} className="text-clay-500 mb-3" />

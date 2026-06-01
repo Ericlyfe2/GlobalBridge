@@ -63,7 +63,7 @@ export default function ScholarshipMatcher() {
         </div>
       </header>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile inputs */}
         <aside className="card space-y-4 lg:sticky lg:top-20 self-start">
           <div className="flex items-center gap-2 mb-2">

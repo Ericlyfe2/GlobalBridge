@@ -240,7 +240,7 @@ function Section({ icon, title, children }: { icon: React.ReactNode; title: stri
       <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-ink-900 mb-4">
         <span className="text-clay-500">{icon}</span> {title}
       </h2>
-      <div className="grid md:grid-cols-2 gap-4">{children}</div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{children}</div>
     </div>
   );
 }

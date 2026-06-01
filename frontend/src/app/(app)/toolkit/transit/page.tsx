@@ -130,7 +130,7 @@ export default function TransitPage() {
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="card lg:col-span-2">
           <p className="text-sm text-ink-700 flex items-center gap-2"><Clock size={14} className="text-clay-500" /> {d.commute}</p>
           <div className="mt-4 rounded-md bg-clay-500/10 border border-clay-500/25 px-4 py-3 flex items-start gap-3">
@@ -147,7 +147,7 @@ export default function TransitPage() {
         </div>
 
         {/* Options grid */}
-        <div className="lg:col-span-3 grid md:grid-cols-2 gap-4">
+        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
           {d.options.map((o) => (
             <div key={o.name} className="card">
               <div className="flex items-start gap-3 mb-2">

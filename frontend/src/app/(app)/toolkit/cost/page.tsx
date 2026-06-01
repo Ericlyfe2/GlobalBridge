@@ -57,7 +57,7 @@ export default function CostCalcPage() {
         </div>
       </header>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Controls */}
         <div className="card space-y-5">
           <label className="block">

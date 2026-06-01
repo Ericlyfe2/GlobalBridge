@@ -21,6 +21,7 @@ import { uploadsRouter } from "./routes/uploads";
 import { UPLOAD_PATH } from "./lib/storage";
 import { errorHandler } from "./middleware/error";
 import { csrfProtection } from "./middleware/csrf";
+import { requireAuth } from "./middleware/auth";
 import { initWebsocket } from "./ws";
 
 const app = express();
@@ -30,11 +31,8 @@ app.use(helmet());
 app.use(compression());
 app.use(morgan("dev"));
 app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:3000", credentials: true }));
-app.use(express.json({ limit: "12mb" }));
-app.use(express.urlencoded({ extended: true }));
 
-app.use(csrfProtection);
-
+// Rate limiter before body parsers to avoid parsing large bodies on rejected requests
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -43,6 +41,11 @@ app.use(
     legacyHeaders: false,
   })
 );
+
+app.use(csrfProtection);
+
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 app.get("/health", (_req, res) => res.json({ status: "ok", service: "globalbridge-api" }));
 
@@ -56,7 +59,9 @@ app.use("/api/ai", aiRouter);
 app.use("/api/moderation", moderationRouter);
 app.use("/api/content", contentRouter);
 app.use("/api/jobs", jobsRouter);
-app.use("/api/uploads/files", express.static(UPLOAD_PATH));
+// Only serve non-sensitive uploads via static (avatars, housing photos).
+// Verification documents are served through an auth-gated proxy on the uploads router.
+app.use("/api/uploads/files", requireAuth, express.static(UPLOAD_PATH));
 app.use("/api/uploads", uploadsRouter);
 
 app.use(errorHandler);

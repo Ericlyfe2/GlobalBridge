@@ -73,7 +73,7 @@ I am applying to the MSc CS at University of Toronto because it offers world-cla
         </div>
       </header>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Input */}
         <div className="space-y-4">
           <div className="card">

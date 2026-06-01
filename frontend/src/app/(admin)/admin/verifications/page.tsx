@@ -75,7 +75,7 @@ export default function VerificationsPage() {
         </div>
       )}
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="card !p-0 overflow-hidden lg:col-span-1">
           <div className="px-4 py-3 border-b border-cream-200 text-xs font-semibold uppercase tracking-wider text-ink-600">
             Queue ({pending.length})

@@ -7,7 +7,14 @@ export const opportunitiesRouter = Router();
 
 opportunitiesRouter.get("/", async (req, res, next) => {
   try {
-    const { type, country, search, limit = "20", offset = "0" } = req.query;
+    const querySchema = z.object({
+      type: z.enum(["scholarship", "work_study", "exchange", "internship", "job"]).optional(),
+      country: z.string().optional(),
+      search: z.string().optional(),
+      limit: z.coerce.number().int().min(1).max(100).default(20),
+      offset: z.coerce.number().int().min(0).default(0),
+    });
+    const { type, country, search, limit, offset } = querySchema.parse(req.query);
     const filters: string[] = [];
     const values: unknown[] = [];
     let i = 1;
@@ -30,11 +37,15 @@ opportunitiesRouter.get("/", async (req, res, next) => {
     values.push(Number(limit), Number(offset));
 
     const rows = await query(
-      `SELECT * FROM opportunities ${where}
+      `SELECT id, type, title, description, country, institution, field_of_study,
+              funding_amount, currency, eligibility, deadline, sponsors_visa,
+              view_count, created_at
+       FROM opportunities ${where}
        ORDER BY deadline ASC NULLS LAST, created_at DESC
        LIMIT $${i} OFFSET $${i + 1}`,
       values
     );
+    res.set("Cache-Control", "public, max-age=60");
     res.json({ opportunities: rows });
   } catch (err) {
     next(err);
@@ -43,11 +54,14 @@ opportunitiesRouter.get("/", async (req, res, next) => {
 
 opportunitiesRouter.get("/:id", async (req, res, next) => {
   try {
-    const opp = await queryOne(`SELECT * FROM opportunities WHERE id = $1`, [req.params.id]);
+    const opp = await queryOne(
+      `UPDATE opportunities SET view_count = view_count + 1 WHERE id = $1
+       RETURNING id, type, title, description, country, institution, field_of_study,
+                 funding_amount, currency, eligibility, application_url, deadline,
+                 sponsors_visa, view_count, created_at, posted_by`,
+      [req.params.id]
+    );
     if (!opp) return res.status(404).json({ error: "Not found" });
-    await query(`UPDATE opportunities SET view_count = view_count + 1 WHERE id = $1`, [
-      req.params.id,
-    ]);
     res.json({ opportunity: opp });
   } catch (err) {
     next(err);
@@ -97,7 +111,7 @@ opportunitiesRouter.post(
           body.sponsors_visa ?? false,
         ]
       );
-      res.json({ opportunity: opp });
+      res.status(201).json({ opportunity: opp });
     } catch (err) {
       next(err);
     }

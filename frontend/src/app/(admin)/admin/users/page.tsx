@@ -104,7 +104,7 @@ export default function UsersPage() {
         </div>
       )}
 
-      <div className="card !p-0 overflow-hidden">
+      <div className="card !p-0 overflow-x-auto">
         {loading ? (
           <div className="text-center py-12 text-ink-500">
             <Loader2 size={20} className="animate-spin mx-auto mb-2" /> Loading users...

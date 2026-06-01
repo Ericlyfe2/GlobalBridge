@@ -96,7 +96,7 @@ export default function SimPage() {
       </div>
 
       {/* Plans */}
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {plans[country].map((p) => (
           <div key={p.carrier} className="card">
             <div className="flex items-start justify-between mb-3">

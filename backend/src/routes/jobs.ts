@@ -11,12 +11,18 @@ const JOB_TYPES = `('job','internship')`;
 // GET /api/jobs — visa-sponsor-aware job board
 jobsRouter.get("/", async (req, res, next) => {
   try {
-    const { search, country, type, sponsors_visa } = req.query;
+    const querySchema = z.object({
+      search: z.string().optional(),
+      country: z.string().optional(),
+      type: z.enum(["job", "internship"]).optional(),
+      sponsors_visa: z.enum(["true", "false"]).optional(),
+    });
+    const { search, country, type, sponsors_visa } = querySchema.parse(req.query);
     const filters: string[] = [`o.type IN ${JOB_TYPES}`];
     const values: unknown[] = [];
     let i = 1;
 
-    if (type && (type === "job" || type === "internship")) {
+    if (type) {
       filters.push(`o.type = $${i++}`);
       values.push(type);
     }
@@ -39,6 +45,7 @@ jobsRouter.get("/", async (req, res, next) => {
        LIMIT 80`,
       values
     );
+    res.set("Cache-Control", "public, max-age=60");
     res.json({ jobs });
   } catch (err) {
     next(err);

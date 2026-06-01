@@ -292,7 +292,7 @@ export default function ScamAlertsPage() {
               <p className="text-sm text-ink-700 leading-relaxed">{a.body}</p>
 
               {/* Two-column: signals + what to do */}
-              <div className="mt-4 grid md:grid-cols-2 gap-3">
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="rounded-md bg-red-500/5 border border-red-500/15 px-3 py-2.5">
                   <p className="font-semibold text-xs text-red-600 mb-1.5 flex items-center gap-1"><AlertTriangle size={11} /> Red flags</p>
                   <ul className="text-xs text-ink-700 space-y-1">

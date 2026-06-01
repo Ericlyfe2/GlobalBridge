@@ -9,7 +9,6 @@ export const uploadsRouter = Router();
 const MIME_EXT: Record<string, string> = {
   "image/png": ".png",
   "image/jpeg": ".jpg",
-  "image/jpg": ".jpg",
   "image/webp": ".webp",
   "application/pdf": ".pdf",
 };
@@ -50,20 +49,18 @@ uploadsRouter.post("/", requireAuth, async (req, res, next) => {
     const stored = await storage.save(buffer, { ext, mime: b.mime });
 
     let document = null;
-    if (b.purpose === "verification" || b.purpose === "document") {
-      document = await queryOne(
-        `INSERT INTO user_documents (user_id, purpose, url, storage_key, original_name, mime, size_bytes)
-         VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-        [req.user!.sub, b.purpose, stored.url, stored.key, b.filename, b.mime, buffer.length]
+    document = await queryOne(
+      `INSERT INTO user_documents (user_id, purpose, url, storage_key, original_name, mime, size_bytes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+      [req.user!.sub, b.purpose, stored.url, stored.key, b.filename, b.mime, buffer.length]
+    );
+    // Submitting verification docs re-opens a previously rejected user for review.
+    if (b.purpose === "verification") {
+      await query(
+        `UPDATE users SET verification_status = 'pending'
+         WHERE id = $1 AND verification_status = 'rejected'`,
+        [req.user!.sub]
       );
-      // Submitting verification docs re-opens a previously rejected user for review.
-      if (b.purpose === "verification") {
-        await query(
-          `UPDATE users SET verification_status = 'pending'
-           WHERE id = $1 AND verification_status = 'rejected'`,
-          [req.user!.sub]
-        );
-      }
     }
 
     res.status(201).json({ url: stored.url, key: stored.key, document });

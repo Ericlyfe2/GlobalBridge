@@ -64,7 +64,7 @@ export default function AboutPage() {
             Four principles that drive every decision.
           </h2>
         </div>
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {values.map((v) => (
             <article key={v.title} className="card">
               <div className="w-10 h-10 rounded-lg bg-clay-500/15 text-clay-600 flex items-center justify-center mb-3">

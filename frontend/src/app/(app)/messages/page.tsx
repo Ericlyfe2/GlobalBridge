@@ -38,6 +38,7 @@ export default function MessagesPage() {
   const me = getUser();
   const [convos, setConvos] = useState<Conversation[] | null>(null);
   const [active, setActive] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -176,7 +177,7 @@ export default function MessagesPage() {
         <div className="p-4 border-b border-cream-200">
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-500" />
-            <input className="input pl-9 text-sm" placeholder="Search conversations..." />
+            <input className="input pl-9 text-sm" placeholder="Search conversations..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
@@ -191,7 +192,10 @@ export default function MessagesPage() {
               <Link href="/community" className="text-clay-600 hover:underline">Find a mentor</Link> to start.
             </div>
           )}
-          {convos?.map((c) => (
+          {(searchQuery && convos
+            ? convos.filter((c) => c.partner_name.toLowerCase().includes(searchQuery.toLowerCase()))
+            : convos
+          )?.map((c) => (
             <button
               key={c.id}
               onClick={() => setActive(c.id)}

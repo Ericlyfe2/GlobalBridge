@@ -87,7 +87,7 @@ export default function MentorPage({ params }: { params: Promise<{ id: string }>
         <ArrowLeft size={13} /> Back to community
       </Link>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile */}
         <aside className="lg:col-span-1 space-y-4 lg:sticky lg:top-20 self-start">
           <div className="card text-center">

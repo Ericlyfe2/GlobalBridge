@@ -22,6 +22,7 @@ forumsRouter.get("/posts", async (req, res, next) => {
     if (search) { filters.push(`fp.title ILIKE $${i++}`); values.push(`%${search}%`); }
     const where = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
+    res.set("Cache-Control", "public, max-age=30");
     const posts = await query(
       `SELECT fp.*, fc.name AS category_name, fc.slug AS category_slug,
               u.full_name AS author_name, u.avatar_url AS author_avatar, u.role AS author_role
@@ -58,9 +59,9 @@ forumsRouter.get("/posts/:id", async (req, res, next) => {
 
 const postSchema = z.object({
   category_id: z.string().uuid(),
-  title: z.string().min(5),
-  body: z.string().min(20),
-  tags: z.array(z.string()).optional(),
+  title: z.string().min(5).max(200),
+  body: z.string().min(20).max(10000),
+  tags: z.array(z.string().max(50)).max(10).optional(),
 });
 
 forumsRouter.post("/posts", requireAuth, async (req, res, next) => {
@@ -71,13 +72,13 @@ forumsRouter.post("/posts", requireAuth, async (req, res, next) => {
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
       [b.category_id, req.user!.sub, b.title, b.body, b.tags]
     );
-    res.json({ post });
+    res.status(201).json({ post });
   } catch (err) { next(err); }
 });
 
 forumsRouter.post("/posts/:id/replies", requireAuth, async (req, res, next) => {
   try {
-    const body = z.object({ body: z.string().min(2) }).parse(req.body);
+    const body = z.object({ body: z.string().min(2).max(5000) }).parse(req.body);
     const reply = await queryOne(
       `INSERT INTO forum_replies (post_id, author_id, body) VALUES ($1,$2,$3) RETURNING *`,
       [req.params.id, req.user!.sub, body.body]
@@ -85,6 +86,6 @@ forumsRouter.post("/posts/:id/replies", requireAuth, async (req, res, next) => {
     await query(`UPDATE forum_posts SET answer_count = answer_count + 1 WHERE id = $1`, [
       req.params.id,
     ]);
-    res.json({ reply });
+    res.status(201).json({ reply });
   } catch (err) { next(err); }
 });

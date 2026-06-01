@@ -103,7 +103,7 @@ export default function DiscountsPage() {
       </div>
 
       {/* List */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((i) => (
           <a key={i.brand} href={i.url} target="_blank" rel="noreferrer" className="card hover:border-clay-300 transition flex flex-col">
             <div className="flex items-start justify-between gap-2 mb-2">

@@ -92,7 +92,7 @@ export default function PricingPage() {
           </p>
         </div>
 
-        <div className="mt-12 grid lg:grid-cols-3 gap-6">
+        <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
           {tiers.map((t) => (
             <article key={t.name} className={`card flex flex-col ${t.featured ? "border-clay-500 ring-1 ring-clay-500" : ""}`}>
               <div className="flex items-center gap-2 mb-4">

@@ -141,7 +141,7 @@ export default function CommunityCountryPage({ params }: { params: Promise<{ cou
         </div>
       </section>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Tips */}
         <section className="card lg:col-span-2">
           <h2 className="font-display text-lg font-semibold text-ink-900 mb-4 flex items-center gap-2">

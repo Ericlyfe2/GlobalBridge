@@ -15,11 +15,23 @@ const chatSchema = z.object({
   visa_type: z.string().optional(),
 });
 
-aiRouter.post("/chat", async (req, res, next) => {
+const AI_TIMEOUT = 10000;
+
+async function fetchWithTimeout(url: string, opts: RequestInit, timeoutMs = AI_TIMEOUT) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...opts, signal: ctrl.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
+aiRouter.post("/chat", requireAuth, async (req, res, next) => {
   try {
     const body = chatSchema.parse(req.body);
 
-    const resp = await fetch(`${AI_URL}/chat`, {
+    const resp = await fetchWithTimeout(`${AI_URL}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -84,12 +96,19 @@ aiRouter.get("/checklists", requireAuth, async (req, res, next) => {
   }
 });
 
+const docCheckSchema = z.object({
+  document_type: z.string().optional(),
+  country: z.string().optional(),
+  text: z.string().min(1).max(50000),
+});
+
 aiRouter.post("/doc-check", requireAuth, async (req, res, next) => {
   try {
-    const resp = await fetch(`${AI_URL}/doc-check`, {
+    const body = docCheckSchema.parse(req.body);
+    const resp = await fetchWithTimeout(`${AI_URL}/doc-check`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(req.body),
+      body: JSON.stringify(body),
     });
     const data = await resp.json();
     res.json(data);
@@ -98,10 +117,15 @@ aiRouter.post("/doc-check", requireAuth, async (req, res, next) => {
   }
 });
 
-aiRouter.post("/translate", async (req, res, next) => {
+const translateSchema = z.object({
+  text: z.string().min(1).max(5000),
+  target_lang: z.string().min(2).max(10),
+});
+
+aiRouter.post("/translate", requireAuth, async (req, res, next) => {
   try {
-    const { text, target_lang } = req.body;
-    const resp = await fetch(`${AI_URL}/translate`, {
+    const { text, target_lang } = translateSchema.parse(req.body);
+    const resp = await fetchWithTimeout(`${AI_URL}/translate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text, target_lang }),

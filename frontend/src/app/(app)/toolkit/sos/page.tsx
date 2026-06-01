@@ -185,7 +185,7 @@ export default function SOSPage() {
         ))}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Emergency */}
         <Section title="Emergency services" icon={<Shield size={16} />} tone="red">
           {d.emergency.map((c) => <Row key={c.label} c={c} />)}

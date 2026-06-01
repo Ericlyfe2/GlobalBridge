@@ -61,7 +61,7 @@ export default function DashboardPage() {
 
       <ProgressTracker />
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <AIAssistantCard />
           <RecentOpportunities />
@@ -157,14 +157,18 @@ function RecentOpportunities() {
   const [opps, setOpps] = useState<Opp[] | null>(null);
 
   useEffect(() => {
+    const ctrl = new AbortController();
     (async () => {
       try {
         const res = await fetchWithTimeout("/api/opportunities?limit=3");
         const data = await res.json();
-        if (res.ok) setOpps(data.opportunities as Opp[]);
-        else setOpps([]);
-      } catch { setOpps([]); }
+        if (!ctrl.signal.aborted) {
+          if (res.ok) setOpps(data.opportunities as Opp[]);
+          else setOpps([]);
+        }
+      } catch { if (!ctrl.signal.aborted) setOpps([]); }
     })();
+    return () => ctrl.abort();
   }, []);
 
   return (
@@ -225,7 +229,7 @@ function NextStepsCard() {
       <ul className="space-y-3">
         {tasks.map((t, i) => (
           <li key={i} className="flex items-start gap-3">
-            <input type="checkbox" className="mt-1 accent-clay-500" />
+            <input type="checkbox" aria-label={t.label} className="mt-1 accent-clay-500" />
             <div className="flex-1">
               <p className="text-sm text-ink-900">{t.label}</p>
               <p className={`text-xs mt-0.5 ${t.urgent ? "text-clay-600 font-medium" : "text-ink-500"}`}>
@@ -251,18 +255,21 @@ function HousingSnapshot() {
   const [data, setData] = useState<{ count: number; avg: number; currency: string; city: string } | null>(null);
 
   useEffect(() => {
+    const ctrl = new AbortController();
     (async () => {
       try {
         const res = await fetchWithTimeout("/api/housing?limit=20");
         const json = await res.json();
+        if (ctrl.signal.aborted) return;
         const list = (json.listings ?? []) as Listing[];
         if (!list.length) { setData({ count: 0, avg: 0, currency: "", city: "" }); return; }
         const currency = list[0].currency;
         const sameCur = list.filter((l) => l.currency === currency);
         const avg = Math.round(sameCur.reduce((a, l) => a + Number(l.rent_amount), 0) / sameCur.length);
         setData({ count: list.length, avg, currency, city: list[0].city });
-      } catch { setData({ count: 0, avg: 0, currency: "", city: "" }); }
+      } catch { if (!ctrl.signal.aborted) setData({ count: 0, avg: 0, currency: "", city: "" }); }
     })();
+    return () => ctrl.abort();
   }, []);
 
   return (
@@ -298,13 +305,15 @@ function ScamAlert() {
   const [alert, setAlert] = useState<Alert | null>(null);
 
   useEffect(() => {
+    const ctrl = new AbortController();
     (async () => {
       try {
         const res = await fetchWithTimeout("/api/moderation/scam-alerts");
         const json = await res.json();
-        if (res.ok && json.alerts?.length) setAlert(json.alerts[0]);
+        if (!ctrl.signal.aborted && res.ok && json.alerts?.length) setAlert(json.alerts[0]);
       } catch { /* ignore */ }
     })();
+    return () => ctrl.abort();
   }, []);
 
   return (

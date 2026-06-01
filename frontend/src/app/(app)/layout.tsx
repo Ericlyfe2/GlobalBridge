@@ -24,9 +24,13 @@ import {
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { UserMenu } from "@/components/UserMenu";
-import { CommandPalette, CommandTrigger } from "@/components/CommandPalette";
-import { MobileSidebar } from "@/components/MobileSidebar";
+import dynamic from "next/dynamic";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { AuthGuard } from "@/components/AuthGuard";
+
+const CommandPalette = dynamic(() => import("@/components/CommandPalette").then((m) => m.CommandPalette), { ssr: false });
+const CommandTrigger = dynamic(() => import("@/components/CommandPalette").then((m) => m.CommandTrigger), { ssr: false });
+const MobileSidebar = dynamic(() => import("@/components/MobileSidebar").then((m) => m.MobileSidebar), { ssr: false });
 
 type Role = "student" | "mentor" | "employer" | "admin" | null;
 
@@ -67,13 +71,9 @@ const EMPLOYER_NAV = [
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [role, setRole] = useState<Role>(null);
-
-  useEffect(() => {
-    try {
-      setRole(localStorage.getItem("user-role") as Role);
-    } catch { /* ignore */ }
-  }, []);
+  const [role] = useState<Role>(() => {
+    try { return localStorage.getItem("user-role") as Role; } catch { return null; }
+  });
 
   const navItems = role === "mentor" ? MENTOR_NAV
     : role === "employer" ? EMPLOYER_NAV
@@ -89,6 +89,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
+    <AuthGuard>
     <div className="min-h-screen flex bg-cream-50">
       <CommandPalette />
       <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-cream-200 bg-cream-100">
@@ -138,7 +139,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <ThemeToggle />
             <Link href="/notifications" aria-label="Notifications" className="relative p-2 rounded-md hover:bg-cream-200">
               <Bell size={16} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-clay-500 rounded-full" />
+              <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full" />
             </Link>
             <UserMenu />
           </div>
@@ -147,5 +148,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>
+    </AuthGuard>
   );
 }

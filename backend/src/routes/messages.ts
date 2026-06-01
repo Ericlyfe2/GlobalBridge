@@ -7,6 +7,7 @@ export const messagesRouter = Router();
 
 messagesRouter.get("/conversations", requireAuth, async (req, res, next) => {
   try {
+    const { limit } = z.object({ limit: z.coerce.number().int().min(1).max(100).default(50) }).parse(req.query);
     const me = req.user!.sub;
     const convos = await query(
       `SELECT c.*,
@@ -17,8 +18,9 @@ messagesRouter.get("/conversations", requireAuth, async (req, res, next) => {
        JOIN users u_a ON u_a.id = c.participant_a
        JOIN users u_b ON u_b.id = c.participant_b
        WHERE c.participant_a = $1 OR c.participant_b = $1
-       ORDER BY c.last_message_at DESC`,
-      [me]
+       ORDER BY c.last_message_at DESC
+       LIMIT $2`,
+      [me, limit]
     );
     res.json({ conversations: convos });
   } catch (err) { next(err); }
@@ -78,6 +80,6 @@ messagesRouter.post("/send", requireAuth, async (req, res, next) => {
       [convo!.id, me, body]
     );
     await query(`UPDATE conversations SET last_message_at = NOW() WHERE id = $1`, [convo!.id]);
-    res.json({ message: msg, conversation_id: convo!.id });
+    res.status(201).json({ message: msg, conversation_id: convo!.id });
   } catch (err) { next(err); }
 });

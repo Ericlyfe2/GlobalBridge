@@ -1,52 +1,74 @@
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "http";
 import jwt from "jsonwebtoken";
-import { redis } from "./db";
+import Redis from "ioredis";
+import { redis, pool } from "./db";
 
-type Client = WebSocket & { userId?: string };
+type Client = WebSocket & { userId?: string; authed?: boolean };
 const clients = new Map<string, Set<Client>>();
 
+let subRedis: Redis | null = null;
+
+const AUTH_TIMEOUT = 10000;
+
 export function initWebsocket(server: Server) {
-  const wss = new WebSocketServer({ server, path: "/ws" });
+  const wss = new WebSocketServer({ server, path: "/ws", perMessageDeflate: { zlibDeflateOptions: { level: 6 } } });
 
-  wss.on("connection", (raw, req) => {
+  wss.on("connection", (raw) => {
     const ws = raw as Client;
-    const url = new URL(req.url || "", `http://${req.headers.host}`);
-    const token = url.searchParams.get("token");
+    ws.authed = false;
 
-    if (!token) {
-      ws.close(1008, "Missing token");
-      return;
-    }
+    // Wait for auth message within timeout
+    const authTimer = setTimeout(() => {
+      if (!ws.authed) ws.close(1008, "Auth timeout");
+    }, AUTH_TIMEOUT);
 
-    try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET!) as { sub: string };
-      ws.userId = payload.sub;
-      addClient(payload.sub, ws);
-    } catch {
-      ws.close(1008, "Invalid token");
-      return;
-    }
-
-    ws.on("message", async (raw) => {
+    ws.once("message", async (raw) => {
       try {
         const msg = JSON.parse(raw.toString());
-        if (msg.type === "ping") ws.send(JSON.stringify({ type: "pong" }));
+        if (msg.type !== "auth" || !msg.token) {
+          ws.close(1008, "Expected auth message");
+          return;
+        }
+
+        const payload = jwt.verify(msg.token, process.env.JWT_SECRET!) as { sub: string; ver?: number };
+
+        // Verify token version
+        const result = await pool.query("SELECT token_version FROM users WHERE id = $1", [payload.sub]);
+        if (!result.rows.length || result.rows[0].token_version !== (payload.ver ?? 0)) {
+          ws.close(1008, "Session expired");
+          return;
+        }
+
+        clearTimeout(authTimer);
+        ws.userId = payload.sub;
+        ws.authed = true;
+        addClient(payload.sub, ws);
+        ws.send(JSON.stringify({ type: "auth_ok" }));
+
+        // Regular message handler
+        ws.on("message", (raw) => {
+          try {
+            const msg = JSON.parse(raw.toString());
+            if (msg.type === "ping") ws.send(JSON.stringify({ type: "pong" }));
+          } catch { /* ignore */ }
+        });
       } catch {
-        /* ignore */
+        ws.close(1008, "Invalid auth");
       }
     });
 
     ws.on("close", () => {
+      clearTimeout(authTimer);
       if (ws.userId) removeClient(ws.userId, ws);
     });
   });
 
   // Redis pub/sub is optional — only wire up broadcast bridge if Redis available
   if (redis) {
-    const sub = redis.duplicate();
-    sub.subscribe("ws:broadcast");
-    sub.on("message", (_channel, raw) => {
+    subRedis = redis.duplicate();
+    subRedis.subscribe("ws:broadcast");
+    subRedis.on("message", (_channel, raw) => {
       try {
         const { userIds, payload } = JSON.parse(raw);
         for (const id of userIds) {
@@ -56,14 +78,21 @@ export function initWebsocket(server: Server) {
             if (c.readyState === WebSocket.OPEN) c.send(JSON.stringify(payload));
           }
         }
-      } catch {
-        /* ignore */
-      }
+      } catch { /* ignore */ }
     });
     console.log("🔌 WebSocket server initialized on /ws (with Redis pub/sub)");
   } else {
     console.log("🔌 WebSocket server initialized on /ws (single-instance mode, no Redis)");
   }
+
+  // Cleanup on server close
+  server.on("close", () => {
+    if (subRedis) {
+      subRedis.unsubscribe();
+      subRedis.quit();
+    }
+    wss.close();
+  });
 }
 
 function addClient(userId: string, ws: Client) {
