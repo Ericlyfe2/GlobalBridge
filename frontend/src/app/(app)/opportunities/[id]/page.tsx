@@ -42,7 +42,7 @@ function mapOpp(r: RawOpp): Opportunity {
     id: r.id,
     title: r.title,
     type: r.type,
-    provider: r.institution ?? "GlobalPath verified",
+    provider: r.institution ?? "GlobalBridge verified",
     country: r.country,
     flag: COUNTRY_FLAG[r.country] ?? "un",
     amount,
@@ -60,8 +60,8 @@ function mapOpp(r: RawOpp): Opportunity {
     ],
     fields: r.field_of_study ? [r.field_of_study] : ["All fields"],
     benefits: r.sponsors_visa
-      ? ["Visa sponsorship available", "Funding as listed", "Mentorship via GlobalPath"]
-      : ["Funding as listed", "Mentorship via GlobalPath"],
+      ? ["Visa sponsorship available", "Funding as listed", "Mentorship via GlobalBridge"]
+      : ["Funding as listed", "Mentorship via GlobalBridge"],
     applyUrl: r.application_url ?? "#",
   };
 }

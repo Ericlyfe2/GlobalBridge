@@ -300,7 +300,7 @@ function ChecklistModal({ messages, onClose }: { messages: Msg[]; onClose: () =>
 
   function downloadTxt() {
     const lines: string[] = [];
-    lines.push(`GlobalPath — ${d.visaType} document checklist`);
+    lines.push(`GlobalBridge — ${d.visaType} document checklist`);
     lines.push(d.origin && d.destination ? `${d.origin} → ${d.destination}` : "Personalize by chatting first.");
     lines.push("");
     for (const sec of sections) {
@@ -314,7 +314,7 @@ function ChecklistModal({ messages, onClose }: { messages: Msg[]; onClose: () =>
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `globalpath-checklist-${d.visaType.toLowerCase().replace(/\s+/g, "-")}.txt`;
+    a.download = `globalbridge-checklist-${d.visaType.toLowerCase().replace(/\s+/g, "-")}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   }

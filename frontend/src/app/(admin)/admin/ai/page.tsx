@@ -8,7 +8,7 @@ export default function AIConfigPage() {
   const [temperature, setTemperature] = useState(0.3);
   const [escalateThreshold, setEscalateThreshold] = useState(0.6);
   const [systemPrompt, setSystemPrompt] = useState(
-    `You are GlobalPath's immigration assistant. Always cite the official government source URL when you quote a rule. If you are not 100% sure, say so and escalate to a verified human mentor. Never give legal advice. Be concise — short sentences, numbered steps.`,
+    `You are GlobalBridge's immigration assistant. Always cite the official government source URL when you quote a rule. If you are not 100% sure, say so and escalate to a verified human mentor. Never give legal advice. Be concise — short sentences, numbered steps.`,
   );
   const [enabled, setEnabled] = useState({ chat: true, docCheck: true, scamDetect: true, translate: true });
 

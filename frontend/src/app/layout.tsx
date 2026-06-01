@@ -4,7 +4,7 @@ import { ToastProvider } from "@/components/Toast";
 import { LanguageProvider } from "@/components/LanguageProvider";
 
 export const metadata: Metadata = {
-  title: "GlobalPath — Your Trusted Guide Abroad",
+  title: "GlobalBridge — Your Trusted Guide Abroad",
   description: "AI-powered platform for international students and immigrants. Verified visa guidance, housing, mentorship, jobs.",
   icons: {
     icon: [

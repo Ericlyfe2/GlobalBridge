@@ -1,4 +1,4 @@
--- GlobalPath migration 002 — stories, notifications, saved items, bookings
+-- GlobalBridge migration 002 — stories, notifications, saved items, bookings
 -- Idempotent.
 
 -- ===== Success stories =====
@@ -67,7 +67,7 @@ VALUES
   'The AI assistant walked me through my Canada study permit in 20 minutes. Saved me $400 on a consultant.',
   '3 visa rejection scares, 2 fake agents contacted me',
   'Permit approved in 4 weeks. Now interning at a startup.',
-  'Three rejections in nine months. Two fake visa agents in my DMs. This is how I got my Canadian Study Permit using GlobalPath.'),
+  'Three rejections in nine months. Two fake visa agents in my DMs. This is how I got my Canadian Study Permit using GlobalBridge.'),
  ('22222222-2222-2222-2222-222222222222', 'Kwame A.', 'Accra, Ghana', 'gh', 'Manchester, UK', 'gb',
   'MSc Finance · Alliance Manchester', 'Verified housing', '2026',
   'I found verified housing two weeks before flying out. No scams, no surprises. Met my roommate via the matching tool.',

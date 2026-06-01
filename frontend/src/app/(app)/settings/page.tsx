@@ -21,7 +21,7 @@ export default function SettingsPage() {
         <Section icon={<Bell size={16} />} title="Notifications">
           <Toggle label="Email notifications" sub="Application deadlines, mentor replies, verified opportunities." value={emailNotif} onChange={setEmailNotif} />
           <Toggle label="SMS alerts" sub="Critical reminders only (visa deadlines, scam alerts)." value={smsNotif} onChange={setSmsNotif} />
-          <Toggle label="Browser push" sub="Real-time notifications when GlobalPath is open." value={pushNotif} onChange={setPushNotif} />
+          <Toggle label="Browser push" sub="Real-time notifications when GlobalBridge is open." value={pushNotif} onChange={setPushNotif} />
         </Section>
 
         {/* Language */}

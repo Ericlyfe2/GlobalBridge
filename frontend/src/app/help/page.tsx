@@ -13,7 +13,7 @@ const faqs: { topic: Exclude<Topic, "all">; q: string; a: string }[] = [
   { topic: "account",  q: "How do I delete my account?",                a: "Settings → Danger zone → Delete account. Removes your profile, messages, applications. Cannot be undone." },
   { topic: "account",  q: "What's the verification badge?",             a: "A trust signal we issue after confirming your identity (ID + status documents). Mentors with a badge appear higher in search. See /dashboard/verification." },
 
-  { topic: "visa",     q: "Does GlobalPath process my visa for me?",  a: "No. We provide guidance, document checklists, and verified mentor support. The official visa application is always done via the destination country's government portal." },
+  { topic: "visa",     q: "Does GlobalBridge process my visa for me?",  a: "No. We provide guidance, document checklists, and verified mentor support. The official visa application is always done via the destination country's government portal." },
   { topic: "visa",     q: "Why does the AI assistant say 'verify with official source'?",  a: "Immigration rules change frequently. Even when our AI is confident, the law is what's on the gov website. We cite the source URL so you can double-check." },
   { topic: "visa",     q: "Can I escalate to a human?",                  a: "Yes. In any AI chat, type 'connect me to a mentor' and we'll match you with a verified mentor within 24h based on your origin → destination pair." },
 
@@ -25,9 +25,9 @@ const faqs: { topic: Exclude<Topic, "all">; q: string; a: string }[] = [
 
   { topic: "payments", q: "What payment methods are accepted?",          a: "Cards via Stripe (most countries). Paystack for Nigeria, Ghana, Kenya. M-Pesa support coming Q3 2026." },
   { topic: "payments", q: "Do you charge transaction fees?",             a: "We don't take a cut of mentor sessions for Free tier. For housing deposits via Stripe Connect, there's a 0.5% fee to cover escrow." },
-  { topic: "payments", q: "Can I get a refund on Verified subscription?",a: "Yes, within 14 days of purchase, no questions asked. Email billing@globalpath.app." },
+  { topic: "payments", q: "Can I get a refund on Verified subscription?",a: "Yes, within 14 days of purchase, no questions asked. Email billing@globalbridge.app." },
 
-  { topic: "safety",   q: "How do I report a scam?",                      a: "Three ways: red 'Report' button on any listing/DM, the /scam-alerts page, or email safety@globalpath.app. We action verified scams within 4 hours." },
+  { topic: "safety",   q: "How do I report a scam?",                      a: "Three ways: red 'Report' button on any listing/DM, the /scam-alerts page, or email safety@globalbridge.app. We action verified scams within 4 hours." },
   { topic: "safety",   q: "Is my data secure?",                           a: "Encryption at rest + in transit. SOC 2 Type II audit in progress (Q3 2026). Read full security details in /privacy." },
   { topic: "safety",   q: "Can mentors see my real identity?",            a: "Only your display name + verified country. Mentors don't see your address, ID number, or payment details. Anonymous (safe-space) forum hides even your account." },
 ];

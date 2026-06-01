@@ -16,13 +16,13 @@ export default function TermsPage() {
         </header>
 
         <p className="text-base text-ink-700 leading-relaxed mb-10">
-          Welcome to GlobalPath. By creating an account, you agree to the terms below. They&apos;re written in plain English where possible.
+          Welcome to GlobalBridge. By creating an account, you agree to the terms below. They&apos;re written in plain English where possible.
         </p>
 
-        <Section icon={<FileText size={16} />} title="1. What GlobalPath is">
+        <Section icon={<FileText size={16} />} title="1. What GlobalBridge is">
 
           <p>
-            GlobalPath is an information + community platform for international students and immigrants.
+            GlobalBridge is an information + community platform for international students and immigrants.
             We provide guidance, verified listings, AI assistance, and mentor matching.
             <strong> We are not a law firm, immigration consultancy, university, or government agency.</strong>
             We do not file visa applications on your behalf.
@@ -48,7 +48,7 @@ export default function TermsPage() {
             <li>Respect mentors&apos; time — no-shows beyond 2 incur a 30-day booking cooldown.</li>
           </ul>
           <p className="mt-3">
-            You retain ownership of content you post. By posting, you grant GlobalPath a non-exclusive license to display + moderate it on the platform.
+            You retain ownership of content you post. By posting, you grant GlobalBridge a non-exclusive license to display + moderate it on the platform.
           </p>
         </Section>
 
@@ -56,7 +56,7 @@ export default function TermsPage() {
           <p>
             We may suspend or terminate accounts that violate these terms or our community policy.
             Severe violations (fraud, scams, harassment) → immediate termination + data forwarded to relevant authorities.
-            You can appeal any decision via <a href="mailto:appeals@globalpath.app" className="text-clay-600 hover:underline">appeals@globalpath.app</a> within 30 days.
+            You can appeal any decision via <a href="mailto:appeals@globalbridge.app" className="text-clay-600 hover:underline">appeals@globalbridge.app</a> within 30 days.
           </p>
         </Section>
 
@@ -78,7 +78,7 @@ export default function TermsPage() {
 
         <Section icon={<Gavel size={16} />} title="7. Liability + disclaimers">
           <p>
-            GlobalPath is provided &ldquo;as is&rdquo;. To the maximum extent permitted by law, we&apos;re not liable for:
+            GlobalBridge is provided &ldquo;as is&rdquo;. To the maximum extent permitted by law, we&apos;re not liable for:
           </p>
           <ul className="list-disc pl-5 space-y-1.5 mt-2">
             <li>Visa or scholarship rejections.</li>

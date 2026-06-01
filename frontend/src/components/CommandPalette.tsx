@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getUser } from "@/lib/auth";
 import {
   Search, ArrowRight, LayoutDashboard, Bot, Award, Home, Users, Briefcase, MessageSquare,
   Bell, LifeBuoy, ShieldCheck, FileCheck, Calendar, Settings, AlertOctagon, Sparkles,
@@ -14,8 +15,15 @@ type Item = {
   icon: React.ReactNode; hint?: string;
 };
 
-const items: Item[] = [
-  // App
+const adminItems: Item[] = [
+  { id: "adm",   label: "Admin Console",     group: "Admin", href: "/admin",                 icon: <AlertOctagon size={14} /> },
+  { id: "advu",  label: "Admin · Users",     group: "Admin", href: "/admin/users",           icon: <Users size={14} /> },
+  { id: "advv",  label: "Admin · Verifications", group: "Admin", href: "/admin/verifications", icon: <ShieldCheck size={14} /> },
+  { id: "advl",  label: "Admin · Listings",  group: "Admin", href: "/admin/listings",        icon: <FileText size={14} /> },
+  { id: "advr",  label: "Admin · Reports",   group: "Admin", href: "/admin/reports",         icon: <Flag size={14} /> },
+];
+
+const baseItems: Item[] = [
   { id: "dash",  label: "Dashboard",         group: "App", href: "/dashboard",     icon: <LayoutDashboard size={14} /> },
   { id: "ai",    label: "AI Assistant",      group: "App", href: "/assistant",     icon: <Bot size={14} />, hint: "Visa Q&A" },
   { id: "opps",  label: "Opportunities",     group: "App", href: "/opportunities", icon: <Award size={14} /> },
@@ -31,7 +39,6 @@ const items: Item[] = [
   { id: "lib",   label: "Podcast & Video Library", group: "App", href: "/library", icon: <Headphones size={14} />, hint: "Student stories, vlogs, interviews" },
   { id: "safe",  label: "Safe Space (anonymous)",  group: "App", href: "/community/safe-space", icon: <Lock size={14} />, hint: "Mental health, discrimination, legal" },
 
-  // AI tools
   { id: "doc",     label: "AI Document Checker",     group: "AI Tools", href: "/tools/doc-checker",          icon: <FileCheck size={14} />,  hint: "Validate passport, transcript" },
   { id: "match",   label: "Scholarship Matcher",     group: "AI Tools", href: "/tools/scholarship-matcher",  icon: <Sparkles size={14} />,   hint: "Profile → ranked matches" },
   { id: "tline",   label: "Timeline Planner",        group: "AI Tools", href: "/tools/timeline",             icon: <Calendar size={14} />,   hint: "Visa to arrival milestones" },
@@ -39,13 +46,11 @@ const items: Item[] = [
   { id: "uni",     label: "University Success Dashboard", group: "AI Tools", href: "/tools/uni-success",     icon: <BarChart3 size={14} />,  hint: "Visa approval, employment, satisfaction" },
   { id: "peer",    label: "Peer Essay Review",       group: "AI Tools", href: "/tools/peer-review",          icon: <Users size={14} />,      hint: "Anonymous structured feedback" },
 
-  // Jobs sub
   { id: "resume",  label: "Resume Builder",          group: "Jobs",    href: "/jobs/resume-builder",        icon: <FileText size={14} />,   hint: "UK CV, US Resume, Lebenslauf" },
   { id: "sponsor", label: "Visa Sponsorship Tracker", group: "Jobs",    href: "/jobs/sponsorship-tracker",   icon: <ShieldCheck size={14} />, hint: "Companies that sponsor" },
   { id: "salary",  label: "Salary Benchmarking",     group: "Jobs",    href: "/jobs/salary",                icon: <DollarSign size={14} />, hint: "Median pay by role + country" },
   { id: "ready",   label: "Job Readiness Courses",   group: "Jobs",    href: "/jobs/readiness",             icon: <GraduationCap size={14} />, hint: "Culture, interview, rights" },
 
-  // Toolkit
   { id: "cost",    label: "Cost of Living Calculator", group: "Toolkit", href: "/toolkit/cost",       icon: <Landmark size={14} /> },
   { id: "bank",    label: "Banking Setup",             group: "Toolkit", href: "/toolkit/banking",    icon: <Landmark size={14} /> },
   { id: "hlth",    label: "Healthcare Navigation",     group: "Toolkit", href: "/toolkit/healthcare", icon: <Stethoscope size={14} /> },
@@ -56,22 +61,13 @@ const items: Item[] = [
   { id: "tax",     label: "Tax Filing Guide",          group: "Toolkit", href: "/toolkit/tax",        icon: <FileText size={14} /> },
   { id: "fund",    label: "Blocked-Country Fund Transfer", group: "Toolkit", href: "/toolkit/fund-transfer", icon: <Landmark size={14} />, hint: "Nigeria, Ghana, Zimbabwe..." },
 
-  // Country hubs
   { id: "c-gh",  label: "Ghana community",   group: "Country hubs", href: "/community/ghana",  icon: <Users size={14} /> },
   { id: "c-ng",  label: "Nigeria community", group: "Country hubs", href: "/community/nigeria", icon: <Users size={14} /> },
   { id: "c-in",  label: "India community",   group: "Country hubs", href: "/community/india",  icon: <Users size={14} /> },
 
-  // Account
   { id: "prof",  label: "My Profile",        group: "Account", href: "/dashboard/profile",       icon: <Users size={14} /> },
   { id: "vrf",   label: "Verification",      group: "Account", href: "/dashboard/verification",  icon: <ShieldCheck size={14} /> },
   { id: "set",   label: "Settings",          group: "Account", href: "/settings",                icon: <Settings size={14} /> },
-
-  // Admin
-  { id: "adm",   label: "Admin Console",     group: "Admin", href: "/admin",                 icon: <AlertOctagon size={14} /> },
-  { id: "advu",  label: "Admin · Users",     group: "Admin", href: "/admin/users",           icon: <Users size={14} /> },
-  { id: "advv",  label: "Admin · Verifications", group: "Admin", href: "/admin/verifications", icon: <ShieldCheck size={14} /> },
-  { id: "advl",  label: "Admin · Listings",  group: "Admin", href: "/admin/listings",        icon: <FileText size={14} /> },
-  { id: "advr",  label: "Admin · Reports",   group: "Admin", href: "/admin/reports",         icon: <Flag size={14} /> },
 ];
 
 export function CommandPalette() {
@@ -80,6 +76,9 @@ export function CommandPalette() {
   const [active, setActive] = useState(0);
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const isAdmin = typeof window !== "undefined" && getUser()?.role === "admin";
+
+  const items = useMemo(() => isAdmin ? [...baseItems, ...adminItems] : baseItems, [isAdmin]);
 
   // Open on Cmd/Ctrl + K
   useEffect(() => {

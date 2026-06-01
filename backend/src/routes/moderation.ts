@@ -40,6 +40,23 @@ moderationRouter.get("/reports", requireAuth, requireRole("admin"), async (_req,
   }
 });
 
+// Admin: resolve / dismiss a report
+moderationRouter.patch("/reports/:id", requireAuth, requireRole("admin"), async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    if (!["resolved", "dismissed"].includes(status)) {
+      return res.status(400).json({ error: "Invalid status. Use: resolved, dismissed" });
+    }
+    await query(
+      `UPDATE reports SET status = $1, resolved_by = $2, resolved_at = NOW() WHERE id = $3`,
+      [status, req.user!.sub, req.params.id]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
 moderationRouter.get("/scam-alerts", async (_req, res, next) => {
   try {
     const alerts = await query(

@@ -11,7 +11,7 @@ export function Footer() {
             <p className="mt-4 text-sm text-ink-600 max-w-xs">
               Trusted companion for international students and immigrants — before, during, and after their journey.
             </p>
-            <p className="mt-6 text-xs text-ink-500">© 2025 GlobalPath · Group 8 FYP</p>
+            <p className="mt-6 text-xs text-ink-500">© 2025 GlobalBridge · Group 8 FYP</p>
           </div>
 
           <FooterCol title="Platform" items={[

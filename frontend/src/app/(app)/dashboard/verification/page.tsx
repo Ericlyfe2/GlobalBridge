@@ -61,7 +61,7 @@ export default function VerificationPage() {
       </div>
 
       <p className="mt-8 text-xs text-ink-500">
-        Your documents are encrypted at rest and only reviewed by GlobalPath admins.
+        Your documents are encrypted at rest and only reviewed by GlobalBridge admins.
         We never share them with third parties.
       </p>
     </div>

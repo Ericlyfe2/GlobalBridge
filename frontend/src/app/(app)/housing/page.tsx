@@ -5,6 +5,27 @@ import { useEffect, useState } from "react";
 import { MapPin, Bed, Bath, ShieldCheck, Star, Search, SlidersHorizontal, Loader2 } from "lucide-react";
 import { SaveButton } from "@/components/SaveButton";
 
+const fallbackImgs = [
+  "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800",
+  "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800",
+  "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800",
+  "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800",
+  "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800",
+  "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=800",
+  "https://images.unsplash.com/photo-1523755231516-e43fd2e8dca5?w=800",
+  "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=800",
+  "https://images.unsplash.com/photo-1560185127-6ed189bf02f4?w=800",
+  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800",
+  "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
+  "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800",
+];
+
+function pickFallback(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = ((hash << 5) - hash) + id.charCodeAt(i);
+  return fallbackImgs[Math.abs(hash) % fallbackImgs.length];
+}
+
 type Listing = {
   id: string;
   title: string;
@@ -22,8 +43,6 @@ type Listing = {
   landlord_name: string;
   landlord_status: "pending" | "verified" | "rejected";
 };
-
-const fallbackImg = "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800";
 
 export default function HousingPage() {
   const [listings, setListings] = useState<Listing[] | null>(null);
@@ -125,7 +144,8 @@ export default function HousingPage() {
 
 function ListingCard({ l }: { l: Listing }) {
   const isVerified = l.landlord_status === "verified";
-  const img = (l.photos && l.photos[0]) || fallbackImg;
+  const fallback = pickFallback(l.id);
+  const img = (l.photos && l.photos[0]) || fallback;
   return (
     <Link href={`/housing/${l.id}`} className="card !p-0 overflow-hidden group cursor-pointer block">
       <div className="relative aspect-[4/3] bg-cream-200 overflow-hidden">
@@ -135,7 +155,7 @@ function ListingCard({ l }: { l: Listing }) {
           alt={l.title}
           onError={(e) => {
             const target = e.currentTarget;
-            if (target.src !== fallbackImg) target.src = fallbackImg;
+            if (target.src !== fallback) target.src = fallback;
           }}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />

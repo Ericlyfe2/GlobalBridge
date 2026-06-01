@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       max_tokens: 4096,
       system:
         `You are a professional UI translator. Translate each numbered line into ${langName}. ` +
-        `Preserve meaning, tone, and any placeholders. Do NOT translate brand names (GlobalPath), ` +
+        `Preserve meaning, tone, and any placeholders. Do NOT translate brand names (GlobalBridge), ` +
         `URLs, or code. Return ONLY a JSON array of strings in the same order, no keys, no commentary.`,
       messages: [{ role: "user", content: numbered }],
     });

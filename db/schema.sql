@@ -1,5 +1,5 @@
 
--- GlobalPath Database Schema
+-- GlobalBridge Database Schema
 -- PostgreSQL 16+
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

@@ -132,10 +132,10 @@ export default function ContactPage() {
                 <Mail size={14} className="text-clay-500" /> Direct email
               </h3>
               <ul className="space-y-2 text-sm">
-                <li><span className="text-ink-500">General:</span> <a className="text-clay-600 hover:underline" href="mailto:hello@globalpath.app">hello@globalpath.app</a></li>
-                <li><span className="text-ink-500">Support:</span> <a className="text-clay-600 hover:underline" href="mailto:support@globalpath.app">support@globalpath.app</a></li>
-                <li><span className="text-ink-500">Safety:</span> <a className="text-clay-600 hover:underline" href="mailto:safety@globalpath.app">safety@globalpath.app</a></li>
-                <li><span className="text-ink-500">Privacy:</span> <a className="text-clay-600 hover:underline" href="mailto:privacy@globalpath.app">privacy@globalpath.app</a></li>
+                <li><span className="text-ink-500">General:</span> <a className="text-clay-600 hover:underline" href="mailto:hello@globalbridge.app">hello@globalbridge.app</a></li>
+                <li><span className="text-ink-500">Support:</span> <a className="text-clay-600 hover:underline" href="mailto:support@globalbridge.app">support@globalbridge.app</a></li>
+                <li><span className="text-ink-500">Safety:</span> <a className="text-clay-600 hover:underline" href="mailto:safety@globalbridge.app">safety@globalbridge.app</a></li>
+                <li><span className="text-ink-500">Privacy:</span> <a className="text-clay-600 hover:underline" href="mailto:privacy@globalbridge.app">privacy@globalbridge.app</a></li>
               </ul>
             </div>
 
@@ -155,7 +155,7 @@ export default function ContactPage() {
                 <Globe size={14} className="text-clay-500" /> Office
               </h3>
               <p className="text-sm text-ink-700">
-                GlobalPath HQ<br />
+                GlobalBridge HQ<br />
                 KNUST IT Department<br />
                 Kumasi, Ghana
               </p>

@@ -1,4 +1,4 @@
-# GlobalPath
+# GlobalBridge
 
 Online platform for immigrant & student support — AI visa guidance, verified housing marketplace, mentorship, jobs, life-support toolkit.
 
@@ -9,7 +9,7 @@ Online platform for immigrant & student support — AI visa guidance, verified h
 ## Architecture
 
 ```
-globalpath/
+globalbridge/
 ├── frontend/      Next.js 15 + Tailwind v4 (React UI, SSR)
 ├── backend/       Node.js + Express (REST API + WebSocket)
 ├── ai/            Python + FastAPI (Visa assistant, doc checker)

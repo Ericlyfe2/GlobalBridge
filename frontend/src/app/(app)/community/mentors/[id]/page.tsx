@@ -158,7 +158,7 @@ export default function MentorPage({ params }: { params: Promise<{ id: string }>
           ) : (
             <div className="card">
               <h2 className="font-display text-xl font-semibold text-ink-900">Book a 1:1 with {m.name.split(" ")[0]}</h2>
-              <p className="text-sm text-ink-600 mt-1">{m.price} for verified students. Video call via GlobalPath meeting.</p>
+              <p className="text-sm text-ink-600 mt-1">{m.price} for verified students. Video call via GlobalBridge meeting.</p>
 
               {/* Duration */}
               <div className="mt-5">
@@ -266,7 +266,7 @@ function ConfirmCard({ mentor, slot, duration, onReset }: { mentor: Mentor; slot
         </div>
         <div>
           <h2 className="font-display text-xl font-semibold text-ink-900">Session booked</h2>
-          <p className="text-sm text-ink-600 mt-1">Calendar invite + GlobalPath meeting link sent to your email.</p>
+          <p className="text-sm text-ink-600 mt-1">Calendar invite + GlobalBridge meeting link sent to your email.</p>
         </div>
       </div>
 

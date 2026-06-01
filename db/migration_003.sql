@@ -1,4 +1,4 @@
--- GlobalPath migration 003 — performance indexes
+-- GlobalBridge migration 003 — performance indexes
 -- Idempotent. Run after schema.sql + migration_002.sql.
 -- Requires pg_trgm extension (already enabled in schema.sql).
 

@@ -1,4 +1,4 @@
-"""GlobalPath AI Service.
+"""GlobalBridge AI Service.
 
 FastAPI microservice for visa guidance, document checking, and translation.
 Backed by Anthropic Claude with prompt caching for cost control.
@@ -19,7 +19,7 @@ from translator import translate_text
 
 load_dotenv()
 
-app = FastAPI(title="GlobalPath AI", version="0.1.0")
+app = FastAPI(title="GlobalBridge AI", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -64,7 +64,7 @@ class TranslateRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "globalpath-ai"}
+    return {"status": "ok", "service": "globalbridge-ai"}
 
 
 @app.post("/chat")

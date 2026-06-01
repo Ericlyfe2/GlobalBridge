@@ -20,7 +20,7 @@ export function Logo({ className = "" }: { className?: string }) {
         </svg>
       </div>
       <span className="font-display text-xl font-semibold tracking-tight text-ink-900">
-        GlobalPath
+        GlobalBridge
       </span>
     </div>
   );

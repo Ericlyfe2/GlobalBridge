@@ -3,7 +3,7 @@ import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
-const SYSTEM_PROMPT = `You are GlobalPath's AI Application Coach.
+const SYSTEM_PROMPT = `You are GlobalBridge's AI Application Coach.
 
 ## Your job
 Score a student's application essay (SoP, Personal Statement, Scholarship Essay, Motivation Letter, or Cover Letter) against the rubric below and return structured feedback that helps them improve before they submit.

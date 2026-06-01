@@ -16,12 +16,12 @@ export default function PrivacyPage() {
         </header>
 
         <p className="text-base text-ink-700 leading-relaxed mb-10">
-          GlobalPath collects only what we need to help you study or work abroad safely.
+          GlobalBridge collects only what we need to help you study or work abroad safely.
           We never sell your data. This page explains exactly what we collect, why, and how to delete it.
         </p>
 
         <Section icon={<Eye size={16} />} title="What we collect">
-          <p>When you create an account or use GlobalPath, we collect:</p>
+          <p>When you create an account or use GlobalBridge, we collect:</p>
           <ul className="list-disc pl-5 space-y-1.5 mt-2">
             <li><strong>Profile info</strong>: name, email, country of origin, target destination, field of study, language preference.</li>
             <li><strong>Verification documents</strong>: passport scan, study permit, or acceptance letter — only if you choose to submit them for verification. We keep them only as long as the review takes, then delete them.</li>
@@ -60,7 +60,7 @@ export default function PrivacyPage() {
             <li><strong>Export</strong> your data as JSON via Settings → Privacy → Export.</li>
             <li><strong>Delete</strong> your account (and all data) via Settings → Danger zone.</li>
             <li><strong>Correct</strong> any info via Profile editor.</li>
-            <li><strong>Object</strong> to specific data uses by emailing <a href="mailto:privacy@globalpath.app" className="text-clay-600 hover:underline">privacy@globalpath.app</a>.</li>
+            <li><strong>Object</strong> to specific data uses by emailing <a href="mailto:privacy@globalbridge.app" className="text-clay-600 hover:underline">privacy@globalbridge.app</a>.</li>
           </ul>
           <p className="mt-3">
             GDPR (EU), CCPA (California), and POPIA (South Africa) requests are honored within 30 days.
@@ -83,8 +83,8 @@ export default function PrivacyPage() {
         <Section icon={<Mail size={16} />} title="Contact us">
           <p>Privacy questions, GDPR/CCPA requests, or to report a security issue:</p>
           <ul className="mt-3 space-y-1.5">
-            <li><strong>Email</strong>: <a href="mailto:privacy@globalpath.app" className="text-clay-600 hover:underline">privacy@globalpath.app</a></li>
-            <li><strong>Postal</strong>: GlobalPath Privacy Office · KNUST IT Department · Kumasi, Ghana</li>
+            <li><strong>Email</strong>: <a href="mailto:privacy@globalbridge.app" className="text-clay-600 hover:underline">privacy@globalbridge.app</a></li>
+            <li><strong>Postal</strong>: GlobalBridge Privacy Office · KNUST IT Department · Kumasi, Ghana</li>
             <li><strong>EU representative</strong>: TBD (will be appointed before EU launch)</li>
           </ul>
         </Section>

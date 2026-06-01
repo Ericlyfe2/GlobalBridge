@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ShieldCheck, ArrowLeft, Search, TrendingUp, TrendingDown, Building2, ExternalLink } from "lucide-react";
 
 type Country = "uk" | "ca" | "de" | "us" | "au" | "all";
@@ -44,18 +44,60 @@ const tierTone: Record<Tier, string> = {
 
 const tierLabel: Record<Tier, string> = { high: "Strong sponsor", med: "Moderate sponsor", low: "Rarely sponsors" };
 
+type RawSponsor = {
+  company_name: string; industry: string | null; company_size: string | null;
+  company_website: string | null; visa_sponsorship_countries: string[] | null; open_roles: number;
+};
+
+const COUNTRY_CODE: Record<string, Exclude<Country, "all">> = {
+  "United Kingdom": "uk", "Canada": "ca", "Germany": "de", "United States": "us", "Australia": "au",
+};
+const CODE_FLAG: Record<Exclude<Country, "all">, string> = { uk: "gb", ca: "ca", de: "de", us: "us", au: "au" };
+
+function mapSponsor(s: RawSponsor): Company {
+  const code = COUNTRY_CODE[s.visa_sponsorship_countries?.[0] ?? ""] ?? "uk";
+  const ind = (["tech", "finance", "consulting", "academia", "healthcare", "media"]
+    .includes((s.industry ?? "").toLowerCase())
+    ? (s.industry as string).toLowerCase()
+    : "tech") as Exclude<Industry, "all">;
+  return {
+    name: s.company_name, industry: ind, country: code, flag: CODE_FLAG[code],
+    visaType: "Sponsor (verified employer)", sponsored2024: s.open_roles, approvalRate: 90,
+    tier: "high", trend: "stable", size: s.company_size ?? "—",
+    notes: `${s.open_roles} open role(s) posted on GlobalBridge.`, url: s.company_website ?? "#",
+  };
+}
+
 export default function SponsorshipTracker() {
   const [country, setCountry] = useState<Country>("all");
   const [industry, setIndustry] = useState<Industry>("all");
   const [q, setQ] = useState("");
+  const [companies, setCompanies] = useState<Company[]>(sample);
+
+  // Live verified employers from the backend get prepended above the curated reference data.
+  useEffect(() => {
+    const ctrl = new AbortController();
+    (async () => {
+      try {
+        const res = await fetch("/api/jobs/sponsors", { signal: ctrl.signal });
+        const data = await res.json();
+        const live = ((data.sponsors ?? []) as RawSponsor[]).map(mapSponsor);
+        if (live.length) {
+          const names = new Set(live.map((c) => c.name.toLowerCase()));
+          setCompanies([...live, ...sample.filter((c) => !names.has(c.name.toLowerCase()))]);
+        }
+      } catch { /* keep curated list */ }
+    })();
+    return () => ctrl.abort();
+  }, []);
 
   const filtered = useMemo(() => {
-    return sample
+    return companies
       .filter((c) => (country === "all" || c.country === country))
       .filter((c) => (industry === "all" || c.industry === industry))
       .filter((c) => !q || c.name.toLowerCase().includes(q.toLowerCase()))
       .sort((a, b) => b.sponsored2024 - a.sponsored2024);
-  }, [country, industry, q]);
+  }, [companies, country, industry, q]);
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">

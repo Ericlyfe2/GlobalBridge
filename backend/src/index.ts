@@ -16,6 +16,7 @@ import { messagesRouter } from "./routes/messages";
 import { aiRouter } from "./routes/ai";
 import { moderationRouter } from "./routes/moderation";
 import { contentRouter } from "./routes/content";
+import { jobsRouter } from "./routes/jobs";
 import { errorHandler } from "./middleware/error";
 import { csrfProtection } from "./middleware/csrf";
 import { initWebsocket } from "./ws";
@@ -41,7 +42,7 @@ app.use(
   })
 );
 
-app.get("/health", (_req, res) => res.json({ status: "ok", service: "globalpath-api" }));
+app.get("/health", (_req, res) => res.json({ status: "ok", service: "globalbridge-api" }));
 
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
@@ -52,11 +53,12 @@ app.use("/api/messages", messagesRouter);
 app.use("/api/ai", aiRouter);
 app.use("/api/moderation", moderationRouter);
 app.use("/api/content", contentRouter);
+app.use("/api/jobs", jobsRouter);
 
 app.use(errorHandler);
 
 const server = app.listen(PORT, () => {
-  console.log(`🌍 GlobalPath API running on http://localhost:${PORT}`);
+  console.log(`🌍 GlobalBridge API running on http://localhost:${PORT}`);
 });
 
 initWebsocket(server);

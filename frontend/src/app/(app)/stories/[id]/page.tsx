@@ -32,7 +32,7 @@ function initialsOf(name: string): string {
 
 function mapStory(r: RawStory, related: Related[]): Story {
   const chapters = [];
-  if (r.before_text) chapters.push({ title: "Before GlobalPath", body: r.before_text });
+  if (r.before_text) chapters.push({ title: "Before GlobalBridge", body: r.before_text });
   if (r.body) chapters.push({ title: "The journey", body: r.body });
   if (r.after_text) chapters.push({ title: "The outcome", body: r.after_text });
   if (!chapters.length) chapters.push({ title: "The story", body: r.quote });

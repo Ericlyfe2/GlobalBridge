@@ -6,7 +6,7 @@ import { AlertOctagon, RefreshCw, Home, Bot } from "lucide-react";
 
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
-    console.error("[GlobalPath] route error:", error);
+    console.error("[GlobalBridge] route error:", error);
   }, [error]);
 
   return (

@@ -17,7 +17,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="w-full max-w-md">{children}</div>
         </main>
         <footer className="px-8 py-6 text-xs text-ink-500">
-          © 2025 GlobalPath · Group 8
+          © 2025 GlobalBridge
         </footer>
       </div>
 
@@ -28,7 +28,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         <div className="relative max-w-md">
           <blockquote className="font-display text-3xl leading-tight">
-            &ldquo;GlobalPath turned my Canada study permit nightmare into a 30-minute conversation.&rdquo;
+            &ldquo;GlobalBridge turned my Canada study permit nightmare into a 30-minute conversation.&rdquo;
           </blockquote>
           <div className="mt-6 flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-medium">A</div>

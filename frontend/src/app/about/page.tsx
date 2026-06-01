@@ -37,7 +37,7 @@ export default function AboutPage() {
             We&apos;re the bridge we wished we had.
           </h1>
           <p className="mt-6 text-lg md:text-xl text-ink-600 leading-relaxed">
-            GlobalPath started as a Final Year Project at KNUST in 2024.
+            GlobalBridge started as a Final Year Project at KNUST in 2024.
             We were two CS students from Ghana watching friends get scammed by fake visa agents,
             losing thousands of dollars to fake housing listings, and graduating with nowhere to go because no one shared the playbook.
           </p>

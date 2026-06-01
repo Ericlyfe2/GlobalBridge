@@ -41,7 +41,7 @@ export default function ResumeBuilder() {
   const [skills, setSkills]   = useState("TypeScript, React, Next.js, Node.js, Express, PostgreSQL, Tailwind, Git, Linux, Python");
   const [experience, setExperience] = useState<Exp[]>([
     { id: "e1", title: "Frontend Developer (Intern)", org: "TechCo Ghana", from: "Jun 2025", to: "Sep 2025", bullets: "Shipped new dashboard reducing bounce 23%.\nBuilt component library used across 4 internal apps.\nMentored 2 junior interns." },
-    { id: "e2", title: "Personal Projects",            org: "Open source",   from: "2024",     to: "Present",   bullets: "GlobalPath — international student platform (this app).\nKNUST shuttle tracker — used by 800+ students." },
+    { id: "e2", title: "Personal Projects",            org: "Open source",   from: "2024",     to: "Present",   bullets: "GlobalBridge — international student platform (this app).\nKNUST shuttle tracker — used by 800+ students." },
   ]);
   const [education, setEducation] = useState("BSc Information Technology · KNUST · Expected 2026 · GPA 3.7/4.0");
   const [languages, setLanguages] = useState("English (fluent), Twi (native), French (intermediate)");

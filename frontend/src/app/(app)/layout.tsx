@@ -101,7 +101,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             const active = pathname === n.href || pathname.startsWith(n.href + "/");
             return (
               <Link
-                key={n.href}
+                key={n.label}
                 href={n.href}
                 className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition ${
                   active

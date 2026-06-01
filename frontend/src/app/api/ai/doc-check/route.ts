@@ -3,7 +3,7 @@ import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
-const SYSTEM_PROMPT = `You are GlobalPath's document validity checker.
+const SYSTEM_PROMPT = `You are GlobalBridge's document validity checker.
 
 ## Your job
 Analyze a document the user is preparing for an international application (passport, national ID, bank statement, academic transcript, acceptance letter, study permit). Return common rejection-trigger findings before they submit.

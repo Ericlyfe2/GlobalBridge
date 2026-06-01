@@ -157,7 +157,7 @@ function FivePillars() {
           Everything you need, end to end.
         </h2>
         <p className="mt-4 text-lg text-ink-600">
-          Common App stops at admission. LinkedIn stops at job search. GlobalPath supports you through the entire journey.
+          Common App stops at admission. LinkedIn stops at job search. GlobalBridge supports you through the entire journey.
         </p>
       </div>
 
@@ -222,7 +222,7 @@ function AIAssistantShowcase() {
           <div className="card !bg-slate-800 !border-slate-700 !text-slate-100">
             <div className="flex items-center gap-2 mb-4 pb-4 border-b border-slate-700">
               <div className="w-2.5 h-2.5 rounded-full bg-clay-500 animate-pulse-glow" />
-              <span className="text-xs text-slate-400 font-mono">globalpath-ai · live</span>
+              <span className="text-xs text-slate-400 font-mono">globalbridge-ai · live</span>
             </div>
 
             <div className="space-y-4">
@@ -284,7 +284,7 @@ function ComparisonTable() {
   return (
     <section className="max-w-7xl mx-auto px-6 lg:px-8 py-24">
       <div className="max-w-2xl mb-12">
-        <p className="text-sm font-medium text-clay-600 mb-3">WHY GLOBALPATH</p>
+        <p className="text-sm font-medium text-clay-600 mb-3">WHY GLOBALBRIDGE</p>
         <h2 className="text-4xl md:text-5xl font-semibold text-ink-900 tracking-tight">
           We don&apos;t compete. We transcend.
         </h2>
@@ -297,7 +297,7 @@ function ComparisonTable() {
               <th className="text-left px-6 py-4 text-sm font-semibold text-ink-700">Feature</th>
               <th className="px-6 py-4 text-sm font-semibold text-ink-700">Common App</th>
               <th className="px-6 py-4 text-sm font-semibold text-ink-700">LinkedIn</th>
-              <th className="px-6 py-4 text-sm font-semibold text-clay-600">GlobalPath</th>
+              <th className="px-6 py-4 text-sm font-semibold text-clay-600">GlobalBridge</th>
             </tr>
           </thead>
           <tbody>
@@ -419,7 +419,7 @@ function CTA() {
             Start your journey today.
           </h2>
           <p className="mt-4 text-lg text-white/85">
-            Join thousands of students using GlobalPath to navigate their international education with confidence.
+            Join thousands of students using GlobalBridge to navigate their international education with confidence.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/register" className="btn-primary !bg-white !text-slate-900 hover:!bg-slate-100">

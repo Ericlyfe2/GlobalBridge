@@ -137,7 +137,7 @@ export default function PricingPage() {
           <h2 className="font-display text-2xl font-semibold text-ink-900 mb-6">Pricing FAQ</h2>
           <div className="space-y-4">
             {[
-              { q: "Is GlobalPath really free for students?", a: "Yes. We commit to keeping core visa guidance, opportunity listings, scam alerts, and basic AI free forever. Verified tier is optional and exists to support the platform." },
+              { q: "Is GlobalBridge really free for students?", a: "Yes. We commit to keeping core visa guidance, opportunity listings, scam alerts, and basic AI free forever. Verified tier is optional and exists to support the platform." },
               { q: "Can I downgrade later?", a: "Yes, any time. Downgrades take effect at the end of the current billing cycle. No questions asked." },
               { q: "Do you offer scholarships / free Verified?", a: "Yes. Students from low-income countries can apply for sponsored Verified access via the application form on /contact." },
               { q: "What payment methods do you accept?", a: "Cards via Stripe (most countries). Paystack for Nigeria, Ghana, Kenya. M-Pesa support coming Q3 2026." },

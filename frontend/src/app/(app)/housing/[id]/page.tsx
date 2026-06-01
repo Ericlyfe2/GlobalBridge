@@ -6,6 +6,14 @@ import {
   ArrowLeft, ShieldCheck, MapPin, Star, Wifi, Snowflake, Sparkles, Train, GraduationCap, Check, Calendar, Heart, Share2, Loader2,
 } from "lucide-react";
 
+async function shareListing(title: string, url: string) {
+  if (navigator.share) {
+    await navigator.share({ title, url }).catch(() => {});
+  } else {
+    await navigator.clipboard.writeText(url);
+  }
+}
+
 type Listing = {
   id: string; title: string; city: string; country: string;
   price: number; currency: string; rating: number; reviews: number;
@@ -24,12 +32,26 @@ type RawListing = {
   landlord_name: string; landlord_status: "pending" | "verified" | "rejected";
 };
 
-const gradients = [
-  "bg-gradient-to-br from-sky-400 to-sky-600",
-  "bg-gradient-to-br from-amber-400 to-amber-600",
-  "bg-gradient-to-br from-leaf-500 to-leaf-700",
-  "bg-gradient-to-br from-clay-400 to-clay-600",
+const detailFallbacks = [
+  "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800",
+  "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800",
+  "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800",
+  "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800",
+  "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800",
+  "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=800",
+  "https://images.unsplash.com/photo-1523755231516-e43fd2e8dca5?w=800",
+  "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=800",
+  "https://images.unsplash.com/photo-1560185127-6ed189bf02f4?w=800",
+  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800",
+  "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
+  "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800",
 ];
+
+function detailPick(id: string, index: number): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = ((hash << 5) - hash) + id.charCodeAt(i);
+  return detailFallbacks[(Math.abs(hash) + index) % detailFallbacks.length];
+}
 
 function mapListing(r: RawListing): Listing {
   const name = r.landlord_name;
@@ -50,7 +72,7 @@ function mapListing(r: RawListing): Listing {
     verified: r.landlord_status === "verified",
     available: "Flexible",
     landlord: { name, initials, verified: r.landlord_status === "verified", replies: "Within a day", joined: "2025" },
-    photos: gradients,
+    photos: Array.from({ length: 4 }, (_, i) => detailPick(r.id, i)),
     amenities,
     nearby: r.near_university
       ? [{ label: r.near_university, mins: 8, icon: "uni" }]
@@ -122,16 +144,22 @@ export default function HousingDetail({ params }: { params: Promise<{ id: string
         </div>
         <div className="flex items-center gap-2">
           <button className="btn-ghost border border-cream-300 text-sm"><Heart size={14} /> Save</button>
-          <button className="btn-ghost border border-cream-300 text-sm"><Share2 size={14} /> Share</button>
+          <button onClick={() => shareListing(l.title, window.location.href)} className="btn-ghost border border-cream-300 text-sm"><Share2 size={14} /> Share</button>
         </div>
       </header>
 
       {/* Photos */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6 rounded-xl overflow-hidden h-[280px] sm:h-[360px]">
-        <div className={`col-span-2 row-span-2 ${l.photos[0]}`} />
-        <div className={l.photos[1]} />
-        <div className={l.photos[2]} />
-        <div className={l.photos[3]} />
+        <div className="col-span-2 row-span-2 relative bg-cream-100">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={l.photos[0]} alt="" className="w-full h-full object-cover" />
+        </div>
+        {l.photos.slice(1, 4).map((url, i) => (
+          <div key={i} className="relative bg-cream-100">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt="" className="w-full h-full object-cover" />
+          </div>
+        ))}
         <div className="bg-cream-200 flex items-center justify-center text-ink-600 text-sm font-medium hover:bg-cream-300 cursor-pointer transition">+ 8 photos</div>
       </div>
 

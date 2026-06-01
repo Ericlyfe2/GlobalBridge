@@ -1,4 +1,4 @@
-# GlobalPath — Setup Guide
+# GlobalBridge — Setup Guide
 
 ## Prerequisites
 
@@ -23,7 +23,7 @@ docker compose up -d
 Verify:
 ```bash
 docker ps
-# Expect: globalpath_postgres, globalpath_redis
+# Expect: globalbridge_postgres, globalbridge_redis
 ```
 
 Database schema auto-loads from `db/schema.sql` on first start.
@@ -118,7 +118,7 @@ Frontend runs on **http://localhost:3000**.
 - **Frontend**: Vercel (`vercel --prod` from `frontend/`)
 - **Backend**: Heroku, Railway, or AWS Elastic Beanstalk
 - **AI Service**: AWS Fargate, Google Cloud Run, or Railway
-- **Postgres**: Supabase, Neon, or AWS RDS
+- **Postgres**: Neon, AWS RDS, or any managed Postgres provider
 - **Redis**: Upstash or AWS ElastiCache
 - **Storage**: Cloudinary or AWS S3
 

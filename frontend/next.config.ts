@@ -5,7 +5,7 @@ const API = process.env.NEXT_PUBLIC_API_URL;
 
 // Only apply rewrites when API is configured and reachable.
 // In dev, set NEXT_PUBLIC_API_URL=http://localhost:4000 in .env.local.
-// On Vercel, set it to your deployed backend (e.g. https://api.globalpath.com).
+// On Vercel, set it to your deployed backend (e.g. https://api.globalbridge.com).
 const REWRITE_PATHS = API
   ? [
       "/api/auth/:path*",

@@ -56,7 +56,7 @@ const seedAlerts: Alert[] = [
     ],
     what_to_do: [
       "Always view in person or via live video before paying",
-      "Use the GlobalPath verified housing marketplace",
+      "Use the GlobalBridge verified housing marketplace",
       "Report the listing → admin removes within 1h",
     ],
   },
