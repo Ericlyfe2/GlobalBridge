@@ -16,3 +16,6 @@ venv/
 coverage/
 .turbo/
 *.tsbuildinfo
+
+# Local file uploads (dev storage backend)
+backend/uploads/

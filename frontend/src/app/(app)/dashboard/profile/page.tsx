@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { User, Globe, GraduationCap, Languages, Camera, Save, Loader2 } from "lucide-react";
 import { authFetch, getToken } from "@/lib/auth";
+import { uploadFile } from "@/lib/upload";
 
 export default function ProfilePage() {
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const avatarInput = useRef<HTMLInputElement | null>(null);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -27,8 +32,26 @@ export default function ProfilePage() {
       setOrigin(localStorage.getItem("user-country") || "Ghana");
       setDestination(localStorage.getItem("user-destination") || "Canada");
       setField(localStorage.getItem("user-field") || "");
+      setAvatarUrl(localStorage.getItem("user-avatar"));
     } catch { /* ignore */ }
   }, []);
+
+  async function onAvatar(file: File | undefined) {
+    if (!file) return;
+    if (!getToken()) { setErr("Sign in to change your photo."); return; }
+    setErr(null);
+    setAvatarBusy(true);
+    try {
+      const { url } = await uploadFile(file, "avatar");
+      await authFetch("/api/users/me", { method: "PATCH", body: JSON.stringify({ avatar_url: url }) });
+      setAvatarUrl(url);
+      try { localStorage.setItem("user-avatar", url); } catch { /* ignore */ }
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
 
   const initials = fullName.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "G";
 
@@ -85,20 +108,32 @@ export default function ProfilePage() {
         {/* Avatar */}
         <div className="card flex items-center gap-5">
           <div className="relative">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-clay-500 to-clay-700 text-white flex items-center justify-center text-2xl font-display font-semibold">
-              {initials}
+            <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-clay-500 to-clay-700 text-white flex items-center justify-center text-2xl font-display font-semibold">
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+              ) : initials}
             </div>
+            <input
+              ref={avatarInput}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="hidden"
+              onChange={(e) => onAvatar(e.target.files?.[0])}
+            />
             <button
               type="button"
               aria-label="Change profile photo"
-              className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-clay-500 text-white flex items-center justify-center hover:bg-clay-600 ring-2 ring-[var(--color-surface)] transition"
+              onClick={() => avatarInput.current?.click()}
+              disabled={avatarBusy}
+              className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-clay-500 text-white flex items-center justify-center hover:bg-clay-600 ring-2 ring-[var(--color-surface)] transition disabled:opacity-50"
             >
-              <Camera size={13} />
+              {avatarBusy ? <Loader2 size={13} className="animate-spin" /> : <Camera size={13} />}
             </button>
           </div>
           <div>
             <p className="font-medium text-ink-900">Profile photo</p>
-            <p className="text-xs text-ink-500 mt-0.5">JPG or PNG, max 2 MB.</p>
+            <p className="text-xs text-ink-500 mt-0.5">JPG, PNG or WebP, max 8 MB.</p>
           </div>
         </div>
 

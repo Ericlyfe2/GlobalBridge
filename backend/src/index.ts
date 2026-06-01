@@ -17,6 +17,8 @@ import { aiRouter } from "./routes/ai";
 import { moderationRouter } from "./routes/moderation";
 import { contentRouter } from "./routes/content";
 import { jobsRouter } from "./routes/jobs";
+import { uploadsRouter } from "./routes/uploads";
+import { UPLOAD_PATH } from "./lib/storage";
 import { errorHandler } from "./middleware/error";
 import { csrfProtection } from "./middleware/csrf";
 import { initWebsocket } from "./ws";
@@ -28,7 +30,7 @@ app.use(helmet());
 app.use(compression());
 app.use(morgan("dev"));
 app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:3000", credentials: true }));
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json({ limit: "12mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use(csrfProtection);
@@ -54,6 +56,8 @@ app.use("/api/ai", aiRouter);
 app.use("/api/moderation", moderationRouter);
 app.use("/api/content", contentRouter);
 app.use("/api/jobs", jobsRouter);
+app.use("/api/uploads/files", express.static(UPLOAD_PATH));
+app.use("/api/uploads", uploadsRouter);
 
 app.use(errorHandler);
 

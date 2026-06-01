@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { MapPin, Bed, Bath, ShieldCheck, Star, Search, SlidersHorizontal, Loader2 } from "lucide-react";
+import { MapPin, Bed, Bath, ShieldCheck, Star, Search, SlidersHorizontal, Loader2, Plus } from "lucide-react";
 import { SaveButton } from "@/components/SaveButton";
 
 const fallbackImgs = [
@@ -74,14 +74,19 @@ export default function HousingPage() {
 
   return (
     <div className="max-w-7xl mx-auto p-6 lg:p-10 space-y-8">
-      <div>
-        <p className="text-sm font-medium text-clay-600">VERIFIED MARKETPLACE</p>
-        <h1 className="mt-1 text-4xl font-display font-semibold text-ink-900 tracking-tight">
-          Housing for international students
-        </h1>
-        <p className="mt-2 text-ink-600">
-          Every landlord ID-verified. Every listing reviewed. Roommate matching included.
-        </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <p className="text-sm font-medium text-clay-600">VERIFIED MARKETPLACE</p>
+          <h1 className="mt-1 text-4xl font-display font-semibold text-ink-900 tracking-tight">
+            Housing for international students
+          </h1>
+          <p className="mt-2 text-ink-600">
+            Every landlord ID-verified. Every listing reviewed. Roommate matching included.
+          </p>
+        </div>
+        <Link href="/housing/new" className="btn-accent shrink-0">
+          <Plus size={15} /> List your place
+        </Link>
       </div>
 
       <div className="card !p-4 flex flex-wrap gap-3 items-center">
