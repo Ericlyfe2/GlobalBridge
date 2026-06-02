@@ -12,6 +12,18 @@ INSERT INTO forum_categories (name, slug, description, icon) VALUES
     ('Banking & Finance', 'finance', 'Setting up accounts, transfers, taxes', 'dollar')
 ON CONFLICT (slug) DO NOTHING;
 
+-- Sample users (mentors + admins). Password hashes are bcrypt of "testpass123".
+-- NOTE: must be inserted before success_stories (and other tables) that FK to users.id.
+INSERT INTO users (id, email, password_hash, full_name, role, verification_status, country_of_origin, country_of_residence, bio, trust_score, email_verified)
+VALUES
+  ('11111111-1111-1111-1111-111111111111', 'ama@globalbridge.app',     '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Ama Owusu',     'mentor',   'verified', 'Ghana',   'Canada',         '5 years in Toronto. Software engineer.', 92, true),
+  ('22222222-2222-2222-2222-222222222222', 'kwame@globalbridge.app',   '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Kwame Adjei',   'mentor',   'verified', 'Ghana',   'United Kingdom', 'MSc Finance, Manchester.',                 85, true),
+  ('33333333-3333-3333-3333-333333333333', 'yaa@globalbridge.app',     '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Yaa Boateng',   'mentor',   'verified', 'Ghana',   'Germany',        'PhD candidate, TU Berlin. DAAD scholar.',  88, true),
+  ('44444444-4444-4444-4444-444444444444', 'admin@globalbridge.app',   '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Sarah Admin',   'admin',    'verified', NULL,      NULL,             'GlobalBridge platform admin.',             100, true),
+  ('55555555-5555-5555-5555-555555555555', 'priya@globalbridge.app',   '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Priya Sharma',  'mentor',   'verified', 'India',   'United Kingdom', 'Data scientist at Revolut.',               80, true),
+  ('66666666-6666-6666-6666-666666666666', 'tunde@globalbridge.app',   '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Tunde Adebayo', 'mentor',   'verified', 'Nigeria', 'Canada',         'Software engineer at Shopify, Toronto.',   91, true)
+ON CONFLICT (id) DO NOTHING;
+
 -- Success stories
 INSERT INTO success_stories (author_id, name, origin, origin_flag, destination, dest_flag, program, outcome, year, quote, before_text, after_text, body)
 VALUES
@@ -40,17 +52,6 @@ VALUES
   '5 interviews, 2 offers, sponsorship at a Series B fintech.',
   'The sponsorship tracker turned a hopeless search into a focused one.')
 ON CONFLICT DO NOTHING;
-
--- Sample users (mentors + admins). Password hashes are bcrypt of "testpass123".
-INSERT INTO users (id, email, password_hash, full_name, role, verification_status, country_of_origin, country_of_residence, bio, trust_score, email_verified)
-VALUES
-  ('11111111-1111-1111-1111-111111111111', 'ama@globalbridge.app',     '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Ama Owusu',     'mentor',   'verified', 'Ghana',   'Canada',         '5 years in Toronto. Software engineer.', 92, true),
-  ('22222222-2222-2222-2222-222222222222', 'kwame@globalbridge.app',   '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Kwame Adjei',   'mentor',   'verified', 'Ghana',   'United Kingdom', 'MSc Finance, Manchester.',                 85, true),
-  ('33333333-3333-3333-3333-333333333333', 'yaa@globalbridge.app',     '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Yaa Boateng',   'mentor',   'verified', 'Ghana',   'Germany',        'PhD candidate, TU Berlin. DAAD scholar.',  88, true),
-  ('44444444-4444-4444-4444-444444444444', 'admin@globalbridge.app',   '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Sarah Admin',   'admin',    'verified', NULL,      NULL,             'GlobalBridge platform admin.',             100, true),
-  ('55555555-5555-5555-5555-555555555555', 'priya@globalbridge.app',   '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Priya Sharma',  'mentor',   'verified', 'India',   'United Kingdom', 'Data scientist at Revolut.',               80, true),
-  ('66666666-6666-6666-6666-666666666666', 'tunde@globalbridge.app',   '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Tunde Adebayo', 'mentor',   'verified', 'Nigeria', 'Canada',         'Software engineer at Shopify, Toronto.',   91, true)
-ON CONFLICT (id) DO NOTHING;
 
 -- Opportunities
 INSERT INTO opportunities (posted_by, type, title, description, country, institution, field_of_study, funding_amount, currency, eligibility, application_url, deadline, sponsors_visa, is_verified, view_count)
