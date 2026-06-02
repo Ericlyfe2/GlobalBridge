@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { z } from "zod";
-import { requireAuth } from "../middleware/auth";
-import { adminAuth, firestore } from "../lib/firebase-admin";
+import { requireAuth, clearUserCache } from "../middleware/auth";
+import { adminAuth } from "../lib/firebase-admin";
+import { queryOne } from "../db";
 
 export const authRouter = Router();
 
@@ -11,41 +12,33 @@ const profileSchema = z.object({
   country_of_origin: z.string().min(2, "Country is required"),
 });
 
+const PROFILE_COLUMNS = `id, email, full_name, role, country_of_origin, country_of_residence,
+  avatar_url, bio, trust_score, verification_status, preferred_language, created_at`;
+
 // Called once right after client-side createUserWithEmailAndPassword.
-// Creates the Firestore profile and sets the role custom claim (server-only).
+// Upserts the Postgres users row (keyed by firebase_uid) and sets the role custom claim.
+// requireAuth has already ensured a row exists; this fills in the real profile fields.
 authRouter.post("/register-profile", requireAuth, async (req, res, next) => {
   try {
     const body = profileSchema.parse(req.body);
-    const uid = req.user!.sub;
-    const ref = firestore.collection("users").doc(uid);
+    const firebaseUid = req.user!.firebaseUid;
 
-    const snap = await ref.get();
-    if (snap.exists) {
-      // Idempotent: profile already created on an earlier attempt.
-      // Re-apply the custom claim in case a prior run wrote the doc but crashed before setCustomUserClaims.
-      const data = snap.data()!;
-      await adminAuth.setCustomUserClaims(uid, { role: data.role });
-      return res.status(200).json({ user: { id: uid, ...data } });
-    }
+    const user = await queryOne(
+      `INSERT INTO users (firebase_uid, email, full_name, role, country_of_origin)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (firebase_uid) DO UPDATE SET
+         full_name = EXCLUDED.full_name,
+         role = EXCLUDED.role,
+         country_of_origin = EXCLUDED.country_of_origin,
+         updated_at = NOW()
+       RETURNING ${PROFILE_COLUMNS}`,
+      [firebaseUid, req.user!.email, body.full_name, body.role, body.country_of_origin],
+    );
 
-    const profile = {
-      email: req.user!.email,
-      full_name: body.full_name,
-      role: body.role,
-      country_of_origin: body.country_of_origin,
-      country_of_residence: null,
-      avatar_url: null,
-      bio: null,
-      trust_score: 0,
-      verification_status: "unverified",
-      preferred_language: "en",
-      created_at: new Date().toISOString(),
-    };
+    await adminAuth.setCustomUserClaims(firebaseUid, { role: body.role });
+    clearUserCache(firebaseUid); // role may have changed
 
-    await ref.set(profile);
-    await adminAuth.setCustomUserClaims(uid, { role: body.role });
-
-    res.status(201).json({ user: { id: uid, ...profile } });
+    res.status(201).json({ user });
   } catch (err) {
     next(err);
   }
@@ -53,9 +46,12 @@ authRouter.post("/register-profile", requireAuth, async (req, res, next) => {
 
 authRouter.get("/me", requireAuth, async (req, res, next) => {
   try {
-    const snap = await firestore.collection("users").doc(req.user!.sub).get();
-    if (!snap.exists) return res.status(404).json({ error: "Profile not found" });
-    res.json({ user: { id: req.user!.sub, ...snap.data() } });
+    const user = await queryOne(
+      `SELECT ${PROFILE_COLUMNS} FROM users WHERE id = $1`,
+      [req.user!.sub],
+    );
+    if (!user) return res.status(404).json({ error: "Profile not found" });
+    res.json({ user });
   } catch (err) {
     next(err);
   }

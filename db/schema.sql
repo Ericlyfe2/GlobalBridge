@@ -13,8 +13,12 @@ DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'verification_s
 
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    -- Firebase UID for users authenticated via Firebase Auth (identity bridge).
+    -- Postgres keeps UUID ids for all domain FKs; requireAuth resolves uid -> id.
+    firebase_uid TEXT UNIQUE,
     email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL CHECK (length(password_hash) >= 60),
+    -- Nullable: Firebase manages passwords; seeded demo users still carry a bcrypt hash.
+    password_hash VARCHAR(255) CHECK (password_hash IS NULL OR length(password_hash) >= 60),
     full_name VARCHAR(255) NOT NULL,
     role user_role NOT NULL DEFAULT 'student',
     verification_status verification_status DEFAULT 'pending',
@@ -32,8 +36,12 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INT NOT NULL DEFAULT 0;
+-- Identity bridge migration (idempotent for existing databases):
+ALTER TABLE users ADD COLUMN IF NOT EXISTS firebase_uid TEXT UNIQUE;
+ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_firebase_uid ON users(firebase_uid);
 CREATE INDEX IF NOT EXISTS idx_users_country ON users(country_of_residence);
 
 -- Mentor extended profile
