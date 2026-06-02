@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { LogOut, Settings, User, ShieldCheck, GraduationCap, Users, Briefcase, AlertOctagon } from "lucide-react";
-import { clearSession } from "@/lib/auth";
+import { logout } from "@/lib/auth";
 
 type Role = "student" | "mentor" | "employer" | "admin";
 
@@ -71,7 +71,7 @@ export function UserMenu() {
   }, []);
 
   function signOut() {
-    clearSession();
+    logout().catch(() => {});
   }
 
   const presenceColor = online ? "bg-emerald-500" : "bg-amber-500";

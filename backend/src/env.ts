@@ -3,10 +3,13 @@ import { z } from "zod";
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   PORT: z.coerce.number().default(4000),
-  DATABASE_URL: z.string().url(),
+  // Postgres is only used by out-of-scope domain routes now — optional for auth.
+  DATABASE_URL: z.string().url().optional(),
   REDIS_URL: z.string().url().optional(),
-  JWT_SECRET: z.string().min(16, "JWT_SECRET must be at least 16 characters"),
-  JWT_EXPIRES_IN: z.string().regex(/^\d+(s|m|h|d)$/, "JWT_EXPIRES_IN must be a valid duration like 7d, 1h, 30m").default("7d"),
+  // Firebase Admin (required for auth)
+  FIREBASE_PROJECT_ID: z.string().min(1, "FIREBASE_PROJECT_ID is required"),
+  FIREBASE_CLIENT_EMAIL: z.string().email("FIREBASE_CLIENT_EMAIL must be a valid email"),
+  FIREBASE_PRIVATE_KEY: z.string().min(1, "FIREBASE_PRIVATE_KEY is required"),
   AI_SERVICE_URL: z.string().url().default("http://localhost:8000"),
   CORS_ORIGIN: z.string().default("http://localhost:3000"),
 });
