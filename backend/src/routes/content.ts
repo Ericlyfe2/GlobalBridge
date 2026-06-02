@@ -9,8 +9,8 @@ export const contentRouter = Router();
 contentRouter.get("/stories", async (_req, res, next) => {
   try {
     const stories = await query(
-      `SELECT id, name, origin_country, dest_country, outcome, story,
-              flag_from, flag_to, public, completed, created_at
+      `SELECT id, name, origin, origin_flag, destination, dest_flag, program,
+              outcome, year, quote, before_text, after_text, body, verified, created_at
        FROM success_stories ORDER BY created_at DESC LIMIT 50`
     );
     res.set("Cache-Control", "public, max-age=120");
@@ -20,7 +20,7 @@ contentRouter.get("/stories", async (_req, res, next) => {
 
 contentRouter.get("/stories/:id", async (req, res, next) => {
   try {
-    const story = await queryOne(`SELECT id, name, origin_country, dest_country, outcome, story, flag_from, flag_to, public, completed, created_at FROM success_stories WHERE id = $1`, [req.params.id]);
+    const story = await queryOne(`SELECT id, name, origin, origin_flag, destination, dest_flag, program, outcome, year, quote, before_text, after_text, body, verified, created_at FROM success_stories WHERE id = $1`, [req.params.id]);
     if (!story) return res.status(404).json({ error: "Story not found" });
     const related = await query(
       `SELECT id, name, outcome FROM success_stories WHERE id != $1 ORDER BY created_at DESC LIMIT 3`,
