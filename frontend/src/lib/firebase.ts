@@ -8,5 +8,11 @@ const config = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
+if (typeof window !== "undefined" && !config.apiKey) {
+  throw new Error(
+    "Firebase is not configured: set NEXT_PUBLIC_FIREBASE_API_KEY (and the other NEXT_PUBLIC_FIREBASE_* vars) in .env.local",
+  );
+}
+
 const app: FirebaseApp = getApps().length ? getApp() : initializeApp(config);
 export const auth: Auth = getAuth(app);

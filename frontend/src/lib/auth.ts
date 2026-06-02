@@ -108,27 +108,23 @@ function friendlyError(err: unknown): Error {
 }
 
 /** Fetch the Firestore profile for the signed-in user and store the session. */
-async function syncProfile(token: string, fallback: { email: string; full_name: string }) {
+async function syncProfile(uid: string, token: string, fallback: { email: string; full_name: string }) {
+  let res: Response;
   try {
-    const res = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
-    if (res.ok) {
-      const data = await res.json();
-      const u = data.user as Partial<SessionUser> & { full_name?: string; role?: SessionUser["role"] };
-      setSession(token, {
-        id: u.id ?? auth.currentUser!.uid,
-        email: u.email ?? fallback.email,
-        full_name: u.full_name ?? fallback.full_name,
-        role: u.role ?? "student",
-      });
-      return;
-    }
-  } catch {}
-  // Fallback: minimal session so the UI can proceed.
+    res = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
+  } catch {
+    throw new Error("Could not load your profile. Please try again.");
+  }
+  if (!res.ok) {
+    throw new Error("Could not load your profile. Please try again.");
+  }
+  const data = await res.json();
+  const u = data.user as Partial<SessionUser> & { full_name?: string; role?: SessionUser["role"] };
   setSession(token, {
-    id: auth.currentUser!.uid,
-    email: fallback.email,
-    full_name: fallback.full_name,
-    role: "student",
+    id: u.id ?? uid,
+    email: u.email ?? fallback.email,
+    full_name: u.full_name ?? fallback.full_name,
+    role: u.role ?? "student",
   });
 }
 
@@ -136,7 +132,7 @@ export async function login(email: string, password: string) {
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
     const token = await cred.user.getIdToken();
-    await syncProfile(token, { email: cred.user.email ?? email, full_name: cred.user.displayName ?? email });
+    await syncProfile(cred.user.uid, token, { email: cred.user.email ?? email, full_name: cred.user.displayName ?? email });
   } catch (err) {
     throw friendlyError(err);
   }
@@ -161,6 +157,7 @@ export async function register(payload: {
       }),
     });
     if (!res.ok) {
+      await cred.user.delete().catch(() => {});
       const data = await res.json().catch(() => ({}));
       throw new Error(data.error || "Failed to create profile");
     }
