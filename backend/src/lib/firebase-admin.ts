@@ -1,6 +1,5 @@
 import { initializeApp, cert, getApps, type App } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
 import { env } from "../env";
 
 // Throws at import time if credentials are missing; env.ts validates them first.
@@ -18,4 +17,3 @@ function initAdmin(): App {
 
 const app = initAdmin();
 export const adminAuth = getAuth(app);
-export const firestore = getFirestore(app);
