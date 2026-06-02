@@ -1,98 +1,60 @@
-import { describe, it, expect } from "vitest";
-import { z } from "zod";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Request, Response } from "express";
 
-const registerSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  full_name: z.string().min(2),
-  role: z.enum(["student", "mentor", "employer"]).default("student"),
-  country_of_origin: z.string().optional(),
-});
+// Mock the Admin SDK so no real Firebase init happens.
+const verifyIdToken = vi.fn();
+vi.mock("../lib/firebase-admin", () => ({
+  adminAuth: { verifyIdToken: (...a: unknown[]) => verifyIdToken(...a) },
+  firestore: {},
+}));
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string(),
-});
+import { requireAuth } from "../middleware/auth";
 
-describe("Auth validation schemas", () => {
-  describe("registerSchema", () => {
-    it("accepts valid registration data", () => {
-      const result = registerSchema.parse({
-        email: "test@example.com",
-        password: "password123",
-        full_name: "Test User",
-        role: "student",
-      });
-      expect(result.email).toBe("test@example.com");
-      expect(result.full_name).toBe("Test User");
-    });
+function mockRes() {
+  const res = {} as Response & { _status?: number; _json?: unknown };
+  res.status = vi.fn().mockImplementation((c: number) => { res._status = c; return res; });
+  res.json = vi.fn().mockImplementation((b: unknown) => { res._json = b; return res; });
+  return res;
+}
 
-    it("rejects short passwords", () => {
-      expect(() =>
-        registerSchema.parse({
-          email: "test@example.com",
-          password: "123",
-          full_name: "Test User",
-        }),
-      ).toThrow();
-    });
+describe("requireAuth (Firebase)", () => {
+  beforeEach(() => verifyIdToken.mockReset());
 
-    it("rejects invalid email", () => {
-      expect(() =>
-        registerSchema.parse({
-          email: "not-an-email",
-          password: "password123",
-          full_name: "Test User",
-        }),
-      ).toThrow();
-    });
-
-    it("rejects short names", () => {
-      expect(() =>
-        registerSchema.parse({
-          email: "test@example.com",
-          password: "password123",
-          full_name: "A",
-        }),
-      ).toThrow();
-    });
-
-    it("defaults role to student", () => {
-      const result = registerSchema.parse({
-        email: "test@example.com",
-        password: "password123",
-        full_name: "Test User",
-      });
-      expect(result.role).toBe("student");
-    });
-
-    it("accepts optional country_of_origin", () => {
-      const result = registerSchema.parse({
-        email: "test@example.com",
-        password: "password123",
-        full_name: "Test User",
-        country_of_origin: "Ghana",
-      });
-      expect(result.country_of_origin).toBe("Ghana");
-    });
+  it("rejects a request with no Authorization header", async () => {
+    const req = { headers: {} } as Request;
+    const res = mockRes();
+    const next = vi.fn();
+    await requireAuth(req, res, next);
+    expect(res._status).toBe(401);
+    expect(next).not.toHaveBeenCalled();
   });
 
-  describe("loginSchema", () => {
-    it("accepts valid login data", () => {
-      const result = loginSchema.parse({
-        email: "test@example.com",
-        password: "anypassword",
-      });
-      expect(result.email).toBe("test@example.com");
-    });
+  it("populates req.user from a verified token", async () => {
+    verifyIdToken.mockResolvedValueOnce({ uid: "abc123", email: "a@b.com", role: "mentor" });
+    const req = { headers: { authorization: "Bearer good-token" } } as Request;
+    const res = mockRes();
+    const next = vi.fn();
+    await requireAuth(req, res, next);
+    expect(next).toHaveBeenCalledOnce();
+    expect(req.user).toEqual({ sub: "abc123", email: "a@b.com", role: "mentor" });
+  });
 
-    it("rejects invalid email", () => {
-      expect(() =>
-        loginSchema.parse({
-          email: "invalid",
-          password: "password",
-        }),
-      ).toThrow();
-    });
+  it("defaults role to student when no custom claim is present", async () => {
+    verifyIdToken.mockResolvedValueOnce({ uid: "u2", email: "c@d.com" });
+    const req = { headers: { authorization: "Bearer t" } } as Request;
+    const res = mockRes();
+    const next = vi.fn();
+    await requireAuth(req, res, next);
+    expect(req.user?.role).toBe("student");
+  });
+
+  it("returns 401 when token verification throws", async () => {
+    verifyIdToken.mockRejectedValueOnce(new Error("expired"));
+    const req = { headers: { authorization: "Bearer bad" } } as Request;
+    const res = mockRes();
+    const next = vi.fn();
+    await requireAuth(req, res, next);
+    expect(res._status).toBe(401);
+    expect(next).not.toHaveBeenCalled();
   });
 });
