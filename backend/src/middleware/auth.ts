@@ -7,6 +7,8 @@ export type AuthUser = {
   role: "student" | "mentor" | "employer" | "admin";
 };
 
+const VALID_ROLES = new Set(["student", "mentor", "employer", "admin"]);
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
@@ -24,11 +26,11 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   }
   try {
     const decoded = await adminAuth.verifyIdToken(token);
-    req.user = {
-      sub: decoded.uid,
-      email: decoded.email ?? "",
-      role: ((decoded as { role?: string }).role as AuthUser["role"]) ?? "student",
-    };
+    const rawRole = (decoded as Record<string, unknown>).role;
+    const role = (typeof rawRole === "string" && VALID_ROLES.has(rawRole)
+      ? rawRole
+      : "student") as AuthUser["role"];
+    req.user = { sub: decoded.uid, email: decoded.email ?? "", role };
     next();
   } catch {
     return res.status(401).json({ error: "Invalid or expired token" });

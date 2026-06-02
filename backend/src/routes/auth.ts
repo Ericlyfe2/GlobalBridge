@@ -22,7 +22,10 @@ authRouter.post("/register-profile", requireAuth, async (req, res, next) => {
     const snap = await ref.get();
     if (snap.exists) {
       // Idempotent: profile already created on an earlier attempt.
-      return res.status(200).json({ user: { id: uid, ...snap.data() } });
+      // Re-apply the custom claim in case a prior run wrote the doc but crashed before setCustomUserClaims.
+      const data = snap.data()!;
+      await adminAuth.setCustomUserClaims(uid, { role: data.role });
+      return res.status(200).json({ user: { id: uid, ...data } });
     }
 
     const profile = {

@@ -1,23 +1,19 @@
 import { initializeApp, cert, getApps, type App } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
+import { env } from "../env";
 
+// Throws at import time if credentials are missing; env.ts validates them first.
 function initAdmin(): App {
   const existing = getApps();
   if (existing.length) return existing[0];
 
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  // Private keys arrive from env with literal "\n"; convert to real newlines.
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-
-  if (!projectId || !clientEmail || !privateKey) {
-    throw new Error(
-      "Missing Firebase Admin credentials: set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY",
-    );
-  }
-
-  return initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
+  const privateKey = env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n");
+  return initializeApp({ credential: cert({
+    projectId: env.FIREBASE_PROJECT_ID,
+    clientEmail: env.FIREBASE_CLIENT_EMAIL,
+    privateKey,
+  }) });
 }
 
 const app = initAdmin();
