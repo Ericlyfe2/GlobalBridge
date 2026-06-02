@@ -1,5 +1,18 @@
-// Simple JWT-based auth client.
-// Stores token + user in localStorage. Adds Authorization header to fetches when present.
+// Firebase-backed auth client.
+// Firebase Auth is the source of truth; we mirror the ID token + profile into
+// localStorage so existing synchronous getToken()/getUser() callers keep working.
+
+import { FirebaseError } from "firebase/app";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  updateProfile,
+  onIdTokenChanged,
+} from "firebase/auth";
+import { auth } from "./firebase";
 
 export type SessionUser = {
   id: string;
@@ -9,7 +22,7 @@ export type SessionUser = {
 };
 
 const TOKEN_KEY = "gb-token";
-const USER_KEY  = "gb-user";
+const USER_KEY = "gb-user";
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -20,7 +33,7 @@ export function getUser(): SessionUser | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(USER_KEY);
-    return raw ? JSON.parse(raw) as SessionUser : null;
+    return raw ? (JSON.parse(raw) as SessionUser) : null;
   } catch { return null; }
 }
 
@@ -28,21 +41,31 @@ export function setSession(token: string, user: SessionUser) {
   try {
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
-    // mirror to legacy keys read by UserMenu / register flow
     localStorage.setItem("user-name", user.full_name);
     localStorage.setItem("user-email", user.email);
     localStorage.setItem("user-role", user.role);
-    const initials = user.full_name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "?";
+    const initials =
+      user.full_name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "?";
     localStorage.setItem("user-initials", initials);
   } catch {}
 }
 
 export function clearSession() {
   try {
-    [TOKEN_KEY, USER_KEY, "user-name", "user-email", "user-role", "user-initials", "user-country"].forEach((k) =>
-      localStorage.removeItem(k),
+    [TOKEN_KEY, USER_KEY, "user-name", "user-email", "user-role", "user-initials", "user-country"].forEach(
+      (k) => localStorage.removeItem(k),
     );
   } catch {}
+}
+
+// Keep the cached ID token fresh as Firebase rotates it.
+if (typeof window !== "undefined") {
+  onIdTokenChanged(auth, async (user) => {
+    try {
+      if (user) localStorage.setItem(TOKEN_KEY, await user.getIdToken());
+      else clearSession();
+    } catch {}
+  });
 }
 
 const FETCH_TIMEOUT = 8000;
@@ -51,75 +74,121 @@ async function timedFetch(input: RequestInfo | URL, init: RequestInit = {}) {
   const ctrl = new AbortController();
   const id = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT);
   try {
-    const res = await fetch(input, { ...init, signal: ctrl.signal });
-    return res;
+    return await fetch(input, { ...init, signal: ctrl.signal });
   } finally {
     clearTimeout(id);
   }
 }
 
-function apiError(msg: string): never {
-  throw new Error(
-    `${msg}\n\nMake sure your backend is running and NEXT_PUBLIC_API_URL is set correctly in .env.local (dev) or Vercel environment variables (production).`,
-  );
-}
-
-/** Fetch wrapper that auto-attaches Authorization: Bearer <token> when present. */
+/** Fetch wrapper that attaches a fresh Firebase ID token as Bearer. */
 export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}) {
-  const token = getToken();
   const headers = new Headers(init.headers);
+  const current = auth.currentUser;
+  const token = current ? await current.getIdToken() : getToken();
   if (token && !headers.has("Authorization")) headers.set("Authorization", `Bearer ${token}`);
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   return timedFetch(input, { ...init, headers });
 }
 
-export async function login(email: string, password: string) {
-  let res: Response;
+function friendlyError(err: unknown): Error {
+  if (err instanceof FirebaseError) {
+    const map: Record<string, string> = {
+      "auth/invalid-credential": "Invalid email or password.",
+      "auth/invalid-email": "That email address is not valid.",
+      "auth/user-not-found": "Invalid email or password.",
+      "auth/wrong-password": "Invalid email or password.",
+      "auth/email-already-in-use": "An account with that email already exists.",
+      "auth/weak-password": "Password is too weak (minimum 6 characters).",
+      "auth/too-many-requests": "Too many attempts. Please try again later.",
+      "auth/network-request-failed": "Network error — check your connection and try again.",
+    };
+    return new Error(map[err.code] ?? `Authentication error: ${err.code}`);
+  }
+  return err instanceof Error ? err : new Error("Authentication failed");
+}
+
+/** Fetch the Firestore profile for the signed-in user and store the session. */
+async function syncProfile(token: string, fallback: { email: string; full_name: string }) {
   try {
-    res = await timedFetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-  } catch {
-    return apiError("Login failed — could not reach the API.");
-  }
-  const data = await res.json();
-  if (!res.ok) {
-    let msg = data.error || data.message || "Login failed";
-    if (data.details?.length) {
-      msg += ": " + data.details.map((d: { path: string[]; message: string }) =>
-        `${d.path.join(".")} — ${d.message}`
-      ).join("; ");
+    const res = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
+    if (res.ok) {
+      const data = await res.json();
+      const u = data.user as Partial<SessionUser> & { full_name?: string; role?: SessionUser["role"] };
+      setSession(token, {
+        id: u.id ?? auth.currentUser!.uid,
+        email: u.email ?? fallback.email,
+        full_name: u.full_name ?? fallback.full_name,
+        role: u.role ?? "student",
+      });
+      return;
     }
-    throw new Error(msg);
+  } catch {}
+  // Fallback: minimal session so the UI can proceed.
+  setSession(token, {
+    id: auth.currentUser!.uid,
+    email: fallback.email,
+    full_name: fallback.full_name,
+    role: "student",
+  });
+}
+
+export async function login(email: string, password: string) {
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const token = await cred.user.getIdToken();
+    await syncProfile(token, { email: cred.user.email ?? email, full_name: cred.user.displayName ?? email });
+  } catch (err) {
+    throw friendlyError(err);
   }
-  setSession(data.token, data.user);
 }
 
 export async function register(payload: {
   email: string; password: string; full_name: string;
   role: SessionUser["role"]; country_of_origin?: string;
 }) {
-  let res: Response;
   try {
-    res = await timedFetch("/api/auth/register", {
+    const cred = await createUserWithEmailAndPassword(auth, payload.email, payload.password);
+    await updateProfile(cred.user, { displayName: payload.full_name });
+    const token = await cred.user.getIdToken(true);
+
+    const res = await fetch("/api/auth/register-profile", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        full_name: payload.full_name,
+        role: payload.role,
+        country_of_origin: payload.country_of_origin ?? "",
+      }),
     });
-  } catch {
-    return apiError("Registration failed — could not reach the API.");
-  }
-  const data = await res.json();
-  if (!res.ok) {
-    let msg = data.error || data.message || "Registration failed";
-    if (data.details?.length) {
-      msg += ": " + data.details.map((d: { path: string[]; message: string }) =>
-        `${d.path.join(".")} — ${d.message}`
-      ).join("; ");
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "Failed to create profile");
     }
-    throw new Error(msg);
+
+    // Refresh token so the new role custom claim is present, then store session.
+    const fresh = await cred.user.getIdToken(true);
+    setSession(fresh, {
+      id: cred.user.uid,
+      email: payload.email,
+      full_name: payload.full_name,
+      role: payload.role,
+    });
+
+    try { await sendEmailVerification(cred.user); } catch {}
+  } catch (err) {
+    throw friendlyError(err);
   }
-  setSession(data.token, data.user);
+}
+
+export async function logout() {
+  try { await signOut(auth); } catch {}
+  clearSession();
+}
+
+export async function resetPassword(email: string) {
+  try {
+    await sendPasswordResetEmail(auth, email);
+  } catch (err) {
+    throw friendlyError(err);
+  }
 }
