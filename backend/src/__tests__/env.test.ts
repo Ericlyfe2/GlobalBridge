@@ -1,11 +1,10 @@
 import { describe, it, expect } from "vitest";
 
 describe("Environment configuration", () => {
-  const requiredVars = ["DATABASE_URL", "JWT_SECRET"];
+  const requiredVars = ["FIREBASE_PROJECT_ID", "FIREBASE_CLIENT_EMAIL", "FIREBASE_PRIVATE_KEY"];
 
   for (const v of requiredVars) {
-    it(`requires ${v} to be set`, () => {
-      // In test, these may not be set — check that the validation schema would catch it
+    it(`recognizes ${v} as a configured variable`, () => {
       expect(typeof process.env[v] === "string" || process.env[v] === undefined).toBe(true);
     });
   }
