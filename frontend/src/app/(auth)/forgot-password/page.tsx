@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Mail, ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
+import { resetPassword } from "@/lib/auth";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -14,14 +15,11 @@ export default function ForgotPasswordPage() {
     if (!email.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      if (res.ok) setSent(true);
+      await resetPassword(email);
+      setSent(true);
     } catch {
-      /* ignore */
+      // Always show success to avoid email enumeration.
+      setSent(true);
     } finally {
       setLoading(false);
     }
