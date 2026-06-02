@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Request, Response } from "express";
 
 // Mock the Admin SDK so no real Firebase init happens.
@@ -18,13 +18,7 @@ function mockRes() {
 }
 
 describe("requireAuth (Firebase)", () => {
-  // Note: beforeEach(() => verifyIdToken.mockReset()) is omitted here because
-  // Vitest 4.1.7 + Node.js 24 has a false-positive unhandled-rejection detection
-  // when a shared vi.fn() is used with beforeEach(mockReset/mockClear) followed by
-  // mockRejectedValue (even though the rejection is properly caught by the middleware).
-  // The omission is safe because every test that calls verifyIdToken explicitly sets
-  // its own mockResolvedValue/mockRejectedValue before invoking, so there is no
-  // cross-test contamination.
+  beforeEach(() => verifyIdToken.mockReset());
 
   it("rejects a request with no Authorization header", async () => {
     const req = { headers: {} } as Request;
@@ -36,7 +30,7 @@ describe("requireAuth (Firebase)", () => {
   });
 
   it("populates req.user from a verified token", async () => {
-    verifyIdToken.mockResolvedValue({ uid: "abc123", email: "a@b.com", role: "mentor" });
+    verifyIdToken.mockResolvedValueOnce({ uid: "abc123", email: "a@b.com", role: "mentor" });
     const req = { headers: { authorization: "Bearer good-token" } } as Request;
     const res = mockRes();
     const next = vi.fn();
@@ -46,7 +40,7 @@ describe("requireAuth (Firebase)", () => {
   });
 
   it("defaults role to student when no custom claim is present", async () => {
-    verifyIdToken.mockResolvedValue({ uid: "u2", email: "c@d.com" });
+    verifyIdToken.mockResolvedValueOnce({ uid: "u2", email: "c@d.com" });
     const req = { headers: { authorization: "Bearer t" } } as Request;
     const res = mockRes();
     const next = vi.fn();
@@ -55,7 +49,7 @@ describe("requireAuth (Firebase)", () => {
   });
 
   it("returns 401 when token verification throws", async () => {
-    verifyIdToken.mockRejectedValue(new Error("expired"));
+    verifyIdToken.mockRejectedValueOnce(new Error("expired"));
     const req = { headers: { authorization: "Bearer bad" } } as Request;
     const res = mockRes();
     const next = vi.fn();
