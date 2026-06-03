@@ -24,6 +24,88 @@ function sanitizeObject(obj: Record<string, unknown>, allowed: string[]): Record
 
 export const usersRouter = Router();
 
+// Aggregated student dashboard summary for the signed-in user.
+// Real data from saved_items, mentor_bookings, visa_checklists, opportunities, forum_posts.
+usersRouter.get("/dashboard", requireAuth, async (req, res, next) => {
+  try {
+    const uid = req.user!.sub;
+    const [profileRow, savedSch, savedHouse, sessions, visaRow, deadlines, discussions] = await Promise.all([
+      queryOne<{
+        full_name: string | null; avatar_url: string | null; bio: string | null;
+        country_of_origin: string | null; country_of_residence: string | null;
+        verification_status: string | null;
+      }>(
+        `SELECT full_name, avatar_url, bio, country_of_origin, country_of_residence, verification_status
+         FROM users WHERE id = $1`,
+        [uid],
+      ),
+      queryOne<{ n: number }>(
+        `SELECT COUNT(*)::int AS n FROM saved_items WHERE user_id = $1 AND item_type = 'opportunity'`, [uid]),
+      queryOne<{ n: number }>(
+        `SELECT COUNT(*)::int AS n FROM saved_items WHERE user_id = $1 AND item_type = 'housing'`, [uid]),
+      queryOne<{ n: number }>(
+        `SELECT COUNT(*)::int AS n FROM mentor_bookings WHERE student_id = $1`, [uid]),
+      queryOne<{ items: unknown; completed_items: string[] | null; destination_country: string | null }>(
+        `SELECT items, completed_items, destination_country FROM visa_checklists
+         WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1`, [uid]),
+      query<{ id: string; title: string; type: string; deadline: string | null; country: string }>(
+        `SELECT id, title, type, deadline, country FROM opportunities
+         WHERE deadline IS NOT NULL AND deadline >= CURRENT_DATE ORDER BY deadline ASC LIMIT 5`),
+      query<{ id: string; title: string; answer_count: number; upvotes: number; created_at: string }>(
+        `SELECT id, title, answer_count, upvotes, created_at FROM forum_posts ORDER BY created_at DESC LIMIT 5`),
+    ]);
+
+    const profileFields = [
+      profileRow?.full_name, profileRow?.avatar_url, profileRow?.bio,
+      profileRow?.country_of_origin, profileRow?.country_of_residence,
+    ];
+    const filled = profileFields.filter((v) => typeof v === "string" && v.trim().length > 0).length;
+    const completion = Math.round((filled / profileFields.length) * 100);
+    const missingFields = (
+      [
+        ["full_name", "Full name"], ["avatar_url", "Profile photo"], ["bio", "Bio"],
+        ["country_of_origin", "Country of origin"], ["country_of_residence", "Country of residence"],
+      ] as const
+    )
+      .filter(([k]) => {
+        const v = profileRow?.[k as keyof typeof profileRow];
+        return !(typeof v === "string" && v.trim().length > 0);
+      })
+      .map(([, label]) => label);
+
+    let visa: { progress: number; destination: string | null; total: number; done: number } | null = null;
+    if (visaRow) {
+      const total = Array.isArray(visaRow.items) ? visaRow.items.length : 0;
+      const done = Array.isArray(visaRow.completed_items) ? visaRow.completed_items.length : 0;
+      visa = {
+        progress: total > 0 ? Math.round((done / total) * 100) : 0,
+        destination: visaRow.destination_country,
+        total,
+        done,
+      };
+    }
+
+    res.json({
+      profile: {
+        completion,
+        missingFields,
+        verificationStatus: profileRow?.verification_status ?? "pending",
+      },
+      stats: {
+        savedScholarships: savedSch?.n ?? 0,
+        savedHousing: savedHouse?.n ?? 0,
+        mentorSessions: sessions?.n ?? 0,
+        profileStrength: completion,
+      },
+      visa,
+      deadlines,
+      discussions,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 usersRouter.get("/mentors", async (_req, res, next) => {
   try {
     const mentors = await query(
