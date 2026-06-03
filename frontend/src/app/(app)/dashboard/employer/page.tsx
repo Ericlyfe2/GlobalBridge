@@ -2,182 +2,175 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
-  Briefcase, Users, Eye, Clock, ArrowRight, MessageCircle, Plus, Loader2, FileText, Star, Calendar
+  Briefcase, Eye, Users, Plane, Plus, Settings, UserCheck, CalendarPlus,
+  ArrowRight, Loader2, AlertCircle, ChevronRight, BadgeCheck,
 } from "lucide-react";
+import { authFetch, getUser } from "@/lib/auth";
+
+type EmployerDashboard = {
+  stats: { activeListings: number; interestedCandidates: number; totalViews: number; sponsorshipListings: number; sponsorshipRate: number };
+  listings: { id: string; title: string; type: string; view_count: number; sponsors_visa: boolean; deadline: string | null; interested: number }[];
+  company: string | null;
+};
+
+const MANAGE = [
+  { href: "/jobs", icon: Plus, label: "Create job" },
+  { href: "/jobs", icon: Settings, label: "Manage jobs" },
+  { href: "/community", icon: UserCheck, label: "Candidates" },
+  { href: "/messages", icon: CalendarPlus, label: "Schedule interviews" },
+];
 
 export default function EmployerDashboard() {
-  const router = useRouter();
-  const [name, setName] = useState("");
+  const [data, setData] = useState<EmployerDashboard | null>(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const company = (data?.company) || (getUser()?.full_name || "Employer").split(" ")[0];
 
   useEffect(() => {
-    try {
-      const role = localStorage.getItem("user-role");
-      if (role !== "employer") router.replace("/dashboard");
-      setName((localStorage.getItem("user-name") || "").split(" ")[0] || "");
-    } catch { /* ignore */ }
-  }, [router]);
+    let active = true;
+    (async () => {
+      try {
+        const res = await authFetch("/api/users/employer-dashboard");
+        if (!res.ok) throw new Error("Could not load your dashboard.");
+        const json = (await res.json()) as EmployerDashboard;
+        if (active) setData(json);
+      } catch (e) {
+        if (active) setError(e instanceof Error ? e.message : "Something went wrong");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, []);
+
+  if (loading) {
+    return <div className="flex h-full items-center justify-center py-32"><Loader2 size={24} className="animate-spin text-emerald-500" /></div>;
+  }
+  if (error || !data) {
+    return (
+      <div className="mx-auto flex max-w-md flex-col items-center gap-3 py-32 text-center">
+        <AlertCircle size={28} className="text-red-500" />
+        <p className="text-sm text-ink-600 dark:text-gray-300">{error || "No data available."}</p>
+        <button onClick={() => location.reload()} className="text-sm font-medium text-emerald-600 hover:text-emerald-700">Try again</button>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-7xl mx-auto p-6 lg:p-10 space-y-8">
-      <div>
-        <p className="text-sm font-medium text-clay-600">EMPLOYER DASHBOARD</p>
-        <h1 className="mt-1 text-4xl font-display font-semibold text-ink-900 tracking-tight">
-          Welcome back, {name || "Employer"}
-        </h1>
-        <p className="mt-2 text-ink-600">Manage your job postings, review applicants, and find top talent.</p>
-      </div>
-
-      <StatsGrid />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ActivePostings />
-        <RecentApplicants />
-      </div>
-      <QuickActions />
-    </div>
-  );
-}
-
-function StatsGrid() {
-  const stats = [
-    { label: "Active postings", value: "5", icon: Briefcase, color: "clay" },
-    { label: "Total applicants", value: "28", icon: Users, color: "leaf" },
-    { label: "Profile views", value: "340", icon: Eye, color: "sky" },
-    { label: "Avg. response", value: "2d", icon: Clock, color: "clay" },
-  ];
-
-  return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {stats.map((s) => (
-        <div key={s.label} className="card">
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-            s.color === "clay" ? "bg-clay-500/12 text-clay-600" :
-            s.color === "leaf" ? "bg-leaf-500/12 text-leaf-600" :
-            "bg-sky-500/12 text-sky-600"
-          }`}>
-            <s.icon size={18} />
-          </div>
-          <p className="mt-3 text-2xl font-display font-semibold text-ink-900">{s.value}</p>
-          <p className="text-sm text-ink-500">{s.label}</p>
+    <div className="mx-auto max-w-6xl space-y-6 p-5 md:p-8">
+      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-[#0A2540] dark:text-white">{company}</h1>
+          <p className="mt-1 text-sm text-ink-500 dark:text-gray-400">Your hiring pipeline at a glance.</p>
         </div>
-      ))}
-    </div>
-  );
-}
-
-function ActivePostings() {
-  const postings = [
-    { title: "Software Engineer Intern", applicants: 12, daysLeft: 14, status: "active" },
-    { title: "Data Analyst — Co-op", applicants: 8, daysLeft: 21, status: "active" },
-    { title: "Marketing Associate", applicants: 5, daysLeft: 7, status: "active" },
-  ];
-
-  return (
-    <div className="card">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display text-lg font-semibold text-ink-900">Active postings</h3>
-        <Link href="/jobs" className="text-sm font-medium text-clay-600 hover:underline">
-          Manage
+        <Link href="/jobs" className="inline-flex w-fit items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+          <Plus size={16} /> Post a job
         </Link>
-      </div>
-      <div className="space-y-3">
-        {postings.map((p) => (
-          <div key={p.title} className="flex items-start gap-3 p-3 rounded-lg border border-cream-200">
-            <div className="w-9 h-9 rounded-lg bg-clay-500/12 text-clay-600 flex items-center justify-center shrink-0">
-              <Briefcase size={16} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-ink-900">{p.title}</p>
-              <p className="text-xs text-ink-500 mt-0.5">
-                {p.applicants} applicants · {p.daysLeft} days left
-              </p>
-            </div>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-leaf-500/12 text-leaf-600 font-medium self-center">
-              Active
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+      </header>
 
-function RecentApplicants() {
-  const applicants = [
-    { name: "Ama Osei", role: "Software Engineer Intern", experience: "3 yr", initials: "AO", match: 92 },
-    { name: "Kwame Asante", role: "Data Analyst", experience: "1 yr", initials: "KA", match: 85 },
-    { name: "Esi Mensah", role: "Marketing Associate", experience: "2 yr", initials: "EM", match: 78 },
-  ];
-
-  return (
-    <div className="card">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display text-lg font-semibold text-ink-900">Recent applicants</h3>
-        <Link href="/messages" className="text-sm font-medium text-clay-600 hover:underline">
-          Messages
-        </Link>
+      {/* Overview */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Stat icon={Briefcase} label="Active listings" value={data.stats.activeListings} />
+        <Stat icon={Users} label="Interested candidates" value={data.stats.interestedCandidates} />
+        <Stat icon={Eye} label="Total job views" value={data.stats.totalViews} />
+        <Stat icon={Plane} label="Sponsorship listings" value={data.stats.sponsorshipListings} />
       </div>
-      <div className="space-y-3">
-        {applicants.map((a) => (
-          <div key={a.name} className="flex items-start gap-3 p-3 rounded-lg border border-cream-200">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-leaf-500 to-leaf-700 text-white flex items-center justify-center text-sm font-medium shrink-0">
-              {a.initials}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-ink-900">{a.name}</p>
-              <p className="text-xs text-ink-500">{a.role} · {a.experience}</p>
-              <div className="mt-1 flex items-center gap-1">
-                <Star size={10} className="fill-amber-500 text-amber-500" />
-                <span className="text-xs text-ink-600">{a.match}% match</span>
-              </div>
-            </div>
-            <Link href="/messages" className="text-clay-600 hover:text-clay-700 p-1">
-              <MessageCircle size={15} />
+
+      {/* Manage */}
+      <section>
+        <h2 className="mb-3 text-sm font-semibold text-ink-700 dark:text-gray-300">Manage</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {MANAGE.map((a) => (
+            <Link key={a.label} href={a.href}
+              className="group flex flex-col items-start gap-2 rounded-xl border border-cream-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900">
+              <span className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"><a.icon size={18} /></span>
+              <span className="text-xs font-medium text-ink-800 dark:text-gray-200">{a.label}</span>
             </Link>
+          ))}
+        </div>
+      </section>
+
+      <div className="grid gap-5 lg:grid-cols-3">
+        {/* Listings */}
+        <SectionCard title="Your job listings" href="/jobs" className="lg:col-span-2">
+          {data.listings.length === 0 ? (
+            <Empty>No active listings. Post your first job to start hiring.</Empty>
+          ) : (
+            <ul className="divide-y divide-cream-200 dark:divide-gray-800">
+              {data.listings.map((l) => (
+                <li key={l.id}>
+                  <Link href={`/jobs/${l.id}`} className="group flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                    <div className="min-w-0">
+                      <p className="flex items-center gap-2 truncate text-sm font-medium text-ink-800 dark:text-gray-200">
+                        {l.title}
+                        {l.sponsors_visa && <BadgeCheck size={14} className="shrink-0 text-emerald-500" />}
+                      </p>
+                      <p className="text-xs text-ink-400 capitalize">{l.type} · {l.view_count} views</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-3">
+                      <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                        {l.interested} interested
+                      </span>
+                      <ChevronRight size={15} className="text-ink-300 transition-transform group-hover:translate-x-0.5" />
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </SectionCard>
+
+        {/* Sponsorship */}
+        <SectionCard title="Visa sponsorship" className="lg:col-span-1">
+          <div className="flex flex-col items-center py-2 text-center">
+            <Ring value={data.stats.sponsorshipRate} />
+            <p className="mt-3 text-sm font-medium text-ink-700 dark:text-gray-300">
+              {data.stats.sponsorshipListings} of {data.stats.activeListings} listings sponsor visas
+            </p>
+            <p className="mt-1 text-xs text-ink-400">Share of your roles open to international talent.</p>
           </div>
-        ))}
+        </SectionCard>
       </div>
     </div>
   );
 }
 
-function QuickActions() {
+function Stat({ icon: Icon, label, value }: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; value: number }) {
   return (
-    <div className="card">
-      <h3 className="font-display text-lg font-semibold text-ink-900 mb-4">Quick actions</h3>
-      <div className="grid sm:grid-cols-3 gap-3">
-        <Link
-          href="/jobs"
-          className="flex items-center gap-3 p-4 rounded-lg border border-cream-200 hover:border-clay-300 hover:bg-cream-50 transition"
-        >
-          <Plus size={18} className="text-clay-500" />
-          <div>
-            <p className="text-sm font-medium text-ink-900">Post a job</p>
-            <p className="text-xs text-ink-500">Reach qualified candidates</p>
-          </div>
-        </Link>
-        <Link
-          href="/community"
-          className="flex items-center gap-3 p-4 rounded-lg border border-cream-200 hover:border-clay-300 hover:bg-cream-50 transition"
-        >
-          <Users size={18} className="text-clay-500" />
-          <div>
-            <p className="text-sm font-medium text-ink-900">Browse candidates</p>
-            <p className="text-xs text-ink-500">Find talent from our network</p>
-          </div>
-        </Link>
-        <Link
-          href="/assistant"
-          className="flex items-center gap-3 p-4 rounded-lg border border-cream-200 hover:border-clay-300 hover:bg-cream-50 transition"
-        >
-          <FileText size={18} className="text-clay-500" />
-          <div>
-            <p className="text-sm font-medium text-ink-900">AI job description</p>
-            <p className="text-xs text-ink-500">Generate a listing with AI</p>
-          </div>
-        </Link>
-      </div>
+    <div className="rounded-xl border border-cream-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+      <Icon size={18} className="text-emerald-600 dark:text-emerald-400" />
+      <p className="mt-3 text-2xl font-bold text-[#0A2540] dark:text-white">{value}</p>
+      <p className="mt-0.5 text-xs text-ink-500 dark:text-gray-400">{label}</p>
     </div>
   );
+}
+
+function Ring({ value }: { value: number }) {
+  const r = 38, c = 2 * Math.PI * r, offset = c - (value / 100) * c;
+  return (
+    <div className="relative grid h-24 w-24 place-items-center">
+      <svg className="h-24 w-24 -rotate-90" viewBox="0 0 88 88">
+        <circle cx="44" cy="44" r={r} fill="none" strokeWidth="8" className="stroke-cream-200 dark:stroke-gray-700" />
+        <circle cx="44" cy="44" r={r} fill="none" strokeWidth="8" strokeLinecap="round" className="stroke-emerald-500" strokeDasharray={c} strokeDashoffset={offset} />
+      </svg>
+      <span className="absolute text-lg font-bold text-[#0A2540] dark:text-white">{value}%</span>
+    </div>
+  );
+}
+
+function SectionCard({ title, href, className = "", children }: { title: string; href?: string; className?: string; children: React.ReactNode }) {
+  return (
+    <section className={`rounded-2xl border border-cream-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900 ${className}`}>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-ink-800 dark:text-gray-200">{title}</h2>
+        {href && <Link href={href} className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700">View all <ArrowRight size={12} /></Link>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Empty({ children }: { children: React.ReactNode }) {
+  return <p className="py-6 text-center text-xs text-ink-400">{children}</p>;
 }
