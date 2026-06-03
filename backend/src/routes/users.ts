@@ -106,6 +106,61 @@ usersRouter.get("/dashboard", requireAuth, async (req, res, next) => {
   }
 });
 
+// Aggregated mentor dashboard summary. Real data from mentor_bookings,
+// forum_replies, and success_stories. (No reviews/ratings table yet, so
+// satisfaction metrics are intentionally omitted rather than faked.)
+usersRouter.get("/mentor-dashboard", requireAuth, async (req, res, next) => {
+  try {
+    const uid = req.user!.sub;
+    const [counts, hours, community, stories, upcoming, pending] = await Promise.all([
+      queryOne<{ active_mentees: number; pending_requests: number; total_sessions: number }>(
+        `SELECT
+           COUNT(DISTINCT student_id) FILTER (WHERE status <> 'cancelled')::int AS active_mentees,
+           COUNT(*) FILTER (WHERE status = 'pending')::int AS pending_requests,
+           COUNT(*)::int AS total_sessions
+         FROM mentor_bookings WHERE mentor_id = $1`, [uid]),
+      queryOne<{ minutes: number }>(
+        `SELECT COALESCE(SUM(duration_min), 0)::int AS minutes FROM mentor_bookings
+         WHERE mentor_id = $1 AND (status = 'completed' OR slot_date < CURRENT_DATE)`, [uid]),
+      queryOne<{ answers: number; accepted: number }>(
+        `SELECT COUNT(*)::int AS answers,
+                COUNT(*) FILTER (WHERE is_accepted_answer)::int AS accepted
+         FROM forum_replies WHERE author_id = $1`, [uid]),
+      queryOne<{ n: number }>(
+        `SELECT COUNT(*)::int AS n FROM success_stories WHERE author_id = $1`, [uid]),
+      query<{ id: string; student_name: string | null; slot_date: string; slot_time: string; duration_min: number; goal: string | null; status: string }>(
+        `SELECT b.id, u.full_name AS student_name, b.slot_date, b.slot_time, b.duration_min, b.goal, b.status
+         FROM mentor_bookings b JOIN users u ON u.id = b.student_id
+         WHERE b.mentor_id = $1 AND b.slot_date >= CURRENT_DATE AND b.status <> 'cancelled'
+         ORDER BY b.slot_date ASC, b.slot_time ASC LIMIT 6`, [uid]),
+      query<{ id: string; student_name: string | null; slot_date: string; slot_time: string; goal: string | null }>(
+        `SELECT b.id, u.full_name AS student_name, b.slot_date, b.slot_time, b.goal
+         FROM mentor_bookings b JOIN users u ON u.id = b.student_id
+         WHERE b.mentor_id = $1 AND b.status = 'pending'
+         ORDER BY b.created_at DESC LIMIT 6`, [uid]),
+    ]);
+
+    const answers = community?.answers ?? 0;
+    const accepted = community?.accepted ?? 0;
+    const successStories = stories?.n ?? 0;
+    const impactScore = answers + accepted * 3 + successStories * 5;
+
+    res.json({
+      stats: {
+        activeMentees: counts?.active_mentees ?? 0,
+        pendingRequests: counts?.pending_requests ?? 0,
+        totalSessions: counts?.total_sessions ?? 0,
+        hoursMentored: Math.round(((hours?.minutes ?? 0) / 60) * 10) / 10,
+      },
+      community: { answers, acceptedAnswers: accepted, successStories, impactScore },
+      upcomingSessions: upcoming,
+      pendingRequests: pending,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 usersRouter.get("/mentors", async (_req, res, next) => {
   try {
     const mentors = await query(
