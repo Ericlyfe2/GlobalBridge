@@ -41,7 +41,7 @@ export default function StudentDashboard() {
     let active = true;
     (async () => {
       try {
-        const res = await authFetch("/api/users/dashboard");
+        const res = await authFetch("/api/users/dashboard", {}, 60000);
         if (!res.ok) throw new Error("Could not load your dashboard.");
         const json = (await res.json()) as Dashboard;
         if (active) setData(json);

@@ -70,9 +70,9 @@ if (typeof window !== "undefined") {
 
 const FETCH_TIMEOUT = 8000;
 
-async function timedFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+async function timedFetch(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = FETCH_TIMEOUT) {
   const ctrl = new AbortController();
-  const id = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT);
+  const id = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     return await fetch(input, { ...init, signal: ctrl.signal });
   } finally {
@@ -80,14 +80,18 @@ async function timedFetch(input: RequestInfo | URL, init: RequestInit = {}) {
   }
 }
 
-/** Fetch wrapper that attaches a fresh Firebase ID token as Bearer. */
-export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+/**
+ * Fetch wrapper that attaches a fresh Firebase ID token as Bearer.
+ * `timeoutMs` defaults to 8s; pass a larger value for calls that may hit a
+ * cold-starting backend (e.g. Render free tier wakes in ~50s).
+ */
+export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = FETCH_TIMEOUT) {
   const headers = new Headers(init.headers);
   const current = auth.currentUser;
   const token = current ? await current.getIdToken() : getToken();
   if (token && !headers.has("Authorization")) headers.set("Authorization", `Bearer ${token}`);
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
-  return timedFetch(input, { ...init, headers });
+  return timedFetch(input, { ...init, headers }, timeoutMs);
 }
 
 function friendlyError(err: unknown): Error {
