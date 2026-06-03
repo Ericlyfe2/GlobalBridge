@@ -86,6 +86,44 @@ export default function AdminOverview() {
         </div>
       )}
 
+      {stats && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="card">
+            <h2 className="font-display text-lg font-semibold text-ink-900 mb-4">Community breakdown</h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                { label: "Students", value: stats.students },
+                { label: "Mentors", value: stats.mentors },
+                { label: "Employers", value: stats.employers },
+                { label: "Admins", value: stats.admins },
+              ].map((r) => (
+                <div key={r.label} className="rounded-lg border border-cream-200 p-3 text-center">
+                  <p className="text-xl font-display font-semibold text-ink-900">{(r.value ?? 0).toLocaleString()}</p>
+                  <p className="text-xs text-ink-500 mt-0.5">{r.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="card">
+            <h2 className="font-display text-lg font-semibold text-ink-900 mb-4">Growth &amp; activity</h2>
+            <ul className="space-y-2.5">
+              {[
+                { label: "New signups today", value: stats.new_today },
+                { label: "New signups (7 days)", value: stats.new_7d },
+                { label: "Opportunities posted", value: stats.total_opportunities },
+                { label: "AI conversations", value: stats.ai_conversations },
+                { label: "Success stories", value: stats.success_stories },
+              ].map((r) => (
+                <li key={r.label} className="flex items-center justify-between text-sm">
+                  <span className="text-ink-700">{r.label}</span>
+                  <span className="font-semibold text-ink-900">{(r.value ?? 0).toLocaleString()}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="card lg:col-span-2">
           <div className="flex items-center justify-between mb-4">

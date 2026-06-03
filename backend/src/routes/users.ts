@@ -280,16 +280,37 @@ usersRouter.get("/summary/all", requireAuth, requireRole("admin"), async (_req, 
       pending_verifications: number;
       open_reports: number;
       active_listings: number;
+      students: number;
+      mentors: number;
+      employers: number;
+      admins: number;
+      new_today: number;
+      new_7d: number;
+      total_opportunities: number;
+      ai_conversations: number;
+      success_stories: number;
     }>(`
       SELECT
         (SELECT COUNT(*)::int FROM users) AS total_users,
         (SELECT COUNT(*)::int FROM users WHERE verification_status = 'pending') AS pending_verifications,
         (SELECT COUNT(*)::int FROM reports WHERE status = 'pending') AS open_reports,
-        (SELECT COUNT(*)::int FROM housing_listings WHERE status = 'active') AS active_listings
+        (SELECT COUNT(*)::int FROM housing_listings WHERE status = 'active') AS active_listings,
+        (SELECT COUNT(*)::int FROM users WHERE role = 'student') AS students,
+        (SELECT COUNT(*)::int FROM users WHERE role = 'mentor') AS mentors,
+        (SELECT COUNT(*)::int FROM users WHERE role = 'employer') AS employers,
+        (SELECT COUNT(*)::int FROM users WHERE role = 'admin') AS admins,
+        (SELECT COUNT(*)::int FROM users WHERE created_at >= CURRENT_DATE) AS new_today,
+        (SELECT COUNT(*)::int FROM users WHERE created_at >= CURRENT_DATE - INTERVAL '7 days') AS new_7d,
+        (SELECT COUNT(*)::int FROM opportunities) AS total_opportunities,
+        (SELECT COUNT(*)::int FROM ai_conversations) AS ai_conversations,
+        (SELECT COUNT(*)::int FROM success_stories) AS success_stories
     `);
-    res.json({
-      stats: result ?? { total_users: 0, pending_verifications: 0, open_reports: 0, active_listings: 0 },
-    });
+    const zero = {
+      total_users: 0, pending_verifications: 0, open_reports: 0, active_listings: 0,
+      students: 0, mentors: 0, employers: 0, admins: 0, new_today: 0, new_7d: 0,
+      total_opportunities: 0, ai_conversations: 0, success_stories: 0,
+    };
+    res.json({ stats: result ?? zero });
   } catch (err) {
     next(err);
   }
