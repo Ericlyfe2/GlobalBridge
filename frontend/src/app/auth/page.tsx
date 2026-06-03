@@ -8,6 +8,7 @@ import {
   GraduationCap, Compass, Briefcase, ShieldCheck, Quote, BadgeCheck, Lock as LockIcon,
 } from "lucide-react";
 import { login, register } from "@/lib/auth";
+import { roleHome } from "@/lib/roles";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -40,10 +41,7 @@ function AuthContent() {
         await login(email, password);
         userRole = signinRole || "student";
       }
-      const dashboards: Record<string, string> = {
-        student: "/dashboard", mentor: "/dashboard/mentor", employer: "/dashboard/employer",
-      };
-      router.push(dashboards[userRole] || "/dashboard");
+      router.push(roleHome(userRole));
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 import { login } from "@/lib/auth";
+import { roleHome } from "@/lib/roles";
 
 function GoogleMark({ size = 16 }: { size?: number }) {
   return (
@@ -28,11 +29,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(form.email, form.password);
-      const role = localStorage.getItem("user-role");
-      if (role === "mentor") window.location.href = "/dashboard/mentor";
-      else if (role === "employer") window.location.href = "/dashboard/employer";
-      else if (role === "admin") window.location.href = "/admin";
-      else window.location.href = "/dashboard";
+      window.location.href = roleHome(localStorage.getItem("user-role"));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

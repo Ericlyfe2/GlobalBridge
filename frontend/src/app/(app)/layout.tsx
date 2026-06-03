@@ -35,7 +35,7 @@ const MobileSidebar = dynamic(() => import("@/components/MobileSidebar").then((m
 type Role = "student" | "mentor" | "employer" | "admin" | null;
 
 const STUDENT_NAV = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/dashboard/student", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/assistant", icon: Bot, label: "AI Assistant" },
   { href: "/opportunities", icon: Award, label: "Opportunities" },
   { href: "/housing", icon: Home, label: "Housing" },
