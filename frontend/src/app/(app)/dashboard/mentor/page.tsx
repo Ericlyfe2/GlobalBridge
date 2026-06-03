@@ -32,7 +32,7 @@ export default function MentorDashboard() {
     let active = true;
     (async () => {
       try {
-        const res = await authFetch("/api/users/mentor-dashboard");
+        const res = await authFetch("/api/users/mentor-dashboard", {}, 60000);
         if (!res.ok) throw new Error("Could not load your dashboard.");
         const json = (await res.json()) as MentorDashboard;
         if (active) setData(json);

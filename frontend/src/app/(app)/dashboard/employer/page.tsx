@@ -31,7 +31,7 @@ export default function EmployerDashboard() {
     let active = true;
     (async () => {
       try {
-        const res = await authFetch("/api/users/employer-dashboard");
+        const res = await authFetch("/api/users/employer-dashboard", {}, 60000);
         if (!res.ok) throw new Error("Could not load your dashboard.");
         const json = (await res.json()) as EmployerDashboard;
         if (active) setData(json);

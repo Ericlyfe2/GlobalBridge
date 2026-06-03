@@ -15,7 +15,7 @@ export default function AdminOverview() {
     const ctrl = new AbortController();
     (async () => {
       try {
-        const res = await authFetch("/api/users/summary/all", { signal: ctrl.signal });
+        const res = await authFetch("/api/users/summary/all", { signal: ctrl.signal }, 60000);
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || "Failed to load stats");
         setStats(data.stats);
