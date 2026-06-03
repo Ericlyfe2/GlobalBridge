@@ -2,336 +2,323 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
-  ArrowRight,
-  Bot,
-  FileCheck,
-  Home,
-  MapPin,
-  Calendar,
-  TrendingUp,
-  Sparkles,
-  AlertCircle,
-  Loader2,
+  Award, Home, Users, Bot, FileText, GraduationCap, Calendar, MessageSquare,
+  ArrowRight, ShieldCheck, TrendingUp, Loader2, AlertCircle, Plane, BadgeCheck, ChevronRight,
 } from "lucide-react";
+import { authFetch, getUser } from "@/lib/auth";
 
-async function fetchWithTimeout(url: string, ms = 5000) {
-  const ctrl = new AbortController();
-  const id = setTimeout(() => ctrl.abort(), ms);
-  try {
-    const res = await fetch(url, { signal: ctrl.signal });
-    return res;
-  } finally {
-    clearTimeout(id);
-  }
-}
-
-export default function DashboardPage() {
-  const router = useRouter();
-  const [name, setName] = useState<string>("");
-  const [origin, setOrigin] = useState<string>("");
-  const [destination, setDestination] = useState<string>("");
-
-  useEffect(() => {
-    try {
-      const role = localStorage.getItem("user-role");
-      if (role === "mentor") router.replace("/dashboard/mentor");
-      else if (role === "employer") router.replace("/dashboard/employer");
-
-      setName((localStorage.getItem("user-name") || "").split(" ")[0] || "");
-      setOrigin(localStorage.getItem("user-country") || "");
-      setDestination(localStorage.getItem("user-destination") || "");
-    } catch { /* ignore */ }
-  }, [router]);
-
-  const journey = origin && destination
-    ? `${origin} → ${destination}`
-    : "Your study-abroad journey";
-
-  return (
-    <div className="max-w-7xl mx-auto p-6 lg:p-10 space-y-8">
-      <div>
-        <p className="text-sm font-medium text-clay-600">YOUR JOURNEY</p>
-        <h1 className="mt-1 text-4xl font-display font-semibold text-ink-900 tracking-tight">
-          {name ? `Welcome back, ${name}` : "Welcome back"}
-        </h1>
-        <p className="mt-2 text-ink-600">{journey}</p>
-      </div>
-
-      <ProgressTracker />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <AIAssistantCard />
-          <RecentOpportunities />
-        </div>
-
-        <div className="space-y-6">
-          <NextStepsCard />
-          <HousingSnapshot />
-          <ScamAlert />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ProgressTracker() {
-  const steps = [
-    { label: "Accepted", done: true },
-    { label: "Visa Docs", done: true },
-    { label: "Biometrics", done: false, active: true },
-    { label: "Submit", done: false },
-    { label: "Arrival", done: false },
-  ];
-
-  return (
-    <div className="card">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="font-display text-lg font-semibold text-ink-900">Application Progress</h3>
-        <span className="badge badge-clay">40% complete</span>
-      </div>
-
-      <div className="flex items-center gap-2">
-        {steps.map((s, i) => (
-          <div key={s.label} className="flex-1 flex items-center gap-2">
-            <div className="flex-1 flex flex-col items-center">
-              <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium border-2 ${
-                  s.done
-                    ? "bg-leaf-500 border-leaf-500 text-white"
-                    : s.active
-                    ? "bg-clay-500 border-clay-500 text-white animate-pulse-glow"
-                    : "bg-cream-100 border-cream-300 text-ink-500"
-                }`}
-              >
-                {s.done ? "✓" : i + 1}
-              </div>
-              <p className="mt-2 text-xs font-medium text-ink-700">{s.label}</p>
-            </div>
-            {i < steps.length - 1 && (
-              <div className={`h-0.5 flex-1 ${s.done ? "bg-leaf-500" : "bg-cream-300"}`} />
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function AIAssistantCard() {
-  return (
-    <Link href="/assistant" className="card group flex items-start gap-4 hover:!border-clay-300">
-      <div className="w-12 h-12 rounded-xl bg-clay-500 text-white flex items-center justify-center shrink-0">
-        <Bot size={20} />
-      </div>
-      <div className="flex-1">
-        <div className="flex items-center gap-2">
-          <h3 className="font-display text-lg font-semibold text-ink-900">Ask the AI assistant</h3>
-          <Sparkles size={14} className="text-clay-500" />
-        </div>
-        <p className="mt-1 text-sm text-ink-600">
-          Country-specific visa guidance, document checklists, deadline reminders — in plain language.
-        </p>
-        <p className="mt-3 text-sm font-medium text-clay-600 flex items-center gap-1 group-hover:gap-2 transition-all">
-          Open AI Assistant <ArrowRight size={14} />
-        </p>
-      </div>
-    </Link>
-  );
-}
-
-type Opp = {
-  id: string; type: string; title: string; country: string;
-  institution: string | null; funding_amount: string | null; currency: string | null;
-  deadline: string | null;
+type Dashboard = {
+  profile: { completion: number; missingFields: string[]; verificationStatus: string };
+  stats: { savedScholarships: number; savedHousing: number; mentorSessions: number; profileStrength: number };
+  visa: { progress: number; destination: string | null; total: number; done: number } | null;
+  deadlines: { id: string; title: string; type: string; deadline: string | null; country: string }[];
+  discussions: { id: string; title: string; answer_count: number; upvotes: number; created_at: string }[];
 };
 
-const typeLabel: Record<string, string> = {
-  scholarship: "Scholarship", internship: "Internship", exchange: "Exchange",
-  work_study: "Work-Study", job: "Job",
+type Opportunity = {
+  id: string; title: string; type: string; country: string;
+  deadline: string | null; funding_amount?: number | null; currency?: string | null;
 };
 
-function RecentOpportunities() {
-  const [opps, setOpps] = useState<Opp[] | null>(null);
+const QUICK_ACTIONS = [
+  { href: "/opportunities", icon: Award, label: "Find Scholarships" },
+  { href: "/tools/uni-success", icon: GraduationCap, label: "Find Universities" },
+  { href: "/housing", icon: Home, label: "Browse Housing" },
+  { href: "/community/mentors", icon: Users, label: "Connect Mentors" },
+  { href: "/assistant", icon: Bot, label: "AI Assistant" },
+  { href: "/jobs/resume-builder", icon: FileText, label: "Resume Builder" },
+];
+
+export default function StudentDashboard() {
+  const [data, setData] = useState<Dashboard | null>(null);
+  const [opps, setOpps] = useState<Opportunity[]>([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const firstName = (getUser()?.full_name || "there").split(" ")[0];
 
   useEffect(() => {
-    const ctrl = new AbortController();
+    let active = true;
     (async () => {
       try {
-        const res = await fetchWithTimeout("/api/opportunities?limit=3");
-        const data = await res.json();
-        if (!ctrl.signal.aborted) {
-          if (res.ok) setOpps(data.opportunities as Opp[]);
-          else setOpps([]);
-        }
-      } catch { if (!ctrl.signal.aborted) setOpps([]); }
+        const res = await authFetch("/api/users/dashboard");
+        if (!res.ok) throw new Error("Could not load your dashboard.");
+        const json = (await res.json()) as Dashboard;
+        if (active) setData(json);
+      } catch (e) {
+        if (active) setError(e instanceof Error ? e.message : "Something went wrong");
+      } finally {
+        if (active) setLoading(false);
+      }
     })();
-    return () => ctrl.abort();
+    (async () => {
+      try {
+        const res = await authFetch("/api/opportunities?limit=4");
+        if (res.ok) {
+          const json = await res.json();
+          if (active) setOpps(Array.isArray(json) ? json : json.items ?? json.opportunities ?? []);
+        }
+      } catch { /* widget is optional */ }
+    })();
+    return () => { active = false; };
   }, []);
 
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center py-32">
+        <Loader2 size={24} className="animate-spin text-emerald-500" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="mx-auto flex max-w-md flex-col items-center justify-center gap-3 py-32 text-center">
+        <AlertCircle size={28} className="text-red-500" />
+        <p className="text-sm text-ink-600 dark:text-gray-300">{error || "No data available."}</p>
+        <button onClick={() => location.reload()} className="text-sm font-medium text-emerald-600 hover:text-emerald-700">
+          Try again
+        </button>
+      </div>
+    );
+  }
+
+  const verified = data.profile.verificationStatus === "verified";
+
   return (
-    <div className="card">
-      <div className="flex items-center justify-between mb-5">
-        <h3 className="font-display text-lg font-semibold text-ink-900">Matched opportunities</h3>
-        <Link href="/opportunities" className="text-sm font-medium text-clay-600 hover:underline">
-          View all
+    <div className="mx-auto max-w-6xl space-y-6 p-5 md:p-8">
+      {/* Welcome */}
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-[#0A2540] dark:text-white">
+            Welcome back, {firstName} 👋
+          </h1>
+          <p className="mt-1 text-sm text-ink-500 dark:text-gray-400">
+            Here&apos;s your journey at a glance.
+          </p>
+        </div>
+        <span
+          className={`inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
+            verified
+              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+              : "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+          }`}
+        >
+          {verified ? <BadgeCheck size={13} /> : <ShieldCheck size={13} />}
+          {verified ? "Verified account" : "Verification pending"}
+        </span>
+      </header>
+
+      {/* Profile completion + stats */}
+      <div className="grid gap-4 lg:grid-cols-[1.1fr_2fr]">
+        <ProfileCard completion={data.profile.completion} missing={data.profile.missingFields} />
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
+          <Stat icon={Award} label="Saved scholarships" value={data.stats.savedScholarships} />
+          <Stat icon={Calendar} label="Mentor sessions" value={data.stats.mentorSessions} />
+          <Stat icon={Home} label="Saved housing" value={data.stats.savedHousing} />
+          <Stat icon={TrendingUp} label="Profile strength" value={`${data.stats.profileStrength}%`} />
+        </div>
+      </div>
+
+      {/* Quick actions */}
+      <section>
+        <h2 className="mb-3 text-sm font-semibold text-ink-700 dark:text-gray-300">Quick actions</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {QUICK_ACTIONS.map((a) => (
+            <Link
+              key={a.label} href={a.href}
+              className="group flex flex-col items-start gap-2 rounded-xl border border-cream-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900"
+            >
+              <span className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                <a.icon size={18} />
+              </span>
+              <span className="text-xs font-medium leading-snug text-ink-800 dark:text-gray-200">{a.label}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Trackers + widgets */}
+      <div className="grid gap-5 lg:grid-cols-3">
+        {/* Status trackers */}
+        <SectionCard title="Status trackers" className="lg:col-span-1">
+          <div className="space-y-4">
+            <Tracker
+              icon={Plane} label="Visa checklist"
+              value={data.visa ? `${data.visa.progress}%` : "Not started"}
+              progress={data.visa?.progress ?? 0}
+              sub={data.visa?.destination ? `Destination: ${data.visa.destination}` : "Start your visa checklist"}
+            />
+            <Tracker
+              icon={Award} label="Applications"
+              value={`${data.stats.savedScholarships} tracked`}
+              progress={Math.min(data.stats.savedScholarships * 20, 100)}
+              sub="Scholarships you're pursuing"
+            />
+            <Tracker
+              icon={Home} label="Housing"
+              value={`${data.stats.savedHousing} saved`}
+              progress={Math.min(data.stats.savedHousing * 25, 100)}
+              sub="Listings shortlisted"
+            />
+          </div>
+        </SectionCard>
+
+        {/* Upcoming deadlines */}
+        <SectionCard title="Upcoming deadlines" href="/opportunities" className="lg:col-span-1">
+          {data.deadlines.length === 0 ? (
+            <Empty>No upcoming deadlines.</Empty>
+          ) : (
+            <ul className="space-y-2.5">
+              {data.deadlines.map((d) => (
+                <li key={d.id}>
+                  <Link href={`/opportunities/${d.id}`} className="group flex items-center justify-between gap-2 rounded-lg p-2 hover:bg-cream-50 dark:hover:bg-gray-800">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-ink-800 dark:text-gray-200">{d.title}</p>
+                      <p className="text-xs text-ink-400">{d.country} · {d.type}</p>
+                    </div>
+                    <span className="shrink-0 text-xs font-medium text-emerald-600">{fmtDate(d.deadline)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </SectionCard>
+
+        {/* Community discussions */}
+        <SectionCard title="Community discussions" href="/forums" className="lg:col-span-1">
+          {data.discussions.length === 0 ? (
+            <Empty>No discussions yet.</Empty>
+          ) : (
+            <ul className="space-y-2.5">
+              {data.discussions.map((p) => (
+                <li key={p.id}>
+                  <Link href={`/forums/${p.id}`} className="group flex items-start gap-2 rounded-lg p-2 hover:bg-cream-50 dark:hover:bg-gray-800">
+                    <MessageSquare size={15} className="mt-0.5 shrink-0 text-ink-400" />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-ink-800 dark:text-gray-200">{p.title}</p>
+                      <p className="text-xs text-ink-400">{p.answer_count} replies · {p.upvotes} upvotes</p>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </SectionCard>
+      </div>
+
+      {/* Recommended opportunities */}
+      <SectionCard title="Recommended for you" href="/opportunities">
+        {opps.length === 0 ? (
+          <Empty>Browse the opportunities board to get started.</Empty>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {opps.slice(0, 4).map((o) => (
+              <Link
+                key={o.id} href={`/opportunities/${o.id}`}
+                className="group rounded-xl border border-cream-200 p-4 transition-all hover:border-emerald-300 hover:shadow-sm dark:border-gray-800"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                    {o.type}
+                  </span>
+                  <ChevronRight size={15} className="text-ink-300 transition-transform group-hover:translate-x-0.5" />
+                </div>
+                <p className="mt-2 line-clamp-2 text-sm font-semibold text-ink-900 dark:text-white">{o.title}</p>
+                <p className="mt-1 text-xs text-ink-400">
+                  {o.country}{o.deadline ? ` · Due ${fmtDate(o.deadline)}` : ""}
+                </p>
+              </Link>
+            ))}
+          </div>
+        )}
+      </SectionCard>
+    </div>
+  );
+}
+
+/* ── small building blocks ──────────────────────────────── */
+
+function fmtDate(d: string | null): string {
+  if (!d) return "—";
+  const date = new Date(d);
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function Stat({ icon: Icon, label, value }: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; value: number | string }) {
+  return (
+    <div className="rounded-xl border border-cream-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+      <Icon size={18} className="text-emerald-600 dark:text-emerald-400" />
+      <p className="mt-3 text-2xl font-bold text-[#0A2540] dark:text-white">{value}</p>
+      <p className="mt-0.5 text-xs text-ink-500 dark:text-gray-400">{label}</p>
+    </div>
+  );
+}
+
+function ProfileCard({ completion, missing }: { completion: number; missing: string[] }) {
+  const r = 34, c = 2 * Math.PI * r, offset = c - (completion / 100) * c;
+  return (
+    <div className="flex items-center gap-4 rounded-xl border border-cream-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+      <div className="relative grid h-20 w-20 shrink-0 place-items-center">
+        <svg className="h-20 w-20 -rotate-90" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r={r} fill="none" strokeWidth="7" className="stroke-cream-200 dark:stroke-gray-700" />
+          <circle cx="40" cy="40" r={r} fill="none" strokeWidth="7" strokeLinecap="round"
+            className="stroke-emerald-500" strokeDasharray={c} strokeDashoffset={offset} />
+        </svg>
+        <span className="absolute text-sm font-bold text-[#0A2540] dark:text-white">{completion}%</span>
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-ink-800 dark:text-gray-200">Profile completion</p>
+        {missing.length > 0 ? (
+          <p className="mt-1 text-xs text-ink-500 dark:text-gray-400">
+            Add: {missing.slice(0, 2).join(", ")}{missing.length > 2 ? "…" : ""}
+          </p>
+        ) : (
+          <p className="mt-1 text-xs text-emerald-600">All set — great work!</p>
+        )}
+        <Link href="/dashboard/profile" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700">
+          Complete profile <ArrowRight size={12} />
         </Link>
       </div>
+    </div>
+  );
+}
 
-      {opps === null && (
-        <div className="py-8 text-center text-ink-500"><Loader2 size={16} className="animate-spin mx-auto" /></div>
-      )}
-      {opps && opps.length === 0 && (
-        <p className="py-6 text-center text-sm text-ink-500">No opportunities yet.</p>
-      )}
-
-      <div className="space-y-3">
-        {opps?.map((o) => {
-          const funding = o.funding_amount
-            ? `${o.currency ?? ""} ${Number(o.funding_amount).toLocaleString()}`.trim()
-            : "See details";
-          return (
-            <Link
-              key={o.id}
-              href={`/opportunities/${o.id}`}
-              className="block p-4 rounded-lg border border-cream-200 hover:border-cream-300 hover:bg-cream-50 transition cursor-pointer"
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <span className="badge badge-sky">{typeLabel[o.type] ?? o.type}</span>
-                {o.institution && <span className="text-xs text-ink-500">{o.institution}</span>}
-              </div>
-              <h4 className="font-medium text-ink-900">{o.title}</h4>
-              <div className="mt-2 flex items-center gap-4 text-xs text-ink-600 flex-wrap">
-                <span className="flex items-center gap-1"><MapPin size={12} /> {o.country}</span>
-                <span className="flex items-center gap-1"><Calendar size={12} /> Due {o.deadline ?? "Rolling"}</span>
-                <span className="flex items-center gap-1 text-leaf-600 font-medium"><TrendingUp size={12} /> {funding}</span>
-              </div>
-            </Link>
-          );
-        })}
+function Tracker({
+  icon: Icon, label, value, sub, progress,
+}: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; value: string; sub: string; progress: number }) {
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <span className="flex items-center gap-2 text-sm font-medium text-ink-700 dark:text-gray-300">
+          <Icon size={15} className="text-ink-400" /> {label}
+        </span>
+        <span className="text-xs font-semibold text-ink-800 dark:text-gray-200">{value}</span>
       </div>
-    </div>
-  );
-}
-
-function NextStepsCard() {
-  const tasks = [
-    { label: "Book biometrics appointment", due: "Tomorrow", urgent: true },
-    { label: "Upload bank statement", due: "Mar 5", urgent: false },
-    { label: "Submit IRCC application", due: "Mar 15", urgent: false },
-  ];
-
-  return (
-    <div className="card">
-      <h3 className="font-display text-lg font-semibold text-ink-900 mb-4">Next steps</h3>
-      <ul className="space-y-3">
-        {tasks.map((t, i) => (
-          <li key={i} className="flex items-start gap-3">
-            <input type="checkbox" aria-label={t.label} className="mt-1 accent-clay-500" />
-            <div className="flex-1">
-              <p className="text-sm text-ink-900">{t.label}</p>
-              <p className={`text-xs mt-0.5 ${t.urgent ? "text-clay-600 font-medium" : "text-ink-500"}`}>
-                Due {t.due}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ul>
-
-      <Link href="/assistant" className="btn-ghost border border-cream-300 w-full mt-4 text-sm">
-        <FileCheck size={14} /> Generate full checklist
-      </Link>
-    </div>
-  );
-}
-
-type Listing = {
-  id: string; city: string; country: string; rent_amount: string; currency: string;
-};
-
-function HousingSnapshot() {
-  const [data, setData] = useState<{ count: number; avg: number; currency: string; city: string } | null>(null);
-
-  useEffect(() => {
-    const ctrl = new AbortController();
-    (async () => {
-      try {
-        const res = await fetchWithTimeout("/api/housing?limit=20");
-        const json = await res.json();
-        if (ctrl.signal.aborted) return;
-        const list = (json.listings ?? []) as Listing[];
-        if (!list.length) { setData({ count: 0, avg: 0, currency: "", city: "" }); return; }
-        const currency = list[0].currency;
-        const sameCur = list.filter((l) => l.currency === currency);
-        const avg = Math.round(sameCur.reduce((a, l) => a + Number(l.rent_amount), 0) / sameCur.length);
-        setData({ count: list.length, avg, currency, city: list[0].city });
-      } catch { if (!ctrl.signal.aborted) setData({ count: 0, avg: 0, currency: "", city: "" }); }
-    })();
-    return () => ctrl.abort();
-  }, []);
-
-  return (
-    <div className="card">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display text-lg font-semibold text-ink-900">Housing</h3>
-        <Home size={16} className="text-clay-500" />
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-cream-200 dark:bg-gray-700">
+        <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${progress}%` }} />
       </div>
-      {!data ? (
-        <Loader2 size={16} className="animate-spin text-ink-400" />
-      ) : data.count === 0 ? (
-        <p className="text-sm text-ink-600">No listings yet.</p>
-      ) : (
-        <>
-          <p className="text-sm text-ink-600">
-            {data.count} verified listing{data.count > 1 ? "s" : ""} available.
-          </p>
-          <p className="mt-2 text-2xl font-display font-semibold text-ink-900">
-            {data.currency} {data.avg.toLocaleString()} <span className="text-sm font-normal text-ink-500">avg/mo</span>
-          </p>
-        </>
-      )}
-      <Link href="/housing" className="text-sm font-medium text-clay-600 hover:underline mt-3 inline-flex items-center gap-1">
-        Browse listings <ArrowRight size={14} />
-      </Link>
+      <p className="mt-1 text-xs text-ink-400">{sub}</p>
     </div>
   );
 }
 
-type Alert = { id: string; title: string; upvotes: number };
-
-function ScamAlert() {
-  const [alert, setAlert] = useState<Alert | null>(null);
-
-  useEffect(() => {
-    const ctrl = new AbortController();
-    (async () => {
-      try {
-        const res = await fetchWithTimeout("/api/moderation/scam-alerts");
-        const json = await res.json();
-        if (!ctrl.signal.aborted && res.ok && json.alerts?.length) setAlert(json.alerts[0]);
-      } catch { /* ignore */ }
-    })();
-    return () => ctrl.abort();
-  }, []);
-
+function SectionCard({ title, href, className = "", children }: { title: string; href?: string; className?: string; children: React.ReactNode }) {
   return (
-    <div className="card !bg-clay-500/5 !border-clay-500/30">
-      <div className="flex items-start gap-3">
-        <AlertCircle size={18} className="text-clay-600 shrink-0 mt-0.5" />
-        <div>
-          <h4 className="font-semibold text-sm text-ink-900">Top scam alert</h4>
-          <p className="text-xs text-ink-700 mt-1 leading-relaxed">
-            {alert
-              ? `${alert.title} — flagged ${alert.upvotes} times.`
-              : "Stay alert for fake visa agents and housing scams."}
-          </p>
-          <Link href="/scam-alerts" className="text-xs font-medium text-clay-600 hover:underline mt-2 inline-block">
-            Read full feed →
+    <section className={`rounded-2xl border border-cream-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900 ${className}`}>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-ink-800 dark:text-gray-200">{title}</h2>
+        {href && (
+          <Link href={href} className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700">
+            View all <ArrowRight size={12} />
           </Link>
-        </div>
+        )}
       </div>
-    </div>
+      {children}
+    </section>
   );
+}
+
+function Empty({ children }: { children: React.ReactNode }) {
+  return <p className="py-6 text-center text-xs text-ink-400">{children}</p>;
 }
