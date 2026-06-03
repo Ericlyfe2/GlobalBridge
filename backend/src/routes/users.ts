@@ -161,6 +161,56 @@ usersRouter.get("/mentor-dashboard", requireAuth, async (req, res, next) => {
   }
 });
 
+// Aggregated employer dashboard summary. Jobs are opportunities of type
+// job/internship posted by the employer. "Interested candidates" uses
+// saved_items as the real interest signal (no applications table yet, so
+// hiring/interview metrics are intentionally omitted rather than faked).
+usersRouter.get("/employer-dashboard", requireAuth, async (req, res, next) => {
+  try {
+    const uid = req.user!.sub;
+    const [counts, interested, listings, company] = await Promise.all([
+      queryOne<{ active_listings: number; total_views: number; sponsorship_listings: number }>(
+        `SELECT
+           COUNT(*)::int AS active_listings,
+           COALESCE(SUM(view_count), 0)::int AS total_views,
+           COUNT(*) FILTER (WHERE sponsors_visa)::int AS sponsorship_listings
+         FROM opportunities WHERE posted_by = $1 AND type IN ('job', 'internship')`, [uid]),
+      queryOne<{ n: number }>(
+        `SELECT COUNT(*)::int AS n FROM saved_items s
+         JOIN opportunities o ON o.id = s.item_id
+         WHERE s.item_type = 'opportunity' AND o.posted_by = $1 AND o.type IN ('job', 'internship')`, [uid]),
+      query<{ id: string; title: string; type: string; view_count: number; sponsors_visa: boolean; deadline: string | null; interested: number }>(
+        `SELECT o.id, o.title, o.type, o.view_count, o.sponsors_visa, o.deadline,
+                COALESCE(s.cnt, 0)::int AS interested
+         FROM opportunities o
+         LEFT JOIN (
+           SELECT item_id, COUNT(*) AS cnt FROM saved_items WHERE item_type = 'opportunity' GROUP BY item_id
+         ) s ON s.item_id = o.id
+         WHERE o.posted_by = $1 AND o.type IN ('job', 'internship')
+         ORDER BY o.created_at DESC LIMIT 6`, [uid]),
+      queryOne<{ company_name: string | null }>(
+        `SELECT company_name FROM employer_profiles WHERE user_id = $1`, [uid]),
+    ]);
+
+    const active = counts?.active_listings ?? 0;
+    const sponsorship = counts?.sponsorship_listings ?? 0;
+
+    res.json({
+      stats: {
+        activeListings: active,
+        interestedCandidates: interested?.n ?? 0,
+        totalViews: counts?.total_views ?? 0,
+        sponsorshipListings: sponsorship,
+        sponsorshipRate: active > 0 ? Math.round((sponsorship / active) * 100) : 0,
+      },
+      listings,
+      company: company?.company_name ?? null,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 usersRouter.get("/mentors", async (_req, res, next) => {
   try {
     const mentors = await query(
