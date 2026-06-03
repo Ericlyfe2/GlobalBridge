@@ -88,7 +88,8 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 
     req.user = { sub: pgUser.id, firebaseUid: decoded.uid, email, role: pgUser.role };
     next();
-  } catch {
+  } catch (err) {
+    console.error("requireAuth failed:", err);
     return res.status(401).json({ error: "Invalid or expired token" });
   }
 }
