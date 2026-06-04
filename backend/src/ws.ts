@@ -1,10 +1,10 @@
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "http";
-import jwt from "jsonwebtoken";
 import Redis from "ioredis";
 import { redis, pool } from "./db";
+import { adminAuth } from "./lib/firebase-admin";
 
-type Client = WebSocket & { userId?: string; authed?: boolean };
+type Client = WebSocket & { userId?: string; firebaseUid?: string; authed?: boolean };
 const clients = new Map<string, Set<Client>>();
 
 let subRedis: Redis | null = null;
@@ -23,6 +23,7 @@ export function initWebsocket(server: Server) {
       if (!ws.authed) ws.close(1008, "Auth timeout");
     }, AUTH_TIMEOUT);
 
+    // Verify Firebase ID token (consistent with REST API auth)
     ws.once("message", async (raw) => {
       try {
         const msg = JSON.parse(raw.toString());
@@ -31,19 +32,23 @@ export function initWebsocket(server: Server) {
           return;
         }
 
-        const payload = jwt.verify(msg.token, process.env.JWT_SECRET!) as { sub: string; ver?: number };
+        const decoded = await adminAuth.verifyIdToken(msg.token);
 
-        // Verify token version
-        const result = await pool.query("SELECT token_version FROM users WHERE id = $1", [payload.sub]);
-        if (!result.rows.length || result.rows[0].token_version !== (payload.ver ?? 0)) {
-          ws.close(1008, "Session expired");
+        // Resolve Postgres user (same flow as requireAuth middleware)
+        const result = await pool.query(
+          "SELECT id, token_version FROM users WHERE firebase_uid = $1",
+          [decoded.uid]
+        );
+        if (!result.rows.length) {
+          ws.close(1008, "User not found");
           return;
         }
 
         clearTimeout(authTimer);
-        ws.userId = payload.sub;
+        ws.userId = result.rows[0].id;
+        ws.firebaseUid = decoded.uid;
         ws.authed = true;
-        addClient(payload.sub, ws);
+        addClient(result.rows[0].id, ws);
         ws.send(JSON.stringify({ type: "auth_ok" }));
 
         // Regular message handler

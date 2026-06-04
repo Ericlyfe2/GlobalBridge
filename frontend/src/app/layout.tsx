@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ToastProvider } from "@/components/Toast";
 import { LanguageProvider } from "@/components/LanguageProvider";
+import { AuthSync } from "@/components/AuthSync";
 
 export const metadata: Metadata = {
   title: "GlobalBridge — Your Trusted Guide Abroad",
@@ -32,7 +33,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <LanguageProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            <AuthSync />
+            {children}
+          </ToastProvider>
         </LanguageProvider>
       </body>
     </html>

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { User, Globe, GraduationCap, Languages, Camera, Save, Loader2 } from "lucide-react";
 import { authFetch, getToken } from "@/lib/auth";
@@ -108,10 +109,9 @@ export default function ProfilePage() {
         {/* Avatar */}
         <div className="card flex items-center gap-5">
           <div className="relative">
-            <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-clay-500 to-clay-700 text-white flex items-center justify-center text-2xl font-display font-semibold">
+            <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-clay-500 to-clay-700 text-white flex items-center justify-center text-2xl font-display font-semibold">
               {avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                <Image src={avatarUrl} alt="Profile" fill className="object-cover" />
               ) : initials}
             </div>
             <input

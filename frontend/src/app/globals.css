@@ -42,7 +42,6 @@
   --radius-lg: 1rem;
   --radius-xl: 1.5rem;
 
-  --texture-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
 }
 
 /* DARK MODE — override theme vars when .dark class is on <html> */
@@ -90,15 +89,9 @@
     transition: background-color 0.2s ease, color 0.2s ease;
   }
 
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 9999;
-    background-image: var(--texture-noise);
-    mix-blend-mode: multiply;
-  }
+  /* texture overlay disabled — SVG feTurbulence + mix-blend-mode caused
+     major repaint cost on low-end devices. Re-enable only if performance
+     budget allows it. */
 
   h1, h2, h3, h4 {
     font-family: var(--font-display);
@@ -237,14 +230,38 @@
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.animate-fade-up { animation: fade-up 0.5s ease-out forwards; }
+.animate-fade-up {
+  animation: fade-up 0.5s ease-out forwards;
+  will-change: transform, opacity;
+}
 
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.45); }
   50% { box-shadow: 0 0 0 12px rgba(20, 184, 166, 0); }
 }
-.animate-pulse-glow { animation: pulse-glow 2s infinite; }
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+  will-change: box-shadow;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-pulse-glow { animation: none; }
-  .animate-fade-up { animation: none; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .animate-pulse-glow,
+  .animate-fade-up,
+  .animate-spin-slow {
+    animation: none !important;
+  }
 }

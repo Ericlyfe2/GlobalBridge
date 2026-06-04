@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
+import { sanitizeAllStrings } from "../lib/sanitize";
 
 export const opportunitiesRouter = Router();
 
@@ -89,7 +90,8 @@ opportunitiesRouter.post(
   requireRole("mentor", "admin", "employer"),
   async (req, res, next) => {
     try {
-      const body = createSchema.parse(req.body);
+      const b = createSchema.parse(req.body);
+      const safe = sanitizeAllStrings(b);
       const opp = await queryOne(
         `INSERT INTO opportunities (posted_by, type, title, description, country, institution,
            field_of_study, funding_amount, currency, eligibility, application_url, deadline, sponsors_visa)
@@ -97,18 +99,18 @@ opportunitiesRouter.post(
          RETURNING *`,
         [
           req.user!.sub,
-          body.type,
-          body.title,
-          body.description,
-          body.country,
-          body.institution,
-          body.field_of_study,
-          body.funding_amount,
-          body.currency,
-          body.eligibility,
-          body.application_url,
-          body.deadline,
-          body.sponsors_visa ?? false,
+          safe.type,
+          safe.title,
+          safe.description,
+          safe.country,
+          safe.institution,
+          safe.field_of_study,
+          safe.funding_amount,
+          safe.currency,
+          safe.eligibility,
+          safe.application_url,
+          safe.deadline,
+          safe.sponsors_visa ?? false,
         ]
       );
       res.status(201).json({ opportunity: opp });

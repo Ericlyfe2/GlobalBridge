@@ -12,6 +12,8 @@ const envSchema = z.object({
   FIREBASE_PRIVATE_KEY: z.string().min(1, "FIREBASE_PRIVATE_KEY is required"),
   AI_SERVICE_URL: z.string().url().default("http://localhost:8000"),
   CORS_ORIGIN: z.string().default("http://localhost:3000"),
+  // Legacy JWT secret for WebSocket — must be strong in production
+  JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters").default("change-me-in-production-use-long-random-string"),
 });
 
 declare global {

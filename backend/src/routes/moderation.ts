@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
+import { sanitizeAllStrings } from "../lib/sanitize";
 
 export const moderationRouter = Router();
 
@@ -15,10 +16,11 @@ const reportSchema = z.object({
 moderationRouter.post("/report", requireAuth, async (req, res, next) => {
   try {
     const b = reportSchema.parse(req.body);
+    const safe = sanitizeAllStrings(b);
     const report = await queryOne(
       `INSERT INTO reports (reporter_id, target_type, target_id, reason, details)
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-      [req.user!.sub, b.target_type, b.target_id, b.reason, b.details]
+      [req.user!.sub, safe.target_type, safe.target_id, safe.reason, safe.details]
     );
     res.status(201).json({ report });
   } catch (err) {
@@ -80,10 +82,11 @@ const alertSchema = z.object({
 moderationRouter.post("/scam-alerts", requireAuth, async (req, res, next) => {
   try {
     const b = alertSchema.parse(req.body);
+    const safe = sanitizeAllStrings(b);
     const alert = await queryOne(
       `INSERT INTO scam_alerts (reported_by, title, description, scam_type, affected_countries)
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-      [req.user!.sub, b.title, b.description, b.scam_type, b.affected_countries]
+      [req.user!.sub, safe.title, safe.description, safe.scam_type, safe.affected_countries]
     );
     res.status(201).json({ alert });
   } catch (err) {

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
+import { sanitizeAllStrings } from "../lib/sanitize";
 
 export const jobsRouter = Router();
 
@@ -120,6 +121,7 @@ const createSchema = z.object({
 jobsRouter.post("/", requireAuth, requireRole("employer", "admin"), async (req, res, next) => {
   try {
     const b = createSchema.parse(req.body);
+    const safe = sanitizeAllStrings(b);
     const job = await queryOne(
       `INSERT INTO opportunities (posted_by, type, title, description, country, institution,
          field_of_study, funding_amount, currency, eligibility, application_url, deadline, sponsors_visa)
@@ -127,18 +129,18 @@ jobsRouter.post("/", requireAuth, requireRole("employer", "admin"), async (req, 
        RETURNING *`,
       [
         req.user!.sub,
-        b.type,
-        b.title,
-        b.description,
-        b.country,
-        b.institution,
-        b.field_of_study,
-        b.funding_amount,
-        b.currency,
-        b.eligibility,
-        b.application_url,
-        b.deadline,
-        b.sponsors_visa ?? false,
+        safe.type,
+        safe.title,
+        safe.description,
+        safe.country,
+        safe.institution,
+        safe.field_of_study,
+        safe.funding_amount,
+        safe.currency,
+        safe.eligibility,
+        safe.application_url,
+        safe.deadline,
+        safe.sponsors_visa ?? false,
       ]
     );
     res.status(201).json({ job });

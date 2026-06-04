@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MapPin, Bed, Bath, ShieldCheck, Star, Search, SlidersHorizontal, Loader2, Plus } from "lucide-react";
 import { SaveButton } from "@/components/SaveButton";
+import { useDebounce } from "@/lib/useDebounce";
 
 const fallbackImgs = [
   "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800",
@@ -50,13 +52,14 @@ export default function HousingPage() {
   const [city, setCity] = useState("");
   const [maxRent, setMaxRent] = useState("");
   const [currency, setCurrency] = useState("");
+  const debouncedCity = useDebounce(city, 300);
 
   useEffect(() => {
     const ctrl = new AbortController();
     (async () => {
       try {
         const params = new URLSearchParams();
-        if (city)     params.set("city", city);
+        if (debouncedCity) params.set("city", debouncedCity);
         if (maxRent)  params.set("max_rent", maxRent);
         if (currency) params.set("currency", currency);
         const res = await fetch(`/api/housing?${params}`, { signal: ctrl.signal });
@@ -70,7 +73,7 @@ export default function HousingPage() {
       }
     })();
     return () => ctrl.abort();
-  }, [city, maxRent, currency]);
+  }, [debouncedCity, maxRent, currency]);
 
   return (
     <div className="max-w-7xl mx-auto p-6 lg:p-10 space-y-8">
@@ -154,15 +157,16 @@ function ListingCard({ l }: { l: Listing }) {
   return (
     <Link href={`/housing/${l.id}`} className="card !p-0 overflow-hidden group cursor-pointer block">
       <div className="relative aspect-[4/3] bg-cream-200 overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={img}
           alt={l.title}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           onError={(e) => {
-            const target = e.currentTarget;
+            const target = e.currentTarget as HTMLImageElement;
             if (target.src !== fallback) target.src = fallback;
           }}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
         {isVerified && (
           <div className="absolute top-3 left-3 badge badge-verified !bg-white/90 backdrop-blur">

@@ -27,7 +27,31 @@ import { initWebsocket } from "./ws";
 const app = express();
 const PORT = Number(process.env.PORT || 4000);
 
-app.use(helmet());
+// Global unhandled rejection handler
+process.on("unhandledRejection", (reason) => {
+  console.error("❌ Unhandled Rejection:", reason);
+});
+
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://images.unsplash.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        connectSrc: ["'self'", process.env.AI_SERVICE_URL || "http://localhost:8000"],
+        frameSrc: ["'none'"],
+        objectSrc: ["'none'"],
+      },
+    },
+    strictTransportSecurity: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+    },
+  }),
+);
 app.use(compression());
 app.use(morgan("dev"));
 app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:3000", credentials: true }));

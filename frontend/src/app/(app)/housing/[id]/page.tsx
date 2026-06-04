@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import {
@@ -151,13 +152,11 @@ export default function HousingDetail({ params }: { params: Promise<{ id: string
       {/* Photos */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6 rounded-xl overflow-hidden h-[280px] sm:h-[360px]">
         <div className="col-span-2 row-span-2 relative bg-cream-100">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={l.photos[0]} alt="" className="w-full h-full object-cover" />
+          <Image src={l.photos[0]} alt="" fill sizes="50vw" className="object-cover" />
         </div>
         {l.photos.slice(1, 4).map((url, i) => (
           <div key={i} className="relative bg-cream-100">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt="" className="w-full h-full object-cover" />
+            <Image src={url} alt="" fill sizes="25vw" className="object-cover" />
           </div>
         ))}
         <div className="bg-cream-200 flex items-center justify-center text-ink-600 text-sm font-medium hover:bg-cream-300 cursor-pointer transition">+ 8 photos</div>

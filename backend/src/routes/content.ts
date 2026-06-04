@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth } from "../middleware/auth";
+import { sanitizeAllStrings } from "../lib/sanitize";
 
 export const contentRouter = Router();
 
@@ -122,17 +123,17 @@ contentRouter.get("/bookings", requireAuth, async (req, res, next) => {
 contentRouter.post("/bookings", requireAuth, async (req, res, next) => {
   try {
     const b = bookingSchema.parse(req.body);
-    // Only let students book real mentors (stops bookings + notification spam to arbitrary user IDs).
+    const safe = sanitizeAllStrings(b);
     const mentor = await queryOne<{ id: string }>(
       `SELECT id FROM users WHERE id = $1 AND role = 'mentor'`,
-      [b.mentor_id]
+      [safe.mentor_id]
     );
     if (!mentor) return res.status(404).json({ error: "Mentor not found" });
 
     const booking = await queryOne(
       `INSERT INTO mentor_bookings (mentor_id, student_id, slot_date, slot_time, duration_min, goal)
        VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-      [b.mentor_id, req.user!.sub, b.slot_date, b.slot_time, b.duration_min ?? 30, b.goal]
+      [safe.mentor_id, req.user!.sub, safe.slot_date, safe.slot_time, safe.duration_min ?? 30, safe.goal]
     );
     // Notify the mentor
     await query(

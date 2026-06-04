@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth } from "../middleware/auth";
+import { sanitizeAllStrings } from "../lib/sanitize";
 
 export const forumsRouter = Router();
 
@@ -67,10 +68,11 @@ const postSchema = z.object({
 forumsRouter.post("/posts", requireAuth, async (req, res, next) => {
   try {
     const b = postSchema.parse(req.body);
+    const safe = sanitizeAllStrings(b);
     const post = await queryOne(
       `INSERT INTO forum_posts (category_id, author_id, title, body, tags)
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-      [b.category_id, req.user!.sub, b.title, b.body, b.tags]
+      [safe.category_id, req.user!.sub, safe.title, safe.body, safe.tags]
     );
     res.status(201).json({ post });
   } catch (err) { next(err); }
@@ -78,10 +80,11 @@ forumsRouter.post("/posts", requireAuth, async (req, res, next) => {
 
 forumsRouter.post("/posts/:id/replies", requireAuth, async (req, res, next) => {
   try {
-    const body = z.object({ body: z.string().min(2).max(5000) }).parse(req.body);
+    const parsed = z.object({ body: z.string().min(2).max(5000) }).parse(req.body);
+    const safe = sanitizeAllStrings(parsed);
     const reply = await queryOne(
       `INSERT INTO forum_replies (post_id, author_id, body) VALUES ($1,$2,$3) RETURNING *`,
-      [req.params.id, req.user!.sub, body.body]
+      [req.params.id, req.user!.sub, safe.body]
     );
     await query(`UPDATE forum_posts SET answer_count = answer_count + 1 WHERE id = $1`, [
       req.params.id,

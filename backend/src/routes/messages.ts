@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth } from "../middleware/auth";
+import { sanitizeAllStrings } from "../lib/sanitize";
 
 export const messagesRouter = Router();
 
@@ -53,18 +54,19 @@ const sendSchema = z.object({
 
 messagesRouter.post("/send", requireAuth, async (req, res, next) => {
   try {
-    const { recipient_id, body } = sendSchema.parse(req.body);
+    const body = sendSchema.parse(req.body);
+    const safe = sanitizeAllStrings(body);
     const me = req.user!.sub;
-    if (recipient_id === me) {
+    if (safe.recipient_id === me) {
       return res.status(400).json({ error: "You can't message yourself" });
     }
     const recipient = await queryOne<{ id: string }>(
       `SELECT id FROM users WHERE id = $1`,
-      [recipient_id]
+      [safe.recipient_id]
     );
     if (!recipient) return res.status(404).json({ error: "Recipient not found" });
 
-    const [a, b] = [me, recipient_id].sort();
+    const [a, b] = [me, safe.recipient_id].sort();
     let convo = await queryOne<{ id: string }>(
       `SELECT id FROM conversations WHERE participant_a = $1 AND participant_b = $2`,
       [a, b]
@@ -77,7 +79,7 @@ messagesRouter.post("/send", requireAuth, async (req, res, next) => {
     }
     const msg = await queryOne(
       `INSERT INTO messages (conversation_id, sender_id, body) VALUES ($1,$2,$3) RETURNING *`,
-      [convo!.id, me, body]
+      [convo!.id, me, safe.body]
     );
     await query(`UPDATE conversations SET last_message_at = NOW() WHERE id = $1`, [convo!.id]);
     res.status(201).json({ message: msg, conversation_id: convo!.id });

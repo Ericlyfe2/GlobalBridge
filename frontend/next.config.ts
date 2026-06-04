@@ -31,6 +31,8 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return REWRITE_PATHS;
   },
+  // Remove unused EXPORT details from client bundle
+  outputFileTracingIncludes: {},
 };
 
 export default nextConfig;
