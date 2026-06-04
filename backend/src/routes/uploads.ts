@@ -10,14 +10,15 @@ const MIME_EXT: Record<string, string> = {
   "image/png": ".png",
   "image/jpeg": ".jpg",
   "image/webp": ".webp",
+  "image/gif": ".gif",
   "application/pdf": ".pdf",
 };
 
 const PURPOSE_MIME: Record<string, string[]> = {
-  avatar: ["image/png", "image/jpeg", "image/webp"],
-  housing: ["image/png", "image/jpeg", "image/webp"],
-  verification: ["image/png", "image/jpeg", "image/webp", "application/pdf"],
-  document: ["image/png", "image/jpeg", "image/webp", "application/pdf"],
+  avatar: ["image/png", "image/jpeg", "image/webp", "image/gif"],
+  housing: ["image/png", "image/jpeg", "image/webp", "image/gif"],
+  verification: ["image/png", "image/jpeg", "image/webp", "image/gif", "application/pdf"],
+  document: ["image/png", "image/jpeg", "image/webp", "image/gif", "application/pdf"],
 };
 
 const MAX_BYTES = 8 * 1024 * 1024; // 8 MB
