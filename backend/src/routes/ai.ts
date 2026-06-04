@@ -39,7 +39,7 @@ aiRouter.post("/chat", requireAuth, async (req, res, next) => {
 
     if (!resp.ok) {
       const text = await resp.text();
-      return res.status(502).json({ error: "AI service error", details: text });
+      return res.status(502).json({ error: `AI service error: ${text.slice(0, 200)}` });
     }
 
     const data = await resp.json();

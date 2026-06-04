@@ -1,26 +1,7 @@
 import { Router } from "express";
 import { query, queryOne } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
-
-function sanitize(input: string): string {
-  return input
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;")
-    .replace(/\//g, "&#x2F;");
-}
-
-function sanitizeObject(obj: Record<string, unknown>, allowed: string[]): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const k of allowed) {
-    const v = obj[k];
-    if (v !== undefined) {
-      out[k] = typeof v === "string" ? sanitize(v) : v;
-    }
-  }
-  return out;
-}
+import { sanitizeObject } from "../lib/sanitize";
 
 export const usersRouter = Router();
 

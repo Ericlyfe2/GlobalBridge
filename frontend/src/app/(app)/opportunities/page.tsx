@@ -6,6 +6,7 @@ import {
   Calendar, MapPin, TrendingUp, Filter, Search, BookmarkPlus, ShieldCheck, Loader2,
 } from "lucide-react";
 import { authFetch, getToken } from "@/lib/auth";
+import { useDebounce } from "@/lib/useDebounce";
 
 type Opp = {
   id: string;
@@ -45,6 +46,7 @@ export default function OpportunitiesPage() {
   const [type, setType]   = useState<string>("");
   const [country, setCountry] = useState<string>("");
   const [saved, setSaved] = useState<Set<string>>(new Set());
+  const debouncedQ = useDebounce(q, 300);
 
   // Load saved opportunity ids (if signed in)
   useEffect(() => {
@@ -87,7 +89,7 @@ export default function OpportunitiesPage() {
         const params = new URLSearchParams();
         if (type)    params.set("type", type);
         if (country) params.set("country", country);
-        if (q)       params.set("search", q);
+        if (debouncedQ) params.set("search", debouncedQ);
         const res = await fetch(`/api/opportunities?${params}`, { signal: ctrl.signal });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
@@ -99,7 +101,7 @@ export default function OpportunitiesPage() {
       }
     })();
     return () => ctrl.abort();
-  }, [q, type, country]);
+  }, [debouncedQ, type, country]);
 
   const fmtFunding = useMemo(() => (o: Opp) => {
     if (!o.funding_amount) return "Funding details on application";

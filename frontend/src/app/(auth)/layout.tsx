@@ -22,12 +22,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Right side: visual */}
-      <div className="hidden md:flex relative bg-gradient-to-br from-clay-500 via-clay-600 to-clay-700 text-white p-12 items-end overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-slate-900/20 rounded-full blur-3xl" />
+      <div className="hidden md:flex relative bg-gradient-to-br from-clay-500 via-clay-600 to-clay-700 text-white p-8 lg:p-12 items-end overflow-hidden">
+        <div className="absolute top-0 right-0 w-72 lg:w-96 h-72 lg:h-96 bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-64 lg:w-72 h-64 lg:h-72 bg-slate-900/20 rounded-full blur-3xl" />
 
         <div className="relative max-w-md">
-          <blockquote className="font-display text-3xl leading-tight">
+          <blockquote className="font-display text-2xl lg:text-3xl leading-tight">
             &ldquo;GlobalBridge turned my Canada study permit nightmare into a 30-minute conversation.&rdquo;
           </blockquote>
           <div className="mt-6 flex items-center gap-3">

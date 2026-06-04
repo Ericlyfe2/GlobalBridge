@@ -14,6 +14,36 @@ import {
 } from "firebase/auth";
 import { auth } from "./firebase";
 
+/** Centralized password policy — single source of truth for UI + validation. */
+export const PASSWORD_POLICY = {
+  minLength: 8,
+  maxLength: 128,
+  requireUppercase: true,
+  requireLowercase: true,
+  requireNumber: true,
+  requireSpecial: true,
+} as const;
+
+export function validatePassword(password: string): string[] {
+  const errors: string[] = [];
+  if (password.length < PASSWORD_POLICY.minLength) {
+    errors.push(`At least ${PASSWORD_POLICY.minLength} characters`);
+  }
+  if (PASSWORD_POLICY.requireUppercase && !/[A-Z]/.test(password)) {
+    errors.push("Uppercase letter");
+  }
+  if (PASSWORD_POLICY.requireLowercase && !/[a-z]/.test(password)) {
+    errors.push("Lowercase letter");
+  }
+  if (PASSWORD_POLICY.requireNumber && !/[0-9]/.test(password)) {
+    errors.push("A number");
+  }
+  if (PASSWORD_POLICY.requireSpecial && !/[^A-Za-z0-9]/.test(password)) {
+    errors.push("Special character");
+  }
+  return errors;
+}
+
 export type SessionUser = {
   id: string;
   email: string;
@@ -41,9 +71,6 @@ export function setSession(token: string, user: SessionUser) {
   try {
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
-    localStorage.setItem("user-name", user.full_name);
-    localStorage.setItem("user-email", user.email);
-    localStorage.setItem("user-role", user.role);
     const initials =
       user.full_name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "?";
     localStorage.setItem("user-initials", initials);
@@ -52,18 +79,21 @@ export function setSession(token: string, user: SessionUser) {
 
 export function clearSession() {
   try {
-    [TOKEN_KEY, USER_KEY, "user-name", "user-email", "user-role", "user-initials", "user-country"].forEach(
-      (k) => localStorage.removeItem(k),
-    );
+    [TOKEN_KEY, USER_KEY, "user-initials"].forEach((k) => localStorage.removeItem(k));
   } catch {}
 }
 
-// Keep the cached ID token fresh as Firebase rotates it.
-if (typeof window !== "undefined") {
-  onIdTokenChanged(auth, async (user) => {
+/** Subscribe to Firebase ID token rotation. Returns unsubscribe function. */
+export function subscribeIdTokenChanges() {
+  if (typeof window === "undefined") return () => {};
+  return onIdTokenChanged(auth, async (user) => {
     try {
-      if (user) localStorage.setItem(TOKEN_KEY, await user.getIdToken());
-      else clearSession();
+      if (user) {
+        const token = await user.getIdToken();
+        localStorage.setItem(TOKEN_KEY, token);
+      } else {
+        clearSession();
+      }
     } catch {}
   });
 }

@@ -43,6 +43,7 @@ ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_users_firebase_uid ON users(firebase_uid);
 CREATE INDEX IF NOT EXISTS idx_users_country ON users(country_of_residence);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
 -- Mentor extended profile
 CREATE TABLE IF NOT EXISTS mentor_profiles (
@@ -168,7 +169,7 @@ CREATE TABLE IF NOT EXISTS forum_categories (
 
 CREATE TABLE IF NOT EXISTS forum_posts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    category_id UUID REFERENCES forum_categories(id),
+    category_id UUID REFERENCES forum_categories(id) ON DELETE SET NULL,
     author_id UUID REFERENCES users(id) ON DELETE CASCADE,
     title VARCHAR(500) NOT NULL,
     body TEXT NOT NULL,
@@ -242,75 +243,10 @@ CREATE TABLE IF NOT EXISTS success_stories (
   after_text TEXT,
   body TEXT,
   verified BOOLEAN DEFAULT TRUE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- =====================
--- NOTIFICATIONS
--- =====================
-CREATE TABLE IF NOT EXISTS notifications (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  kind VARCHAR(40) NOT NULL,
-  title VARCHAR(255) NOT NULL,
-  body TEXT,
-  href TEXT,
-  read BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, read);
-CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(user_id, created_at DESC);
-
--- =====================
--- SAVED ITEMS & BOOKMARKS
--- =====================
-CREATE TABLE IF NOT EXISTS saved_items (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  item_type VARCHAR(30) NOT NULL,
-  item_id UUID NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE (user_id, item_type, item_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_saved_items_user ON saved_items(user_id);
-
--- =====================
--- MENTOR BOOKINGS
--- =====================
-CREATE TABLE IF NOT EXISTS mentor_bookings (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  mentor_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  student_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  slot_date DATE NOT NULL,
-  slot_time VARCHAR(10) NOT NULL,
-  duration_min INT DEFAULT 30,
-  goal TEXT,
-  status VARCHAR(20) DEFAULT 'confirmed',
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_bookings_mentor ON mentor_bookings(mentor_id);
-CREATE INDEX IF NOT EXISTS idx_bookings_student ON mentor_bookings(student_id);
-
--- =====================
--- USER DOCUMENTS
--- =====================
-CREATE TABLE IF NOT EXISTS user_documents (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  purpose VARCHAR(30) NOT NULL,
-  url TEXT NOT NULL,
-  storage_key TEXT NOT NULL,
-  original_name VARCHAR(255),
-  mime VARCHAR(100),
-  size_bytes INT,
-  status VARCHAR(20) DEFAULT 'pending',
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_user_documents_user ON user_documents(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_success_stories_author ON success_stories(author_id);
 
 -- =====================
 -- AI ASSISTANT
@@ -352,20 +288,20 @@ DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'report_status'
 
 CREATE TABLE IF NOT EXISTS reports (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    reporter_id UUID REFERENCES users(id),
+    reporter_id UUID REFERENCES users(id) ON DELETE SET NULL,
     target_type VARCHAR(50) NOT NULL,
     target_id UUID NOT NULL,
     reason VARCHAR(100) NOT NULL,
     details TEXT,
     status report_status DEFAULT 'pending',
-    resolved_by UUID REFERENCES users(id),
+    resolved_by UUID REFERENCES users(id) ON DELETE SET NULL,
     resolved_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS scam_alerts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    reported_by UUID REFERENCES users(id),
+    reported_by UUID REFERENCES users(id) ON DELETE SET NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     scam_type VARCHAR(100),
@@ -374,3 +310,17 @@ CREATE TABLE IF NOT EXISTS scam_alerts (
     verified_by_admin BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- =====================
+-- MISSING FOREIGN-KEY INDEXES (audit remediation)
+-- =====================
+CREATE INDEX IF NOT EXISTS idx_forum_replies_author ON forum_replies(author_id);
+CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_id);
+CREATE INDEX IF NOT EXISTS idx_ai_conversations_user ON ai_conversations(user_id);
+CREATE INDEX IF NOT EXISTS idx_ai_messages_conversation ON ai_messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_visa_checklists_user ON visa_checklists(user_id);
+CREATE INDEX IF NOT EXISTS idx_reports_reporter ON reports(reporter_id);
+CREATE INDEX IF NOT EXISTS idx_reports_resolver ON reports(resolved_by);
+CREATE INDEX IF NOT EXISTS idx_scam_alerts_reporter ON scam_alerts(reported_by);
+CREATE INDEX IF NOT EXISTS idx_forum_posts_category_id ON forum_posts(category_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_kind ON notifications(kind);

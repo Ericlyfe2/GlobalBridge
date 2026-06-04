@@ -7,7 +7,7 @@ import {
   ArrowRight, Mail, Lock, User, Globe, Eye, EyeOff, Loader2, Check, X,
   GraduationCap, Compass, Briefcase, ShieldCheck, Quote, BadgeCheck, Lock as LockIcon,
 } from "lucide-react";
-import { login, register } from "@/lib/auth";
+import { login, register, PASSWORD_POLICY } from "@/lib/auth";
 import { roleHome } from "@/lib/roles";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -70,9 +70,9 @@ function AuthContent() {
   const isSignup = mode === "signup";
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-white dark:bg-gray-950">
+    <div className="min-h-screen grid md:grid-cols-2 bg-white dark:bg-gray-950">
       {/* ── Left: brand / trust panel ───────────────────────────── */}
-      <aside className="relative hidden lg:flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0B1F3A] via-[#0A2540] to-[#06121F] text-white p-12">
+      <aside className="relative hidden md:flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0B1F3A] via-[#0A2540] to-[#06121F] text-white p-8 lg:p-12">
         {/* world-map dot motif */}
         <div
           aria-hidden
@@ -136,9 +136,9 @@ function AuthContent() {
 
       {/* ── Right: form ─────────────────────────────────────────── */}
       <main className="flex flex-col">
-        <header className="flex items-center justify-between px-6 py-5 lg:px-10">
-          <Link href="/" className="lg:hidden"><Logo /></Link>
-          <span className="hidden lg:block text-sm text-ink-500 dark:text-gray-400">
+        <header className="flex items-center justify-between px-6 py-5 md:px-10">
+          <Link href="/" className="md:hidden"><Logo /></Link>
+          <span className="hidden md:block text-sm text-ink-500 dark:text-gray-400">
             {isSignup ? "Already a member?" : "New to GlobalBridge?"}{" "}
             <button onClick={switchMode} className="font-semibold text-emerald-600 hover:text-emerald-700">
               {isSignup ? "Sign in" : "Create account"}
@@ -270,7 +270,7 @@ function AuthContent() {
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    required minLength={isSignup ? 8 : undefined} maxLength={128}
+                    required minLength={isSignup ? PASSWORD_POLICY.minLength : undefined} maxLength={PASSWORD_POLICY.maxLength}
                     value={password} onChange={(e) => setPassword(e.target.value)}
                     autoComplete={isSignup ? "new-password" : "current-password"}
                     className="w-full rounded-lg border border-cream-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-9 pr-10 text-sm text-ink-900 dark:text-white focus:border-transparent focus:ring-2 focus:ring-emerald-500"
@@ -344,7 +344,7 @@ function Field({
 
 function PasswordStrength({ password }: { password: string }) {
   const checks = [
-    { label: "At least 8 characters", pass: password.length >= 8 },
+    { label: `At least ${PASSWORD_POLICY.minLength} characters`, pass: password.length >= PASSWORD_POLICY.minLength },
     { label: "Uppercase letter", pass: /[A-Z]/.test(password) },
     { label: "Lowercase letter", pass: /[a-z]/.test(password) },
     { label: "A number", pass: /[0-9]/.test(password) },

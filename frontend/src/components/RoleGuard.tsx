@@ -1,22 +1,37 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { getUser } from "@/lib/auth";
 import { roleGuardDecision, type Role } from "@/lib/roles";
 
-/**
- * Client-side role gate. Renders children only when the stored role is in
- * `allow`. Otherwise redirects: missing auth → sign-in, wrong role → /unauthorized.
- * Real data security is enforced by the backend (requireAuth + role claims);
- * this is navigation/UX only.
- */
+function useRoleDecision(allow: Role[]) {
+  const [decision, setDecision] = useState<"allow" | "login" | "unauthorized">(() => {
+    const user = getUser();
+    return roleGuardDecision(user?.role ?? null, allow);
+  });
+
+  const recheck = useCallback(() => {
+    const user = getUser();
+    setDecision(roleGuardDecision(user?.role ?? null, allow));
+  }, [allow]);
+
+  useEffect(() => {
+    recheck();
+    window.addEventListener("focus", recheck);
+    window.addEventListener("storage", recheck);
+    return () => {
+      window.removeEventListener("focus", recheck);
+      window.removeEventListener("storage", recheck);
+    };
+  }, [recheck]);
+
+  return decision;
+}
+
 export function RoleGuard({ allow, children }: { allow: Role[]; children: React.ReactNode }) {
   const router = useRouter();
-  const [decision] = useState(() => {
-    let role: string | null = null;
-    try { role = localStorage.getItem("user-role"); } catch { /* SSR / blocked storage */ }
-    return roleGuardDecision(role, allow);
-  });
+  const decision = useRoleDecision(allow);
 
   useEffect(() => {
     if (decision === "login") router.replace("/auth?mode=signin");

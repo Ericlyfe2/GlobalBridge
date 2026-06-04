@@ -40,17 +40,14 @@ export function UserMenu() {
   // Pull profile from localStorage (set during /register)
   useEffect(() => {
     try {
-      const name = localStorage.getItem("user-name");
-      const email = localStorage.getItem("user-email");
+      const raw = localStorage.getItem("gb-user");
+      const user = raw ? JSON.parse(raw) : null;
       const initials = localStorage.getItem("user-initials");
-      const roleSaved = localStorage.getItem("user-role") as Role | null;
-      // Only show role + custom email if user actually signed in (has a name)
-      const signedIn = !!name;
       setProfile({
-        name: name || "Guest",
-        email: signedIn ? (email || "") : "Sign in to sync your account",
-        initials: initials || "G",
-        role: signedIn && roleSaved && roleSaved in ROLES ? roleSaved : null,
+        name: user?.full_name || "Guest",
+        email: user?.full_name ? (user?.email || "") : "Sign in to sync your account",
+        initials: initials || (user?.full_name ? user.full_name[0].toUpperCase() : "G"),
+        role: user?.role && user.role in ROLES ? user.role : null,
       });
     } catch {}
   }, []);

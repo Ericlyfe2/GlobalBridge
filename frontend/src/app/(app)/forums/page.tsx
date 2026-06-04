@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   MessageSquare, ShieldCheck, Pin, TrendingUp, Search, Plus, ArrowUp, Flame, Globe, Loader2,
 } from "lucide-react";
+import { useDebounce } from "@/lib/useDebounce";
 
 type Category = "all" | "visas" | "housing" | "scholarships" | "life-abroad" | "jobs" | "country";
 
@@ -77,13 +78,14 @@ export default function ForumsPage() {
   const [q, setQ] = useState("");
   const [threads, setThreads] = useState<Thread[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const debouncedQ = useDebounce(q, 300);
 
   useEffect(() => {
     const ctrl = new AbortController();
     (async () => {
       try {
         const params = new URLSearchParams();
-        if (q) params.set("search", q);
+        if (debouncedQ) params.set("search", debouncedQ);
         const res = await fetch(`/api/forums/posts?${params}`, { signal: ctrl.signal });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
@@ -95,13 +97,15 @@ export default function ForumsPage() {
       }
     })();
     return () => ctrl.abort();
-  }, [q]);
+  }, [debouncedQ]);
 
-  const list = threads ?? [];
-  const filtered = list
-    .filter((t) => cat === "all" || t.cat === cat)
-    .filter((t) => !q || `${t.title} ${t.preview}`.toLowerCase().includes(q.toLowerCase()))
-    .sort((a, b) => Number(b.pinned ?? false) - Number(a.pinned ?? false));
+  const filtered = useMemo(() => {
+    const list = threads ?? [];
+    return list
+      .filter((t) => cat === "all" || t.cat === cat)
+      .filter((t) => !debouncedQ || t.title?.toLowerCase().includes(debouncedQ.toLowerCase()))
+      .sort((a, b) => Number(b.pinned ?? false) - Number(a.pinned ?? false));
+  }, [threads, cat, debouncedQ]);
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">

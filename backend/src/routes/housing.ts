@@ -75,7 +75,7 @@ housingRouter.get("/:id", async (req, res, next) => {
       [req.params.id]
     );
     if (!listing) return res.status(404).json({ error: "Listing not found" });
-    res.status(201).json({ listing });
+    res.status(200).json({ listing });
   } catch (err) {
     next(err);
   }

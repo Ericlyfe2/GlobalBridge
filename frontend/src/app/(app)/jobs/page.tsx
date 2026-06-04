@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Briefcase, MapPin, ShieldCheck, DollarSign, Search, Filter, Loader2 } from "lucide-react";
 import { SaveButton } from "@/components/SaveButton";
+import { useDebounce } from "@/lib/useDebounce";
 
 type Job = {
   id: string;
@@ -23,13 +24,14 @@ export default function JobsPage() {
   const [q, setQ]       = useState("");
   const [sponsorOnly, setSponsorOnly] = useState(true);
   const [type, setType] = useState<"job" | "internship" | "all">("all");
+  const debouncedQ = useDebounce(q, 300);
 
   useEffect(() => {
     const ctrl = new AbortController();
     (async () => {
       try {
         const params = new URLSearchParams();
-        if (q) params.set("search", q);
+        if (debouncedQ) params.set("search", debouncedQ);
         // Backend filters one type at a time; for "all jobs+internships" we ask for both separately.
         const fetchType = async (t: "job" | "internship") => {
           const p = new URLSearchParams(params);
@@ -54,7 +56,7 @@ export default function JobsPage() {
       }
     })();
     return () => ctrl.abort();
-  }, [q, sponsorOnly, type]);
+  }, [debouncedQ, sponsorOnly, type]);
 
   return (
     <div className="max-w-7xl mx-auto p-6 lg:p-10 space-y-8">
