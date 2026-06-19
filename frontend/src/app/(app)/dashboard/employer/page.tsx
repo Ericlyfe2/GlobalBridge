@@ -7,6 +7,7 @@ import {
   ArrowRight, Loader2, AlertCircle, ChevronRight, BadgeCheck,
 } from "lucide-react";
 import { authFetch, getUser } from "@/lib/auth";
+import { useTranslation } from "@/i18n/hooks/useTranslation";
 
 type EmployerDashboard = {
   stats: { activeListings: number; interestedCandidates: number; totalViews: number; sponsorshipListings: number; sponsorshipRate: number };
@@ -14,18 +15,20 @@ type EmployerDashboard = {
   company: string | null;
 };
 
-const MANAGE = [
-  { href: "/jobs", icon: Plus, label: "Create job" },
-  { href: "/jobs", icon: Settings, label: "Manage jobs" },
-  { href: "/community", icon: UserCheck, label: "Candidates" },
-  { href: "/messages", icon: CalendarPlus, label: "Schedule interviews" },
-];
+
 
 export default function EmployerDashboard() {
   const [data, setData] = useState<EmployerDashboard | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const company = (data?.company) || (getUser()?.full_name || "Employer").split(" ")[0];
+  const { t } = useTranslation();
+  const MANAGE = [
+    { href: "/jobs", icon: Plus, label: "Create job" },
+    { href: "/jobs", icon: Settings, label: "Manage jobs" },
+    { href: "/community", icon: UserCheck, label: t("nav.candidates") },
+    { href: "/messages", icon: CalendarPlus, label: "Schedule interviews" },
+  ];
 
   useEffect(() => {
     let active = true;
@@ -65,21 +68,21 @@ export default function EmployerDashboard() {
           <p className="mt-1 text-sm text-ink-500 dark:text-gray-400">Your hiring pipeline at a glance.</p>
         </div>
         <Link href="/jobs" className="inline-flex w-fit items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
-          <Plus size={16} /> Post a job
+          <Plus size={16} /> {t("dashboard.createListing")}
         </Link>
       </header>
 
       {/* Overview */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat icon={Briefcase} label="Active listings" value={data.stats.activeListings} />
-        <Stat icon={Users} label="Interested candidates" value={data.stats.interestedCandidates} />
-        <Stat icon={Eye} label="Total job views" value={data.stats.totalViews} />
-        <Stat icon={Plane} label="Sponsorship listings" value={data.stats.sponsorshipListings} />
+        <Stat icon={Briefcase} label={t("dashboard.activeListings")} value={data.stats.activeListings} />
+        <Stat icon={Users} label={t("dashboard.interestedCandidates")} value={data.stats.interestedCandidates} />
+        <Stat icon={Eye} label={t("dashboard.totalViews")} value={data.stats.totalViews} />
+        <Stat icon={Plane} label={t("dashboard.sponsorshipListings")} value={data.stats.sponsorshipListings} />
       </div>
 
       {/* Manage */}
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-ink-700 dark:text-gray-300">Manage</h2>
+        <h2 className="mb-3 text-sm font-semibold text-ink-700 dark:text-gray-300">{t("dashboard.quickActions")}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {MANAGE.map((a) => (
             <Link key={a.label} href={a.href}

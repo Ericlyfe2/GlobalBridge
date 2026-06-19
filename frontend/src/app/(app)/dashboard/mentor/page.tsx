@@ -7,6 +7,7 @@ import {
   ArrowRight, Loader2, AlertCircle, CalendarPlus, FileText, UserCheck, Inbox,
 } from "lucide-react";
 import { authFetch, getUser } from "@/lib/auth";
+import { useTranslation } from "@/i18n/hooks/useTranslation";
 
 type MentorDashboard = {
   stats: { activeMentees: number; pendingRequests: number; totalSessions: number; hoursMentored: number };
@@ -27,6 +28,7 @@ export default function MentorDashboard() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const firstName = (getUser()?.full_name || "Mentor").split(" ")[0];
+  const { t } = useTranslation();
 
   useEffect(() => {
     let active = true;
@@ -61,21 +63,21 @@ export default function MentorDashboard() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-5 md:p-8">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight text-[#0A2540] dark:text-white">Welcome, {firstName} 👋</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-[#0A2540] dark:text-white">{t("dashboard.welcome", { name: firstName })}</h1>
         <p className="mt-1 text-sm text-ink-500 dark:text-gray-400">Your mentorship impact at a glance.</p>
       </header>
 
       {/* Overview stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat icon={Users} label="Active mentees" value={data.stats.activeMentees} />
-        <Stat icon={Inbox} label="Pending requests" value={data.stats.pendingRequests} accent={data.stats.pendingRequests > 0} />
-        <Stat icon={CalendarCheck} label="Total sessions" value={data.stats.totalSessions} />
-        <Stat icon={Sparkles} label="Impact score" value={data.community.impactScore} />
+        <Stat icon={Users} label={t("dashboard.activeMentees")} value={data.stats.activeMentees} />
+        <Stat icon={Inbox} label={t("dashboard.pendingRequests")} value={data.stats.pendingRequests} accent={data.stats.pendingRequests > 0} />
+        <Stat icon={CalendarCheck} label={t("dashboard.totalSessions")} value={data.stats.totalSessions} />
+        <Stat icon={Sparkles} label={t("dashboard.impactScore")} value={data.community.impactScore} />
       </div>
 
       {/* Management */}
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-ink-700 dark:text-gray-300">Manage</h2>
+        <h2 className="mb-3 text-sm font-semibold text-ink-700 dark:text-gray-300">{t("dashboard.quickActions")}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {MANAGE.map((a) => (
             <Link key={a.label} href={a.href}
@@ -89,9 +91,9 @@ export default function MentorDashboard() {
 
       <div className="grid gap-5 lg:grid-cols-3">
         {/* Upcoming sessions */}
-        <SectionCard title="Upcoming sessions" href="/messages" className="lg:col-span-2">
+        <SectionCard title={t("dashboard.upcomingSessions")} href="/messages" className="lg:col-span-2">
           {data.upcomingSessions.length === 0 ? (
-            <Empty>No upcoming sessions scheduled.</Empty>
+            <Empty>{t("dashboard.noUpcomingSessions")}</Empty>
           ) : (
             <ul className="divide-y divide-cream-200 dark:divide-gray-800">
               {data.upcomingSessions.map((s) => (
@@ -118,10 +120,10 @@ export default function MentorDashboard() {
         {/* Community impact */}
         <SectionCard title="Community impact" className="lg:col-span-1">
           <div className="space-y-3">
-            <ImpactRow icon={MessageSquare} label="Answers given" value={data.community.answers} />
-            <ImpactRow icon={BadgeCheck} label="Accepted answers" value={data.community.acceptedAnswers} />
-            <ImpactRow icon={Award} label="Success stories" value={data.community.successStories} />
-            <ImpactRow icon={Clock} label="Hours mentored" value={data.stats.hoursMentored} />
+            <ImpactRow icon={MessageSquare} label={t("dashboard.communityAnswers")} value={data.community.answers} />
+            <ImpactRow icon={BadgeCheck} label={t("dashboard.acceptedAnswers")} value={data.community.acceptedAnswers} />
+            <ImpactRow icon={Award} label={t("dashboard.successStories")} value={data.community.successStories} />
+            <ImpactRow icon={Clock} label={t("dashboard.hoursMentored")} value={data.stats.hoursMentored} />
           </div>
         </SectionCard>
       </div>

@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   ArrowRight,
@@ -17,6 +19,7 @@ import {
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { useTranslation } from "@/i18n/hooks/useTranslation";
 
 export default function Home() {
   return (
@@ -36,6 +39,7 @@ export default function Home() {
 }
 
 function Hero() {
+  const { t } = useTranslation();
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 -z-10">
@@ -46,31 +50,31 @@ function Hero() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-20 pb-24 md:pt-32 md:pb-32 relative">
         <div className="lg:w-3/4 animate-fade-up">
           <div className="badge badge-clay mb-6">
-            <Sparkles size={12} /> AI-powered guidance · Verified mentors
+            <Sparkles size={12} /> {t("landing.badge")}
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-ink-900 leading-[1.05]">
-            Your trusted bridge to <span className="text-clay-600 italic">studying abroad.</span>
-          </h1>
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-ink-900 leading-[1.05]"
+            dangerouslySetInnerHTML={{ __html: t("landing.heroTitle") }}
+          />
 
           <p className="mt-6 text-lg md:text-xl text-ink-600 max-w-2xl leading-relaxed">
-            One platform for visa guidance, verified housing, mentorship, jobs, and life support — before, during, and after you arrive.
+            {t("landing.heroSubtitle")}
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row gap-3">
             <Link href="/auth?mode=signup" className="btn-accent text-base px-6 py-3">
-              Start your journey <ArrowRight size={18} />
+              {t("landing.ctaStart")} <ArrowRight size={18} />
             </Link>
             <Link href="/auth?mode=signup" className="btn-ghost text-base px-6 py-3 border border-cream-300">
-              Try AI Assistant
+              {t("landing.ctaAssistant")}
             </Link>
           </div>
 
           <div className="mt-12 flex flex-wrap gap-6 text-sm text-ink-500">
-            <Stat value="50+" label="Countries" />
-            <Stat value="200+" label="Mentors" />
-            <Stat value="50+" label="Languages" />
-            <Stat value="24/7" label="AI assistance" />
+            <Stat value="50+" label={t("landing.statCountries")} />
+            <Stat value="200+" label={t("landing.statMentors")} />
+            <Stat value="50+" label={t("landing.statLanguages")} />
+            <Stat value="24/7" label={t("landing.statAssistance")} />
           </div>
         </div>
 
@@ -92,6 +96,7 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 function TrustBar() {
+  const { t } = useTranslation();
   const countries = [
     { code: "gh", name: "Ghana" },
     { code: "ng", name: "Nigeria" },
@@ -106,7 +111,7 @@ function TrustBar() {
   return (
     <section className="border-y border-cream-200 bg-cream-100">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8 flex flex-wrap items-center justify-between gap-6">
-        <p className="text-sm font-medium text-ink-500">Built for students from:</p>
+        <p className="text-sm font-medium text-ink-500">{t("landing.trustBar")}</p>
         <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-ink-700">
           {countries.map((c) => (
             <span key={c.code} className="inline-flex items-center gap-2">
@@ -121,35 +126,36 @@ function TrustBar() {
 }
 
 function FivePillars() {
+  const { t } = useTranslation();
   const pillars = [
     {
       icon: Bot,
-      title: "AI Visa Assistant",
-      desc: "Conversational guidance for any visa, any country. Step-by-step document checklists.",
+      title: t("landing.pillarAiTitle"),
+      desc: t("landing.pillarAiDesc"),
       tone: "clay",
     },
     {
       icon: HomeIcon,
-      title: "Verified Housing",
-      desc: "Identity-checked landlords. Roommate matching. Bookings before you board your flight.",
+      title: t("landing.pillarHousingTitle"),
+      desc: t("landing.pillarHousingDesc"),
       tone: "sky",
     },
     {
       icon: Users,
-      title: "Mentorship Network",
-      desc: "Connect with people who lived your destination for years. Cultural hubs and events.",
+      title: t("landing.pillarMentorTitle"),
+      desc: t("landing.pillarMentorDesc"),
       tone: "leaf",
     },
     {
       icon: Briefcase,
-      title: "Jobs & Internships",
-      desc: "Filter by visa sponsors. AI resume builder. Sponsorship-history tracker.",
+      title: t("landing.pillarJobsTitle"),
+      desc: t("landing.pillarJobsDesc"),
       tone: "clay",
     },
     {
       icon: ShieldCheck,
-      title: "Life Support Toolkit",
-      desc: "Cost calculators, healthcare guides, banking setup, emergency SOS — all in one place.",
+      title: t("landing.pillarToolkitTitle"),
+      desc: t("landing.pillarToolkitDesc"),
       tone: "sky",
     },
   ];
@@ -158,12 +164,12 @@ function FivePillars() {
     <section className="max-w-7xl mx-auto px-6 lg:px-8 py-24">
       <div className="lg:grid lg:grid-cols-[1fr_2fr] lg:gap-16">
         <div className="mb-12 lg:mb-0 lg:sticky lg:top-32 lg:self-start">
-          <p className="text-sm font-medium text-clay-600 mb-3">FIVE PILLARS</p>
+          <p className="text-sm font-medium text-clay-600 mb-3">{t("landing.pillarsLabel")}</p>
           <h2 className="text-4xl md:text-5xl font-semibold text-ink-900 tracking-tight">
-            Everything you need, end to end.
+            {t("landing.pillarsTitle")}
           </h2>
           <p className="mt-4 text-base text-ink-600 leading-relaxed">
-            Common App stops at admission. LinkedIn stops at job search. GlobalBridge supports you through the entire journey.
+            {t("landing.pillarsSubtitle")}
           </p>
         </div>
 
@@ -188,6 +194,7 @@ function FivePillars() {
 }
 
 function AIAssistantShowcase() {
+  const { t } = useTranslation();
   return (
     <section className="bg-slate-900 text-slate-100 py-24 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-[700px] h-[700px] bg-clay-500/10 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3" />
@@ -195,21 +202,21 @@ function AIAssistantShowcase() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
           <div className="lg:col-span-3">
-            <p className="text-sm font-medium text-clay-500 mb-3">AI ASSISTANT</p>
+            <p className="text-sm font-medium text-clay-500 mb-3">{t("landing.assistantLabel")}</p>
             <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
-              Visa navigation, as simple as a conversation.
+              {t("landing.assistantTitle")}
             </h2>
             <p className="mt-6 text-lg text-slate-300 leading-relaxed">
-              No more expensive immigration consultants for basic questions. Get country-specific, step-by-step guidance with personalised document checklists.
+              {t("landing.assistantSubtitle")}
             </p>
 
             <ul className="mt-8 space-y-3">
               {[
-                "Dynamic question flows for any visa type",
-                "Plain-language explanations of immigration docs",
-                "Personalised downloadable checklists",
-                "Deadline reminders for renewals & extensions",
-                "Escalation to verified human mentors",
+                t("landing.assistantFeature1"),
+                t("landing.assistantFeature2"),
+                t("landing.assistantFeature3"),
+                t("landing.assistantFeature4"),
+                t("landing.assistantFeature5"),
               ].map((f) => (
                 <li key={f} className="flex items-start gap-3 text-slate-200">
                   <FileCheck size={18} className="text-clay-500 mt-0.5 shrink-0" />
@@ -219,7 +226,7 @@ function AIAssistantShowcase() {
             </ul>
 
             <Link href="/assistant" className="btn-accent mt-10">
-              Try it free <ArrowRight size={16} />
+              {t("landing.assistantCta")} <ArrowRight size={16} />
             </Link>
           </div>
 
@@ -227,7 +234,7 @@ function AIAssistantShowcase() {
             <div className="card !bg-slate-800 !border-slate-700 !text-slate-100">
               <div className="flex items-center gap-2 mb-4 pb-4 border-b border-slate-700">
                 <div className="w-2.5 h-2.5 rounded-full bg-clay-500 animate-pulse-glow" />
-                <span className="text-xs text-slate-400 font-mono">globalbridge-ai · live</span>
+                <span className="text-xs text-slate-400 font-mono">globalbridge-ai &middot; live</span>
               </div>
 
               <div className="space-y-4">
@@ -245,7 +252,7 @@ function AIAssistantShowcase() {
                     <li>5. Wait 8–12 weeks for processing</li>
                   </ol>
                   <button className="mt-4 text-xs text-clay-500 font-medium hover:text-clay-400 transition">
-                    → Generate my checklist
+                    &rarr; {t("assistant.generateChecklist")}
                   </button>
                 </ChatBubble>
               </div>
@@ -275,7 +282,8 @@ function ChatBubble({ role, children }: { role: "user" | "assistant"; children: 
 }
 
 function ComparisonTable() {
-  const features = [
+  const { t } = useTranslation();
+  const features: [string, boolean | string, boolean | string, boolean | string][] = [
     ["University Applications", true, false, true],
     ["AI Visa & Immigration Guidance", false, false, true],
     ["Verified Housing Marketplace", false, false, true],
@@ -291,9 +299,9 @@ function ComparisonTable() {
     <section className="py-24 bg-cream-50">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="max-w-2xl mb-12">
-          <p className="text-sm font-medium text-clay-600 mb-3">WHY GLOBALBRIDGE</p>
+          <p className="text-sm font-medium text-clay-600 mb-3">{t("landing.comparisonLabel")}</p>
           <h2 className="text-4xl md:text-5xl font-semibold text-ink-900 tracking-tight">
-            We don&apos;t compete. We transcend.
+            {t("landing.comparisonTitle")}
           </h2>
         </div>
       </div>
@@ -302,10 +310,10 @@ function ComparisonTable() {
         <table className="w-full">
           <thead>
             <tr className="bg-cream-100 border-b border-cream-200">
-              <th className="text-left px-6 py-4 text-sm font-semibold text-ink-700">Feature</th>
-              <th className="px-6 py-4 text-sm font-semibold text-ink-700">Common App</th>
-              <th className="px-6 py-4 text-sm font-semibold text-ink-700">LinkedIn</th>
-              <th className="px-6 py-4 text-sm font-semibold text-clay-600">GlobalBridge</th>
+              <th className="text-left px-6 py-4 text-sm font-semibold text-ink-700">{t("landing.comparisonFeature")}</th>
+              <th className="px-6 py-4 text-sm font-semibold text-ink-700">{t("landing.comparisonCommonApp")}</th>
+              <th className="px-6 py-4 text-sm font-semibold text-ink-700">{t("landing.comparisonLinkedIn")}</th>
+              <th className="px-6 py-4 text-sm font-semibold text-clay-600">{t("landing.comparisonGlobalBridge")}</th>
             </tr>
           </thead>
           <tbody>
@@ -326,8 +334,8 @@ function ComparisonTable() {
 
 function Cell({ value, highlight = false }: { value: boolean | string; highlight?: boolean }) {
   let content: React.ReactNode;
-  if (value === true) content = <span className="text-leaf-600 font-medium">✓ Yes</span>;
-  else if (value === false) content = <span className="text-ink-400">—</span>;
+  if (value === true) content = <span className="text-leaf-600 font-medium">&check; Yes</span>;
+  else if (value === false) content = <span className="text-ink-400">&mdash;</span>;
   else content = <span className="text-amber-500 capitalize text-xs">{value}</span>;
 
   return (
@@ -338,13 +346,14 @@ function Cell({ value, highlight = false }: { value: boolean | string; highlight
 }
 
 function BonusFeatures() {
+  const { t } = useTranslation();
   const bonus = [
-    { icon: Bot, title: "AI Application Coach", desc: "Reviews your essays, scores against history, suggests improvements." },
-    { icon: Languages, title: "50+ Languages", desc: "Every page translated. Auto-detect your language." },
-    { icon: Award, title: "Scholarship Matcher", desc: "Profile once. AI scans verified database continuously." },
-    { icon: FileCheck, title: "Document Validity Check", desc: "Upload passport, bank statement. AI flags rejection triggers." },
-    { icon: HeartHandshake, title: "Peer Review Essays", desc: "Anonymous feedback from verified mentors with structured rubrics." },
-    { icon: PhoneCall, title: "Emergency SOS", desc: "One-tap alert to contacts, embassy, and student union." },
+    { icon: Bot, title: t("landing.bonusCoachTitle"), desc: t("landing.bonusCoachDesc") },
+    { icon: Languages, title: t("landing.bonusLangTitle"), desc: t("landing.bonusLangDesc") },
+    { icon: Award, title: t("landing.bonusScholarshipTitle"), desc: t("landing.bonusScholarshipDesc") },
+    { icon: FileCheck, title: t("landing.bonusDocTitle"), desc: t("landing.bonusDocDesc") },
+    { icon: HeartHandshake, title: t("landing.bonusPeerTitle"), desc: t("landing.bonusPeerDesc") },
+    { icon: PhoneCall, title: t("landing.bonusSOSTitle"), desc: t("landing.bonusSOSDesc") },
   ];
 
   return (
@@ -352,9 +361,9 @@ function BonusFeatures() {
       <div className="pl-6 lg:pl-8">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 !pl-0">
           <div className="max-w-2xl mb-16">
-            <p className="text-sm font-medium text-clay-600 mb-3">BEYOND THE BRIEF</p>
+            <p className="text-sm font-medium text-clay-600 mb-3">{t("landing.bonusLabel")}</p>
             <h2 className="text-4xl md:text-5xl font-semibold text-ink-900 tracking-tight">
-              The features that make us the best in the world.
+              {t("landing.bonusTitle")}
             </h2>
           </div>
         </div>
@@ -382,21 +391,22 @@ function BonusFeatures() {
 }
 
 function Testimonials() {
+  const { t } = useTranslation();
   const stories = [
     {
-      quote: "The AI assistant walked me through my Canada study permit in 20 minutes. Saved me $400 on a consultant.",
-      name: "Amara O.",
-      meta: "Lagos → Toronto · Computer Science",
+      quote: t("landing.testimonial1Quote"),
+      name: t("landing.testimonial1Name"),
+      meta: t("landing.testimonial1Meta"),
     },
     {
-      quote: "I found verified housing two weeks before flying out. No scams, no surprises. Met my roommate via the matching tool.",
-      name: "Kwame A.",
-      meta: "Accra → Manchester · MSc Finance",
+      quote: t("landing.testimonial2Quote"),
+      name: t("landing.testimonial2Name"),
+      meta: t("landing.testimonial2Meta"),
     },
     {
-      quote: "Connected with three Ghanaian alumni from my target university before I even applied. Game changer.",
-      name: "Adaeze N.",
-      meta: "Abuja → Berlin · Engineering",
+      quote: t("landing.testimonial3Quote"),
+      name: t("landing.testimonial3Name"),
+      meta: t("landing.testimonial3Meta"),
     },
   ];
 
@@ -406,9 +416,9 @@ function Testimonials() {
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
         <div className="max-w-2xl mb-16">
-          <p className="text-sm font-medium text-clay-600 mb-3">SUCCESS STORIES</p>
+          <p className="text-sm font-medium text-clay-600 mb-3">{t("landing.testimonialsLabel")}</p>
           <h2 className="text-4xl md:text-5xl font-semibold text-ink-900 tracking-tight">
-            Real students. Real outcomes.
+            {t("landing.testimonialsTitle")}
           </h2>
         </div>
 
@@ -434,6 +444,7 @@ function Testimonials() {
 }
 
 function CTA() {
+  const { t } = useTranslation();
   return (
     <section className="px-6 lg:px-8 pb-24">
       <div className="relative card !p-10 md:!p-16 !border-0 bg-gradient-to-br from-clay-500 to-clay-700 text-white overflow-hidden max-w-7xl mx-auto">
@@ -441,17 +452,17 @@ function CTA() {
         <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-white/5 rounded-full blur-3xl" />
         <div className="relative md:max-w-2xl">
           <h2 className="text-3xl md:text-5xl font-display font-semibold tracking-tight">
-            Start your journey today.
+            {t("landing.ctaTitle")}
           </h2>
           <p className="mt-4 text-base md:text-lg text-white/85">
-            Join thousands of students using GlobalBridge to navigate their international education with confidence.
+            {t("landing.ctaSubtitle")}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/auth?mode=signup" className="btn-primary !bg-white !text-slate-900 hover:!bg-slate-100">
-              Create free account <ArrowRight size={16} />
+              {t("landing.ctaButton")} <ArrowRight size={16} />
             </Link>
             <Link href="/auth?mode=signup" className="btn-ghost !text-white border border-white/30 hover:!bg-white/10">
-              Talk to AI Assistant
+              {t("landing.ctaAssistantButton")}
             </Link>
           </div>
         </div>

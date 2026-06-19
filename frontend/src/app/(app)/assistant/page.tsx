@@ -2,14 +2,16 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Send, Sparkles, FileCheck, Globe, Loader2, Bot, User, X, Download, Printer } from "lucide-react";
+import { useTranslation } from "@/i18n/hooks/useTranslation";
 
 type Msg = { role: "user" | "assistant"; content: string; sources?: { title: string; url: string }[] };
 
 export default function AssistantPage() {
+  const { t, lang } = useTranslation();
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: "assistant",
-      content: "Hi. I'm your immigration assistant. Tell me your origin country, destination, and what you're trying to do — I'll guide you step by step.",
+      content: t("assistant.welcomeMessage"),
     },
   ]);
   const [input, setInput] = useState("");
@@ -34,14 +36,14 @@ export default function AssistantPage() {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [...messages, userMsg] }),
+        body: JSON.stringify({ messages: [...messages, userMsg], lang }),
       });
       const data = await res.json();
       setMessages((m) => [...m, { role: "assistant", content: data.reply, sources: data.sources }]);
     } catch {
       setMessages((m) => [
         ...m,
-        { role: "assistant", content: "I hit an error reaching the AI service. Try again in a moment." },
+        { role: "assistant", content: t("assistant.errorMessage") },
       ]);
     } finally {
       setLoading(false);
@@ -49,10 +51,10 @@ export default function AssistantPage() {
   }
 
   const suggestions = [
-    "Canada study permit requirements for Ghanaian student",
-    "How much money do I need for UK Tier 4 visa?",
-    "What documents do I need for Germany student visa?",
-    "Can I work part-time on a US F-1 visa?",
+    t("assistant.suggestion1"),
+    t("assistant.suggestion2"),
+    t("assistant.suggestion3"),
+    t("assistant.suggestion4"),
   ];
 
   return (
@@ -63,15 +65,15 @@ export default function AssistantPage() {
             <Bot size={18} />
           </div>
           <div>
-            <h2 className="font-display font-semibold text-ink-900">Immigration Assistant</h2>
+            <h2 className="font-display font-semibold text-ink-900">{t("assistant.title")}</h2>
             <p className="text-xs text-leaf-600 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-leaf-500 animate-pulse" />
-              Online · Powered by Claude
+              {t("assistant.subtitle")}
             </p>
           </div>
         </div>
         <button onClick={() => setChecklistOpen(true)} className="btn-ghost text-sm border border-cream-300">
-          <FileCheck size={14} /> Generate checklist
+          <FileCheck size={14} /> {t("assistant.generateChecklist")}
         </button>
       </div>
 
@@ -84,14 +86,14 @@ export default function AssistantPage() {
           ))}
           {loading && (
             <div className="flex items-center gap-2 text-ink-500 text-sm">
-              <Loader2 size={14} className="animate-spin" /> Assistant is thinking...
+              <Loader2 size={14} className="animate-spin" /> {t("assistant.thinking")}
             </div>
           )}
 
           {messages.length === 1 && (
             <div className="mt-12">
               <p className="text-sm font-medium text-ink-600 mb-3 flex items-center gap-2">
-                <Sparkles size={14} /> Try asking
+                <Sparkles size={14} /> {t("assistant.suggestions")}
               </p>
               <div className="grid sm:grid-cols-2 gap-2">
                 {suggestions.map((s) => (
@@ -115,7 +117,7 @@ export default function AssistantPage() {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about visas, permits, scholarships..."
+              placeholder={t("assistant.placeholder")}
               className="input pr-12 py-3"
               disabled={loading}
             />
@@ -129,7 +131,7 @@ export default function AssistantPage() {
           </div>
           <p className="mt-2 text-xs text-ink-500 flex items-center gap-1.5">
             <Globe size={11} />
-            AI responses are guidance only. Always verify against official government sources.
+            {t("assistant.welcomeMessage")?.substring(0, 60)}...
           </p>
         </div>
       </form>
@@ -171,8 +173,6 @@ function Message({ msg }: { msg: Msg }) {
     </div>
   );
 }
-
-// ---- Checklist modal ----------------------------------------------------------------
 
 type Detected = { origin: string | null; destination: string | null; visaType: string };
 
@@ -274,7 +274,6 @@ function buildChecklist(d: Detected) {
     { section: "Health & Travel", items: ["Medical examination report (panel physician)", "Police clearance certificate", "Travel insurance (until local health enrols)"] },
   ];
 
-  // Country-specific additions
   if (dest.includes("canada")) base[2].items.push("GIC (CAD 10,000+) from a Canadian bank");
   if (dest.includes("uk"))     { base[2].items.push("Immigration Health Surcharge paid (£776/yr)"); base[3].items.push("Confirmation of Acceptance for Studies (CAS) number"); }
   if (dest.includes("germany")) { base[2].items.push("Blocked account (Sperrkonto) with €11,904+"); base[3].items.push("APS certificate (for China/India/Vietnam applicants)"); }
@@ -328,7 +327,6 @@ function ChecklistModal({ messages, onClose }: { messages: Msg[]; onClose: () =>
         className="w-full max-w-2xl rounded-xl border border-cream-200 bg-[var(--color-surface)] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <header className="px-6 py-4 border-b border-cream-200 flex items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -348,7 +346,6 @@ function ChecklistModal({ messages, onClose }: { messages: Msg[]; onClose: () =>
           </button>
         </header>
 
-        {/* Progress */}
         <div className="px-6 py-3 border-b border-cream-200">
           <div className="flex items-center justify-between text-xs text-ink-700 mb-1.5">
             <span>{done.size} of {totalItems} done</span>
@@ -359,7 +356,6 @@ function ChecklistModal({ messages, onClose }: { messages: Msg[]; onClose: () =>
           </div>
         </div>
 
-        {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           {sections.map((sec) => (
             <section key={sec.section}>
@@ -387,7 +383,6 @@ function ChecklistModal({ messages, onClose }: { messages: Msg[]; onClose: () =>
           ))}
         </div>
 
-        {/* Footer */}
         <footer className="px-6 py-3 border-t border-cream-200 flex items-center justify-end gap-2">
           <button onClick={() => window.print()} className="btn-ghost border border-cream-300 text-sm">
             <Printer size={13} /> Print
