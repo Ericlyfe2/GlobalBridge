@@ -11,8 +11,10 @@ import { login, register, PASSWORD_POLICY } from "@/lib/auth";
 import { roleHome } from "@/lib/roles";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTranslation } from "@/i18n/hooks/useTranslation";
 
 function AuthContent() {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<"signup" | "signin">(
@@ -44,7 +46,7 @@ function AuthContent() {
       router.push(roleHome(userRole));
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -56,15 +58,15 @@ function AuthContent() {
   }
 
   const roles = [
-    { value: "student" as const, label: "Student", icon: GraduationCap },
-    { value: "mentor" as const, label: "Mentor", icon: Compass },
-    { value: "employer" as const, label: "Employer", icon: Briefcase },
+    { value: "student" as const, label: t("auth.roleStudent"), icon: GraduationCap },
+    { value: "mentor" as const, label: t("auth.roleMentor"), icon: Compass },
+    { value: "employer" as const, label: t("auth.roleEmployer"), icon: Briefcase },
   ];
 
   const stats = [
-    { value: "120+", label: "Countries served" },
-    { value: "50k+", label: "Students guided" },
-    { value: "98%", label: "Visa success rate" },
+    { value: "120+", label: t("landing.statCountries") },
+    { value: "50k+", label: t("landing.statStudents") },
+    { value: "98%", label: t("landing.statVisaSuccess") },
   ];
 
   const isSignup = mode === "signup";
@@ -98,12 +100,10 @@ function AuthContent() {
 
         <div className="relative z-10 max-w-md">
           <h2 className="text-3xl font-bold leading-tight">
-            Your trusted bridge to studying, working, and settling abroad.
+            {t("auth.heroTitle")}
           </h2>
           <p className="mt-4 text-white/70 leading-relaxed">
-            AI-guided visa support, verified housing, mentorship, and career
-            opportunities — all in one secure platform built for international
-            students and immigrants.
+            {t("auth.heroDescription")}
           </p>
 
           <dl className="mt-10 grid grid-cols-3 gap-4">
@@ -118,19 +118,17 @@ function AuthContent() {
           <figure className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
             <Quote size={18} className="text-emerald-400" />
             <blockquote className="mt-2 text-sm text-white/85 leading-relaxed">
-              &ldquo;GlobalBridge walked me through my entire student visa and helped
-              me find safe housing before I even landed. It felt like having a
-              guide in every country.&rdquo;
+              &ldquo;{t("auth.testimonial")}&rdquo;
             </blockquote>
             <figcaption className="mt-3 text-xs text-white/60">
-              Ama O. — Student from Ghana 🇬🇭
+              {t("auth.testimonialAuthor")}
             </figcaption>
           </figure>
         </div>
 
         <div className="relative z-10 flex items-center gap-5 text-xs text-white/55">
-          <span className="inline-flex items-center gap-1.5"><ShieldCheck size={14} className="text-emerald-400" /> Bank-grade security</span>
-          <span className="inline-flex items-center gap-1.5"><BadgeCheck size={14} className="text-emerald-400" /> Verified listings</span>
+          <span className="inline-flex items-center gap-1.5"><ShieldCheck size={14} className="text-emerald-400" /> {t("auth.bankGradeSecurity")}</span>
+          <span className="inline-flex items-center gap-1.5"><BadgeCheck size={14} className="text-emerald-400" /> {t("auth.verifiedListings")}</span>
         </div>
       </aside>
 
@@ -139,9 +137,9 @@ function AuthContent() {
         <header className="flex items-center justify-between px-6 py-5 md:px-10">
           <Link href="/" className="md:hidden"><Logo /></Link>
           <span className="hidden md:block text-sm text-ink-500 dark:text-gray-400">
-            {isSignup ? "Already a member?" : "New to GlobalBridge?"}{" "}
+            {isSignup ? t("auth.alreadyHaveAccount") : t("auth.newToPlatform")}{" "}
             <button onClick={switchMode} className="font-semibold text-emerald-600 hover:text-emerald-700">
-              {isSignup ? "Sign in" : "Create account"}
+              {isSignup ? t("auth.signIn") : t("auth.createAccount")}
             </button>
           </span>
           <ThemeToggle />
@@ -151,15 +149,13 @@ function AuthContent() {
           <div className="w-full max-w-md">
             <div className="mb-8">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                <ShieldCheck size={13} /> {isSignup ? "Create your free account" : "Secure sign in"}
+                <ShieldCheck size={13} /> {isSignup ? t("auth.createFreeAccount") : t("auth.secureSignIn")}
               </span>
               <h1 className="mt-4 text-3xl font-bold tracking-tight text-[#0A2540] dark:text-white">
-                {isSignup ? "Create your account" : "Welcome back"}
+                {isSignup ? t("auth.createAccount") : t("auth.welcomeBack")}
               </h1>
               <p className="mt-2 text-sm text-ink-500 dark:text-gray-400">
-                {isSignup
-                  ? "Join thousands building their future abroad — it takes a minute."
-                  : "Sign in to continue your journey."}
+                {isSignup ? t("auth.signupSubtitle") : t("auth.signinSubtitle")}
               </p>
             </div>
 
@@ -176,17 +172,17 @@ function AuthContent() {
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               {isSignup && (
                 <>
-                  <Field label="Full name" htmlFor="full-name" icon={User}>
+                  <Field label={t("auth.fullName")} htmlFor="full-name" icon={User}>
                     <input
                       id="full-name" type="text" required minLength={2}
                       value={fullName} onChange={(e) => setFullName(e.target.value)}
-                      className={inputCls} placeholder="Your full name" autoComplete="name"
+                      className={inputCls} placeholder={t("auth.fullNamePlaceholder")} autoComplete="name"
                     />
                   </Field>
 
                   <fieldset>
                     <legend className="mb-1.5 block text-sm font-medium text-ink-700 dark:text-gray-300">
-                      I am a
+                      {t("auth.iAmA")}
                     </legend>
                     <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Account type">
                       {roles.map((r) => {
@@ -209,21 +205,21 @@ function AuthContent() {
                     </div>
                   </fieldset>
 
-                  <Field label="Country of origin" htmlFor="origin" icon={Globe}>
+                  <Field label={t("auth.countryOfOrigin")} htmlFor="origin" icon={Globe}>
                     <input
                       id="origin" type="text" required minLength={2}
                       value={origin} onChange={(e) => setOrigin(e.target.value)}
-                      className={inputCls} placeholder="e.g. Ghana, Nigeria, India" autoComplete="country-name"
+                      className={inputCls} placeholder={t("auth.countryPlaceholder")} autoComplete="country-name"
                     />
                   </Field>
                 </>
               )}
 
-              <Field label="Email address" htmlFor="email" icon={Mail}>
+              <Field label={t("auth.email")} htmlFor="email" icon={Mail}>
                 <input
                   id="email" type="email" required value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={inputCls} placeholder="you@example.com" autoComplete="email"
+                  className={inputCls} placeholder={t("auth.emailPlaceholder")} autoComplete="email"
                 />
               </Field>
 
@@ -257,11 +253,11 @@ function AuthContent() {
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
                   <label htmlFor="password" className="block text-sm font-medium text-ink-700 dark:text-gray-300">
-                    Password
+                    {t("auth.password")}
                   </label>
                   {!isSignup && (
                     <Link href="/forgot-password" className="text-xs font-medium text-emerald-600 hover:text-emerald-700">
-                      Forgot password?
+                      {t("auth.forgotPassword")}
                     </Link>
                   )}
                 </div>
@@ -274,11 +270,11 @@ function AuthContent() {
                     value={password} onChange={(e) => setPassword(e.target.value)}
                     autoComplete={isSignup ? "new-password" : "current-password"}
                     className="w-full rounded-lg border border-cream-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-9 pr-10 text-sm text-ink-900 dark:text-white focus:border-transparent focus:ring-2 focus:ring-emerald-500"
-                    placeholder={isSignup ? "Minimum 8 characters" : "Your password"}
+                    placeholder={isSignup ? t("auth.minChars") : t("auth.passwordPlaceholder")}
                   />
                   <button
                     type="button" onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={showPassword ? t("common.hide") : t("common.show")}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600" tabIndex={-1}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -292,26 +288,26 @@ function AuthContent() {
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}
-                {loading ? "Please wait…" : isSignup ? "Create account" : "Sign in"}
+                {loading ? t("common.loading") : isSignup ? t("auth.createAccount") : t("auth.signIn")}
               </button>
 
               <p className="flex items-center justify-center gap-1.5 text-xs text-ink-400 dark:text-gray-500">
-                <LockIcon size={12} /> Your information is encrypted and never shared.
+                <LockIcon size={12} /> {t("auth.encryptedNotice")}
               </p>
             </form>
 
             <p className="mt-6 text-center text-sm text-ink-500 dark:text-gray-400 lg:hidden">
-              {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
+              {isSignup ? t("auth.alreadyHaveAccount") : t("auth.dontHaveAccount")}{" "}
               <button onClick={switchMode} className="font-semibold text-emerald-600 hover:text-emerald-700">
-                {isSignup ? "Sign in" : "Create one"}
+                {isSignup ? t("auth.signIn") : t("auth.createOne")}
               </button>
             </p>
 
             {isSignup && (
               <p className="mt-6 text-center text-xs leading-relaxed text-ink-400 dark:text-gray-500">
-                By creating an account you agree to our{" "}
-                <Link href="/terms" className="underline hover:text-ink-600">Terms</Link> and{" "}
-                <Link href="/privacy" className="underline hover:text-ink-600">Privacy Policy</Link>.
+                {t("auth.agreeToTerms")}{" "}
+                <Link href="/terms" className="underline hover:text-ink-600">{t("auth.terms")}</Link> {t("common.and")}{" "}
+                <Link href="/privacy" className="underline hover:text-ink-600">{t("auth.privacyPolicy")}</Link>.
               </p>
             )}
           </div>
@@ -343,18 +339,20 @@ function Field({
 }
 
 function PasswordStrength({ password }: { password: string }) {
+  const { t } = useTranslation();
   const checks = [
-    { label: `At least ${PASSWORD_POLICY.minLength} characters`, pass: password.length >= PASSWORD_POLICY.minLength },
-    { label: "Uppercase letter", pass: /[A-Z]/.test(password) },
-    { label: "Lowercase letter", pass: /[a-z]/.test(password) },
-    { label: "A number", pass: /[0-9]/.test(password) },
-    { label: "Special character", pass: /[^A-Za-z0-9]/.test(password) },
+    { label: t("auth.passwordLength", { count: PASSWORD_POLICY.minLength }), pass: password.length >= PASSWORD_POLICY.minLength },
+    { label: t("auth.passwordUppercase"), pass: /[A-Z]/.test(password) },
+    { label: t("auth.passwordLowercase"), pass: /[a-z]/.test(password) },
+    { label: t("auth.passwordNumber"), pass: /[0-9]/.test(password) },
+    { label: t("auth.passwordSpecial"), pass: /[^A-Za-z0-9]/.test(password) },
   ];
   const passed = checks.filter((c) => c.pass).length;
   const strength = passed <= 2 ? "weak" : passed <= 3 ? "medium" : "strong";
   const barColor: Record<string, string> = {
     weak: "bg-red-500", medium: "bg-amber-500", strong: "bg-emerald-500",
   };
+  const strengthLabel = strength === "weak" ? t("auth.passwordWeak") : strength === "medium" ? t("auth.passwordMedium") : t("auth.passwordStrong");
 
   return (
     <div className="mt-3 space-y-2">
@@ -369,7 +367,7 @@ function PasswordStrength({ password }: { password: string }) {
         ))}
       </div>
       {password && (
-        <div className="text-xs capitalize text-ink-500 dark:text-gray-400">{strength} password</div>
+        <div className="text-xs capitalize text-ink-500 dark:text-gray-400">{strengthLabel}</div>
       )}
       <div className="grid grid-cols-2 gap-x-3 gap-y-1">
         {checks.map((c) => (

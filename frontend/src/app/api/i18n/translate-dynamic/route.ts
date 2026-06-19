@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
+import { getCachedTranslation, setCachedTranslation } from "@/lib/translation-cache-server";
 
 export const runtime = "nodejs";
 
@@ -30,6 +31,11 @@ export async function POST(req: Request) {
 
   if (target === "en" || texts.length === 0) {
     return Response.json({ translations: texts });
+  }
+
+  const cached = await getCachedTranslation(texts, target);
+  if (cached) {
+    return Response.json({ translations: cached, lang: target, cached: true });
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -70,6 +76,8 @@ export async function POST(req: Request) {
     if (!Array.isArray(translations) || translations.length !== texts.length) {
       translations = texts;
     }
+
+    await setCachedTranslation(texts, target, translations);
     return Response.json({ translations, lang: target });
   } catch (e) {
     return Response.json(

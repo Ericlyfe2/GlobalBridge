@@ -61,9 +61,15 @@
     "yesterday": "昨天",
     "tomorrow": "明天",
     "now": "现在",
-    "minutes": "{count}分钟",
-    "hours": "{count}小时",
-    "days": "{count}天",
+    "minutes": {
+      "other": "{count}分钟"
+    },
+    "hours": {
+      "other": "{count}小时"
+    },
+    "days": {
+      "other": "{count}天"
+    },
     "justNow": "刚刚",
     "ago": "{time}前",
     "inProgress": "进行中",
@@ -74,7 +80,19 @@
     "active": "活跃",
     "inactive": "不活跃",
     "all": "全部",
-    "none": "无"
+    "none": "无",
+    "dashboard": "Dashboard",
+    "askAi": "Ask AI",
+    "view": "View",
+    "share": "Share",
+    "continue": "Continue",
+    "skip": "Skip",
+    "show": "Show",
+    "hide": "Hide",
+    "select": "Select",
+    "sort": "Sort",
+    "or": "or",
+    "and": "and"
   },
   "nav": {
     "dashboard": "仪表盘",
@@ -190,7 +208,9 @@
     "ctaTitle": "今天就开启你的旅程。",
     "ctaSubtitle": "加入成千上万使用 GlobalBridge 自信规划国际教育的学生行列。",
     "ctaButton": "免费创建账户",
-    "ctaAssistantButton": "与 AI 助手对话"
+    "ctaAssistantButton": "与 AI 助手对话",
+    "statStudents": "Students guided",
+    "statVisaSuccess": "Visa success rate"
   },
   "auth": {
     "welcomeBack": "欢迎回来",
@@ -234,7 +254,32 @@
     "resetSent": "重置链接已发送！请查看你的邮箱。",
     "emailVerified": "邮箱验证成功！",
     "verificationResent": "验证邮件已重新发送。",
-    "signOutConfirm": "你确定要退出登录吗？"
+    "signOutConfirm": "你确定要退出登录吗？",
+    "heroTitle": "Your trusted bridge to studying, working, and settling abroad.",
+    "heroDescription": "AI-guided visa support, verified housing, mentorship, and career opportunities — all in one secure platform built for international students and immigrants.",
+    "testimonial": "GlobalBridge walked me through my entire student visa and helped me find safe housing before I even landed. It felt like having a guide in every country.",
+    "testimonialAuthor": "Ama O. — Student from Ghana 🇬🇭",
+    "bankGradeSecurity": "Bank-grade security",
+    "verifiedListings": "Verified listings",
+    "newToPlatform": "New to GlobalBridge?",
+    "signIn": "Sign in",
+    "createFreeAccount": "Create your free account",
+    "secureSignIn": "Secure sign in",
+    "signupSubtitle": "Join thousands building their future abroad — it takes a minute.",
+    "signinSubtitle": "Sign in to continue your journey.",
+    "iAmA": "I am a",
+    "encryptedNotice": "Your information is encrypted and never shared.",
+    "createOne": "Create one",
+    "terms": "Terms",
+    "minChars": "Minimum 8 characters",
+    "passwordLength": "At least {count} characters",
+    "passwordUppercase": "Uppercase letter",
+    "passwordLowercase": "Lowercase letter",
+    "passwordNumber": "A number",
+    "passwordSpecial": "Special character",
+    "passwordWeak": "Weak password",
+    "passwordMedium": "Medium password",
+    "passwordStrong": "Strong password"
   },
   "dashboard": {
     "welcome": "欢迎回来，{name}",
@@ -613,5 +658,50 @@
     "date": "请输入有效的日期",
     "fileSize": "文件大小必须小于{size}MB",
     "fileType": "不支持的文件类型"
+  },
+  "notFound": {
+    "title": "Took a wrong turn?",
+    "description": "This page doesn't exist (or moved). Even verified mentors get lost their first week - happens to the best of us.",
+    "errorCode": "Error 404"
+  },
+  "unauthorized": {
+    "title": "Access Denied",
+    "description": "You don't have permission to view this page. If you believe this is a mistake, contact support.",
+    "goBack": "Go back"
+  },
+  "about": {
+    "title": "About GlobalBridge",
+    "description": "We are a platform dedicated to helping international students and immigrants navigate their journey abroad."
+  },
+  "contact": {
+    "title": "Contact Us",
+    "description": "Have a question or need help? We are here for you.",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "send": "Send Message",
+    "sent": "Message sent successfully",
+    "subject": "Subject",
+    "phone": "Phone"
+  },
+  "help": {
+    "title": "Help Center",
+    "description": "Find answers to common questions and learn how to use GlobalBridge.",
+    "searchPlaceholder": "Search for help..."
+  },
+  "pricing": {
+    "title": "Pricing",
+    "description": "Choose the plan that fits your journey.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "free": "Free",
+    "premium": "Premium",
+    "enterprise": "Enterprise",
+    "getStarted": "Get Started",
+    "mostPopular": "Most Popular"
+  },
+  "error": {
+    "title": "Sorry — this page misbehaved.",
+    "description": "Don't worry, your data is safe. Try the retry button. If it keeps failing, ping us via Help."
   }
 }

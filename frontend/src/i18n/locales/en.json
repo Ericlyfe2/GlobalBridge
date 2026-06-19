@@ -61,9 +61,18 @@
     "yesterday": "Yesterday",
     "tomorrow": "Tomorrow",
     "now": "Now",
-    "minutes": "{count}m",
-    "hours": "{count}h",
-    "days": "{count}d",
+    "minutes": {
+      "one": "{count} minute",
+      "other": "{count} minutes"
+    },
+    "hours": {
+      "one": "{count} hour",
+      "other": "{count} hours"
+    },
+    "days": {
+      "one": "{count} day",
+      "other": "{count} days"
+    },
     "justNow": "Just now",
     "ago": "{time} ago",
     "inProgress": "In progress",
@@ -74,7 +83,19 @@
     "active": "Active",
     "inactive": "Inactive",
     "all": "All",
-    "none": "None"
+    "none": "None",
+    "dashboard": "Dashboard",
+    "askAi": "Ask AI",
+    "view": "View",
+    "share": "Share",
+    "continue": "Continue",
+    "skip": "Skip",
+    "show": "Show",
+    "hide": "Hide",
+    "select": "Select",
+    "sort": "Sort",
+    "or": "or",
+    "and": "and"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -190,7 +211,9 @@
     "ctaTitle": "Start your journey today.",
     "ctaSubtitle": "Join thousands of students using GlobalBridge to navigate their international education with confidence.",
     "ctaButton": "Create free account",
-    "ctaAssistantButton": "Talk to AI Assistant"
+    "ctaAssistantButton": "Talk to AI Assistant",
+    "statStudents": "Students guided",
+    "statVisaSuccess": "Visa success rate"
   },
   "auth": {
     "welcomeBack": "Welcome back",
@@ -234,7 +257,32 @@
     "resetSent": "Reset link sent! Check your email.",
     "emailVerified": "Email verified successfully!",
     "verificationResent": "Verification email resent.",
-    "signOutConfirm": "Are you sure you want to sign out?"
+    "signOutConfirm": "Are you sure you want to sign out?",
+    "heroTitle": "Your trusted bridge to studying, working, and settling abroad.",
+    "heroDescription": "AI-guided visa support, verified housing, mentorship, and career opportunities — all in one secure platform built for international students and immigrants.",
+    "testimonial": "GlobalBridge walked me through my entire student visa and helped me find safe housing before I even landed. It felt like having a guide in every country.",
+    "testimonialAuthor": "Ama O. — Student from Ghana 🇬🇭",
+    "bankGradeSecurity": "Bank-grade security",
+    "verifiedListings": "Verified listings",
+    "newToPlatform": "New to GlobalBridge?",
+    "signIn": "Sign in",
+    "createFreeAccount": "Create your free account",
+    "secureSignIn": "Secure sign in",
+    "signupSubtitle": "Join thousands building their future abroad — it takes a minute.",
+    "signinSubtitle": "Sign in to continue your journey.",
+    "iAmA": "I am a",
+    "encryptedNotice": "Your information is encrypted and never shared.",
+    "createOne": "Create one",
+    "terms": "Terms",
+    "minChars": "Minimum 8 characters",
+    "passwordLength": "At least {count} characters",
+    "passwordUppercase": "Uppercase letter",
+    "passwordLowercase": "Lowercase letter",
+    "passwordNumber": "A number",
+    "passwordSpecial": "Special character",
+    "passwordWeak": "Weak password",
+    "passwordMedium": "Medium password",
+    "passwordStrong": "Strong password"
   },
   "dashboard": {
     "welcome": "Welcome back, {name}",
@@ -613,5 +661,50 @@
     "date": "Please enter a valid date",
     "fileSize": "File size must be less than {size}MB",
     "fileType": "File type not supported"
+  },
+  "notFound": {
+    "title": "Took a wrong turn?",
+    "description": "This page doesn't exist (or moved). Even verified mentors get lost their first week - happens to the best of us.",
+    "errorCode": "Error 404"
+  },
+  "unauthorized": {
+    "title": "Access Denied",
+    "description": "You don't have permission to view this page. If you believe this is a mistake, contact support.",
+    "goBack": "Go back"
+  },
+  "about": {
+    "title": "About GlobalBridge",
+    "description": "We are a platform dedicated to helping international students and immigrants navigate their journey abroad."
+  },
+  "contact": {
+    "title": "Contact Us",
+    "description": "Have a question or need help? We are here for you.",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "send": "Send Message",
+    "sent": "Message sent successfully",
+    "subject": "Subject",
+    "phone": "Phone"
+  },
+  "help": {
+    "title": "Help Center",
+    "description": "Find answers to common questions and learn how to use GlobalBridge.",
+    "searchPlaceholder": "Search for help..."
+  },
+  "pricing": {
+    "title": "Pricing",
+    "description": "Choose the plan that fits your journey.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "free": "Free",
+    "premium": "Premium",
+    "enterprise": "Enterprise",
+    "getStarted": "Get Started",
+    "mostPopular": "Most Popular"
+  },
+  "error": {
+    "title": "Sorry — this page misbehaved.",
+    "description": "Don't worry, your data is safe. Try the retry button. If it keeps failing, ping us via Help."
   }
 }
