@@ -107,6 +107,7 @@
     "docChecker": "文件检查",
     "scholarshipMatch": "奖学金匹配",
     "timelinePlanner": "时间线规划",
+    "countryCompare": "国家对比",
     "mySessions": "我的会话",
     "myPostings": "我的发布",
     "candidates": "候选人",
@@ -123,6 +124,23 @@
     "home": "首页",
     "signIn": "登录",
     "getStarted": "开始使用"
+  },
+  "tools": {
+    "countryCompare": {
+      "title": "国家对比",
+      "subtitle": "AI驱动的并排对比：生活成本、签证、工作、教育、医疗等 — 面向学生和移民。",
+      "country1": "国家A",
+      "country2": "国家B",
+      "swap": "交换国家",
+      "compare": "对比国家",
+      "comparing": "AI正在分析...",
+      "analyzing": "正在收集8个类别的数据...",
+      "analyzingDesc": "生活成本、签证、工作、住房、教育、医疗、文化和银行",
+      "sameCountry": "请选择两个不同的国家进行比较。",
+      "selectPrompt": "在上面选择两个国家，然后点击对比",
+      "selectPromptDesc": "获取AI驱动的详细并排对比",
+      "disclaimer": "基于公开可用数据的AI生成对比。在做出决定前，请与官方来源核实具体数字。"
+    }
   },
   "footer": {
     "description": "留学生和移民者值得信赖的伙伴——在旅程之前、之中和之后。",

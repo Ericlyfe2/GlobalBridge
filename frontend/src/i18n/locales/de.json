@@ -110,6 +110,7 @@
     "docChecker": "Dokumentenprüfung",
     "scholarshipMatch": "Stipendien-Matching",
     "timelinePlanner": "Zeitplaner",
+    "countryCompare": "Ländervergleich",
     "mySessions": "Meine Sitzungen",
     "myPostings": "Meine Anzeigen",
     "candidates": "Kandidaten",
@@ -126,6 +127,23 @@
     "home": "Startseite",
     "signIn": "Anmelden",
     "getStarted": "Loslegen"
+  },
+  "tools": {
+    "countryCompare": {
+      "title": "Ländervergleich",
+      "subtitle": "KI-gestützter Seitenvergleich von Lebenshaltungskosten, Visa, Jobs, Bildung, Gesundheit und mehr — für Studenten und Einwanderer.",
+      "country1": "Land A",
+      "country2": "Land B",
+      "swap": "Länder tauschen",
+      "compare": "Länder vergleichen",
+      "comparing": "KI analysiert...",
+      "analyzing": "Daten werden in 8 Kategorien gesammelt...",
+      "analyzingDesc": "Lebenshaltungskosten, Visa, Jobs, Wohnen, Bildung, Gesundheit, Kultur und Bankwesen",
+      "sameCountry": "Bitte wählen Sie zwei verschiedene Länder zum Vergleichen aus.",
+      "selectPrompt": "Wählen Sie oben zwei Länder aus und klicken Sie auf Vergleichen",
+      "selectPromptDesc": "Erhalten Sie einen detaillierten KI-gestützten Seitenvergleich",
+      "disclaimer": "KI-generierter Vergleich basierend auf öffentlich verfügbaren Daten. Überprüfen Sie spezifische Zahlen mit offiziellen Quellen, bevor Sie Entscheidungen treffen."
+    }
   },
   "footer": {
     "description": "Vertrauenswürdiger Begleiter für internationale Studierende und Einwanderer – vor, während und nach ihrer Reise.",

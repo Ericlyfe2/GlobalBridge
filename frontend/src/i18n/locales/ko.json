@@ -107,6 +107,7 @@
     "docChecker": "서류 확인",
     "scholarshipMatch": "장학금 매칭",
     "timelinePlanner": "일정 플래너",
+    "countryCompare": "국가 비교",
     "mySessions": "내 세션",
     "myPostings": "내 게시물",
     "candidates": "지원자",
@@ -123,6 +124,23 @@
     "home": "홈",
     "signIn": "로그인",
     "getStarted": "시작하기"
+  },
+  "tools": {
+    "countryCompare": {
+      "title": "국가 비교",
+      "subtitle": "AI 기반 생활비, 비자, 취업, 교육, 의료 등 나란히 비교 — 유학생과 이민자 대상.",
+      "country1": "국가 A",
+      "country2": "국가 B",
+      "swap": "국가 교체",
+      "compare": "국가 비교",
+      "comparing": "AI가 분석 중...",
+      "analyzing": "8개 카테고리 데이터 수집 중...",
+      "analyzingDesc": "생활비, 비자, 취업, 주거, 교육, 의료, 문화, 은행",
+      "sameCountry": "비교할 두 개의 다른 국가를 선택하세요.",
+      "selectPrompt": "위에서 두 국가를 선택하고 비교를 클릭하세요",
+      "selectPromptDesc": "AI 기반 상세 나란히 비교 결과 확인",
+      "disclaimer": "공개 데이터를 기반으로 한 AI 생성 비교입니다. 결정을 내리기 전에 공식 출처에서 구체적인 수치를 확인하세요."
+    }
   },
   "footer": {
     "description": "유학생과 이민자를 위한 신뢰할 수 있는 동반자 — 여정 전, 중, 후까지.",

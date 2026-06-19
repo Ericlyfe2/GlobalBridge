@@ -110,6 +110,7 @@
     "docChecker": "Kikagua Hati",
     "scholarshipMatch": "Ulinganishaji wa Udhamini",
     "timelinePlanner": "Kipanga Ratiba",
+    "countryCompare": "Linganisha Nchi",
     "mySessions": "Vipindi Vyangu",
     "myPostings": "Machapisho Yangu",
     "candidates": "Wagombea",
@@ -126,6 +127,23 @@
     "home": "Nyumbani",
     "signIn": "Ingia",
     "getStarted": "Anza"
+  },
+  "tools": {
+    "countryCompare": {
+      "title": "Ulinganisho wa Nchi",
+      "subtitle": "Ulinganisho wa upande kwa upande unaoendeshwa na AI wa gharama ya maisha, visa, kazi, elimu, afya na zaidi — kwa wanafunzi na wahamiaji.",
+      "country1": "Nchi A",
+      "country2": "Nchi B",
+      "swap": "Badilisha nchi",
+      "compare": "Linganisha nchi",
+      "comparing": "AI inachambua...",
+      "analyzing": "Inakusanya data katika kategoria 8...",
+      "analyzingDesc": "Gharama ya maisha, visa, kazi, makazi, elimu, afya, utamaduni na benki",
+      "sameCountry": "Tafadhali chagua nchi mbili tofauti za kulinganisha.",
+      "selectPrompt": "Chagua nchi mbili hapo juu na ubofye Linganisha",
+      "selectPromptDesc": "Pata ulinganisho wa kina wa upande kwa upande unaoendeshwa na AI",
+      "disclaimer": "Ulinganisho unaozalishwa na AI kulingana na data inayopatikana kwa umma. Thibitisha takwimu mahususi na vyanzo rasmi kabla ya kufanya maamuzi."
+    }
   },
   "footer": {
     "description": "Mshirika anayeaminika kwa wanafunzi wa kimataifa na wahamiaji — kabla, wakati, na baada ya safari yao.",

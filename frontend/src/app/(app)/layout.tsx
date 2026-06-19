@@ -19,6 +19,7 @@ import {
   Sparkles,
   ClipboardList,
   Calendar,
+  ArrowRightLeft,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -77,6 +78,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             { href: "/tools/doc-checker", icon: FileCheck, label: t("nav.docChecker") },
             { href: "/tools/scholarship-matcher", icon: Sparkles, label: t("nav.scholarshipMatch") },
             { href: "/tools/timeline", icon: ClipboardList, label: t("nav.timelinePlanner") },
+            { href: "/tools/country-compare", icon: ArrowRightLeft, label: t("nav.countryCompare") },
           ];
 
   function signOut() {
