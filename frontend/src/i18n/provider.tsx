@@ -1,9 +1,9 @@
 "use client";
 
 import { createContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { DEFAULT_LANG, isRtlLang, SUPPORTED_LANGUAGES, type Lang } from "./config";
+import { usePathname, useRouter } from "next/navigation";
+import { DEFAULT_LANG, getLocalizedPath, isRtlLang, SUPPORTED_LANGUAGES, type Lang } from "./config";
 import { detectLanguage, saveLang, saveLangToProfile } from "./utils";
-import type { Auth } from "firebase/auth";
 
 type TranslationDict = Record<string, unknown>;
 
@@ -42,6 +42,9 @@ export function LocaleProvider({
   const [translating, setTranslating] = useState(false);
   const [translations, setTranslations] = useState<TranslationDict>({});
   const loadedRef = useRef<Set<Lang>>(new Set());
+  const router = useRouter();
+  const pathname = usePathname();
+  const initialisedRef = useRef(false);
 
   const loadAndCache = useCallback(async (target: Lang) => {
     if (loadedRef.current.has(target) && localeCache.has(target)) {
@@ -63,6 +66,8 @@ export function LocaleProvider({
   }, []);
 
   useEffect(() => {
+    if (initialisedRef.current) return;
+    initialisedRef.current = true;
     const detected = detectLanguage(initialLang);
     setLangState(detected);
     loadAndCache(detected);
@@ -78,11 +83,14 @@ export function LocaleProvider({
     async (target: Lang) => {
       setLangState(target);
       saveLang(target);
-      document.cookie = `gb-lang=${target}; path=/; max-age=${365 * 24 * 60 * 60}; SameSite=Lax`;
       await loadAndCache(target);
       saveLangToProfile(target);
+      const localizedPath = getLocalizedPath(pathname, target);
+      if (localizedPath !== pathname) {
+        router.replace(localizedPath);
+      }
     },
-    [loadAndCache]
+    [loadAndCache, pathname, router]
   );
 
   const dir = useMemo<"ltr" | "rtl">(() => (isRtlLang(lang) ? "rtl" : "ltr"), [lang]);

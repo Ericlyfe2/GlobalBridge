@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import "./globals.css";
 import { LocaleProvider } from "@/i18n/provider";
 import { ToastProvider } from "@/components/Toast";
 import { AuthSync } from "@/components/AuthSync";
+import { HreflangMeta } from "@/components/HreflangMeta";
+import { SUPPORTED_LANGUAGES, type Lang } from "@/i18n/config";
 
 export const metadata: Metadata = {
   title: "GlobalBridge — Your Trusted Guide Abroad",
@@ -25,27 +28,33 @@ const themeInitScript = `
 })();
 `;
 
+const rtlCodes = SUPPORTED_LANGUAGES.filter((l) => l.rtl).map((l) => l.code);
 const langInitScript = `
 (function () {
   try {
     var stored = localStorage.getItem('gb-lang');
     if (stored) {
       document.documentElement.lang = stored;
-      var rtl = ["ar"].includes(stored);
+      var rtl = ${JSON.stringify(rtlCodes)}.includes(stored);
       document.documentElement.dir = rtl ? "rtl" : "ltr";
     }
   } catch (e) {}
 })();
 `;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const lang = (cookieStore.get("gb-lang")?.value as Lang) || "en";
+  const dir = lang === "ar" ? "rtl" : "ltr";
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={lang} dir={dir} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript + langInitScript }} />
       </head>
       <body>
-        <LocaleProvider>
+        <HreflangMeta />
+        <LocaleProvider initialLang={lang}>
           <ToastProvider>
             <AuthSync />
             {children}

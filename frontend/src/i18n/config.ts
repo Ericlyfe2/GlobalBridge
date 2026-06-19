@@ -27,6 +27,24 @@ export function isRtlLang(lang: Lang): boolean {
   return LANG_MAP[lang]?.rtl ?? false;
 }
 
+export function extractLangFromPath(pathname: string): Lang | null {
+  const segments = pathname.split("/").filter(Boolean);
+  if (segments.length > 0 && SUPPORTED_LANGUAGES.some((l) => l.code === segments[0])) {
+    return segments[0] as Lang;
+  }
+  return null;
+}
+
+export function getLocalizedPath(pathname: string, targetLang: Lang): string {
+  const segments = pathname.split("/").filter(Boolean);
+  if (segments.length > 0 && SUPPORTED_LANGUAGES.some((l) => l.code === segments[0])) {
+    segments.shift();
+  }
+  const barePath = "/" + segments.join("/");
+  if (targetLang === DEFAULT_LANG) return barePath || "/";
+  return "/" + targetLang + (barePath === "/" ? "" : barePath);
+}
+
 export const GEOLOCATION_LANG: Record<string, Lang> = {
   GH: "en", NG: "en", KE: "en", ZA: "en", UG: "en",
   FR: "fr", CA: "fr", BE: "fr", CH: "fr",
