@@ -110,6 +110,7 @@
     "docChecker": "Belge Denetleyici",
     "scholarshipMatch": "Burs Eşleştirme",
     "timelinePlanner": "Zaman Çizelgesi",
+    "countryCompare": "Ülke Karşılaştırma",
     "mySessions": "Oturumlarım",
     "myPostings": "İlanlarım",
     "candidates": "Adaylar",
@@ -126,6 +127,23 @@
     "home": "Ana Sayfa",
     "signIn": "Giriş Yap",
     "getStarted": "Başlayın"
+  },
+  "tools": {
+    "countryCompare": {
+      "title": "Ülke Karşılaştırması",
+      "subtitle": "Yaşam maliyeti, vizeler, işler, eğitim, sağlık ve daha fazlası için yapay zeka destekli yan yana karşılaştırma — öğrenciler ve göçmenler için.",
+      "country1": "Ülke A",
+      "country2": "Ülke B",
+      "swap": "Ülkeleri değiştir",
+      "compare": "Ülkeleri karşılaştır",
+      "comparing": "Yapay zeka analiz ediyor...",
+      "analyzing": "8 kategoride veri toplanıyor...",
+      "analyzingDesc": "Yaşam maliyeti, vizeler, işler, konut, eğitim, sağlık, kültür ve bankacılık",
+      "sameCountry": "Lütfen karşılaştırmak için iki farklı ülke seçin.",
+      "selectPrompt": "Yukarıda iki ülke seçin ve Karşılaştır'a tıklayın",
+      "selectPromptDesc": "Yapay zeka destekli ayrıntılı yan yana karşılaştırma alın",
+      "disclaimer": "Kamuya açık verilere dayalı yapay zeka tarafından oluşturulmuş karşılaştırma. Karar vermeden önce resmi kaynaklardan belirli rakamları doğrulayın."
+    }
   },
   "footer": {
     "description": "Uluslararası öğrenciler ve göçmenler için yolculukları öncesinde, sırasında ve sonrasında güvenilir yol arkadaşı.",

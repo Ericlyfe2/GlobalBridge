@@ -127,6 +127,23 @@
     "signIn": "Sign in",
     "getStarted": "Get started"
   },
+  "tools": {
+    "countryCompare": {
+      "title": "Country Comparison",
+      "subtitle": "Side-by-side AI-powered comparison of cost of living, visas, jobs, education, healthcare, and more — for students and immigrants.",
+      "country1": "Country A",
+      "country2": "Country B",
+      "swap": "Swap countries",
+      "compare": "Compare countries",
+      "comparing": "AI is analyzing...",
+      "analyzing": "Gathering data across 8 categories...",
+      "analyzingDesc": "Cost of living, visas, jobs, housing, education, healthcare, culture, and banking",
+      "sameCountry": "Please select two different countries to compare.",
+      "selectPrompt": "Select two countries above and click Compare",
+      "selectPromptDesc": "Get a detailed side-by-side comparison powered by AI",
+      "disclaimer": "AI-generated comparison based on publicly available data. Verify specific figures with official sources before making decisions."
+    }
+  },
   "footer": {
     "description": "Trusted companion for international students and immigrants — before, during, and after their journey.",
     "copyright": "© 2025 GlobalBridge · Group 8 FYP",

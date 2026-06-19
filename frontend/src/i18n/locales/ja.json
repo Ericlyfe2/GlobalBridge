@@ -107,6 +107,7 @@
     "docChecker": "書類チェッカー",
     "scholarshipMatch": "奨学金マッチ",
     "timelinePlanner": "タイムラインプランナー",
+    "countryCompare": "国比較",
     "mySessions": "マイセッション",
     "myPostings": "マイ投稿",
     "candidates": "候補者",
@@ -123,6 +124,23 @@
     "home": "ホーム",
     "signIn": "ログイン",
     "getStarted": "始める"
+  },
+  "tools": {
+    "countryCompare": {
+      "title": "国比較",
+      "subtitle": "生活費、ビザ、仕事、教育、医療などをAIが横並びで比較 — 留学生と移民向け。",
+      "country1": "国A",
+      "country2": "国B",
+      "swap": "国を入れ替え",
+      "compare": "国を比較",
+      "comparing": "AIが分析中...",
+      "analyzing": "8カテゴリのデータを収集中...",
+      "analyzingDesc": "生活費、ビザ、仕事、住居、教育、医療、文化、銀行",
+      "sameCountry": "比較するには異なる2カ国を選択してください。",
+      "selectPrompt": "上部で2カ国を選択し「比較」をクリック",
+      "selectPromptDesc": "AI搭載の詳細な横並び比較を表示",
+      "disclaimer": "公開データに基づくAI生成の比較です。決定前に公式ソースで具体的な数値を確認してください。"
+    }
   },
   "footer": {
     "description": "留学生と移民のための信頼できるパートナー — 旅の前、最中、そしてその後も。",

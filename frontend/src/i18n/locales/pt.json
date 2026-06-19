@@ -110,6 +110,7 @@
     "docChecker": "Verificador de Documentos",
     "scholarshipMatch": "Correspondência de Bolsas",
     "timelinePlanner": "Planejador de Cronograma",
+    "countryCompare": "Comparar países",
     "mySessions": "Minhas Sessões",
     "myPostings": "Meus Anúncios",
     "candidates": "Candidatos",
@@ -126,6 +127,23 @@
     "home": "Início",
     "signIn": "Entrar",
     "getStarted": "Começar"
+  },
+  "tools": {
+    "countryCompare": {
+      "title": "Comparação de países",
+      "subtitle": "Comparação lado a lado com IA de custo de vida, vistos, empregos, educação, saúde e mais — para estudantes e imigrantes.",
+      "country1": "País A",
+      "country2": "País B",
+      "swap": "Trocar países",
+      "compare": "Comparar países",
+      "comparing": "IA está analisando...",
+      "analyzing": "Coletando dados em 8 categorias...",
+      "analyzingDesc": "Custo de vida, vistos, empregos, moradia, educação, saúde, cultura e bancos",
+      "sameCountry": "Selecione dois países diferentes para comparar.",
+      "selectPrompt": "Selecione dois países acima e clique em Comparar",
+      "selectPromptDesc": "Obtenha uma comparação detalhada lado a lado com IA",
+      "disclaimer": "Comparação gerada por IA com base em dados publicamente disponíveis. Verifique números específicos com fontes oficiais antes de tomar decisões."
+    }
   },
   "footer": {
     "description": "Companheiro de confiança para estudantes internacionais e imigrantes — antes, durante e depois de sua jornada.",

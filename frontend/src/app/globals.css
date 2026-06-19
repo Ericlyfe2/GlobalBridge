@@ -108,6 +108,24 @@
   }
 }
 
+/* ── Custom Animations ────────────────────────────────────── */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 6s ease-in-out infinite;
+}
+
+/* ── Scrollbar Hide ───────────────────────────────────────── */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 /* ── RTL Support ── */
 [dir="rtl"] .fi {
   margin-left: 0;
