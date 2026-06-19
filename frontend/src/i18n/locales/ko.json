@@ -61,9 +61,15 @@
     "yesterday": "어제",
     "tomorrow": "내일",
     "now": "지금",
-    "minutes": "{count}분",
-    "hours": "{count}시간",
-    "days": "{count}일",
+    "minutes": {
+      "other": "{count}분"
+    },
+    "hours": {
+      "other": "{count}시간"
+    },
+    "days": {
+      "other": "{count}일"
+    },
     "justNow": "방금 전",
     "ago": "{time} 전",
     "inProgress": "진행 중",
@@ -74,7 +80,19 @@
     "active": "활성",
     "inactive": "비활성",
     "all": "전체",
-    "none": "없음"
+    "none": "없음",
+    "dashboard": "Dashboard",
+    "askAi": "Ask AI",
+    "view": "View",
+    "share": "Share",
+    "continue": "Continue",
+    "skip": "Skip",
+    "show": "Show",
+    "hide": "Hide",
+    "select": "Select",
+    "sort": "Sort",
+    "or": "or",
+    "and": "and"
   },
   "nav": {
     "dashboard": "대시보드",
@@ -190,7 +208,9 @@
     "ctaTitle": "지금 여정을 시작하세요.",
     "ctaSubtitle": "GlobalBridge와 함께 자신감 있게 국제 교육을 준비하는 수천 명의 학생들과 함께하세요.",
     "ctaButton": "무료 계정 만들기",
-    "ctaAssistantButton": "AI 어시스턴트와 대화하기"
+    "ctaAssistantButton": "AI 어시스턴트와 대화하기",
+    "statStudents": "Students guided",
+    "statVisaSuccess": "Visa success rate"
   },
   "auth": {
     "welcomeBack": "환영합니다",
@@ -234,7 +254,32 @@
     "resetSent": "재설정 링크가 전송되었습니다! 이메일을 확인하세요.",
     "emailVerified": "이메일이 성공적으로 인증되었습니다!",
     "verificationResent": "인증 이메일이 재발송되었습니다.",
-    "signOutConfirm": "정말 로그아웃하시겠습니까?"
+    "signOutConfirm": "정말 로그아웃하시겠습니까?",
+    "heroTitle": "Your trusted bridge to studying, working, and settling abroad.",
+    "heroDescription": "AI-guided visa support, verified housing, mentorship, and career opportunities — all in one secure platform built for international students and immigrants.",
+    "testimonial": "GlobalBridge walked me through my entire student visa and helped me find safe housing before I even landed. It felt like having a guide in every country.",
+    "testimonialAuthor": "Ama O. — Student from Ghana 🇬🇭",
+    "bankGradeSecurity": "Bank-grade security",
+    "verifiedListings": "Verified listings",
+    "newToPlatform": "New to GlobalBridge?",
+    "signIn": "Sign in",
+    "createFreeAccount": "Create your free account",
+    "secureSignIn": "Secure sign in",
+    "signupSubtitle": "Join thousands building their future abroad — it takes a minute.",
+    "signinSubtitle": "Sign in to continue your journey.",
+    "iAmA": "I am a",
+    "encryptedNotice": "Your information is encrypted and never shared.",
+    "createOne": "Create one",
+    "terms": "Terms",
+    "minChars": "Minimum 8 characters",
+    "passwordLength": "At least {count} characters",
+    "passwordUppercase": "Uppercase letter",
+    "passwordLowercase": "Lowercase letter",
+    "passwordNumber": "A number",
+    "passwordSpecial": "Special character",
+    "passwordWeak": "Weak password",
+    "passwordMedium": "Medium password",
+    "passwordStrong": "Strong password"
   },
   "dashboard": {
     "welcome": "{name}님, 환영합니다",
@@ -613,5 +658,50 @@
     "date": "유효한 날짜를 입력해 주세요",
     "fileSize": "파일 크기는 {size}MB 미만이어야 합니다",
     "fileType": "지원하지 않는 파일 형식입니다"
+  },
+  "notFound": {
+    "title": "Took a wrong turn?",
+    "description": "This page doesn't exist (or moved). Even verified mentors get lost their first week - happens to the best of us.",
+    "errorCode": "Error 404"
+  },
+  "unauthorized": {
+    "title": "Access Denied",
+    "description": "You don't have permission to view this page. If you believe this is a mistake, contact support.",
+    "goBack": "Go back"
+  },
+  "about": {
+    "title": "About GlobalBridge",
+    "description": "We are a platform dedicated to helping international students and immigrants navigate their journey abroad."
+  },
+  "contact": {
+    "title": "Contact Us",
+    "description": "Have a question or need help? We are here for you.",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "send": "Send Message",
+    "sent": "Message sent successfully",
+    "subject": "Subject",
+    "phone": "Phone"
+  },
+  "help": {
+    "title": "Help Center",
+    "description": "Find answers to common questions and learn how to use GlobalBridge.",
+    "searchPlaceholder": "Search for help..."
+  },
+  "pricing": {
+    "title": "Pricing",
+    "description": "Choose the plan that fits your journey.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "free": "Free",
+    "premium": "Premium",
+    "enterprise": "Enterprise",
+    "getStarted": "Get Started",
+    "mostPopular": "Most Popular"
+  },
+  "error": {
+    "title": "Sorry — this page misbehaved.",
+    "description": "Don't worry, your data is safe. Try the retry button. If it keeps failing, ping us via Help."
   }
 }

@@ -2,9 +2,22 @@
 
 import { useCallback, useContext } from "react";
 import { LocaleContext } from "../provider";
-import type { Lang } from "../config";
+import { SUPPORTED_LANGUAGES, type Lang } from "../config";
 
 type TranslationParams = Record<string, string | number>;
+
+type PluralForms = {
+  zero?: string;
+  one?: string;
+  two?: string;
+  few?: string;
+  many?: string;
+  other: string;
+};
+
+function isPluralForms(v: unknown): v is PluralForms {
+  return typeof v === "object" && v !== null && "other" in v;
+}
 
 function interpolate(template: string, params?: TranslationParams): string {
   if (!params) return template;
@@ -14,14 +27,40 @@ function interpolate(template: string, params?: TranslationParams): string {
   });
 }
 
-function resolveKey(obj: Record<string, unknown>, path: string): string {
+function resolveValue(obj: Record<string, unknown>, path: string): unknown {
   const keys = path.split(".");
   let current: unknown = obj;
   for (const key of keys) {
-    if (current === null || current === undefined) return path;
+    if (current === null || current === undefined) return undefined;
     current = (current as Record<string, unknown>)[key];
   }
-  return typeof current === "string" ? current : path;
+  return current;
+}
+
+function selectPluralForm(lang: Lang, count: number, forms: PluralForms): string {
+  if (count === 0 && forms.zero) return forms.zero;
+  try {
+    const rules = new Intl.PluralRules(lang);
+    const form = rules.select(count) as keyof PluralForms;
+    return forms[form] || forms.other;
+  } catch {
+    return forms.other;
+  }
+}
+
+const localeCache = new Map<Lang, Intl.RelativeTimeFormat>();
+
+function getRelativeFormatter(lang: Lang): Intl.RelativeTimeFormat {
+  let f = localeCache.get(lang);
+  if (!f) {
+    try {
+      f = new Intl.RelativeTimeFormat(lang, { numeric: "auto" });
+    } catch {
+      f = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+    }
+    localeCache.set(lang, f);
+  }
+  return f;
 }
 
 export function useTranslation() {
@@ -30,10 +69,21 @@ export function useTranslation() {
 
   const t = useCallback(
     (key: string, params?: TranslationParams): string => {
-      const template = resolveKey(ctx.translations, key);
-      return interpolate(template, params);
+      const value = resolveValue(ctx.translations, key);
+      if (value === undefined) return key;
+
+      if (isPluralForms(value) && params?.count !== undefined) {
+        const form = selectPluralForm(ctx.lang, Number(params.count), value);
+        return interpolate(form, params);
+      }
+
+      if (typeof value === "string") {
+        return interpolate(value, params);
+      }
+
+      return key;
     },
-    [ctx.translations]
+    [ctx.translations, ctx.lang]
   );
 
   const formatDate = useCallback(
@@ -78,18 +128,36 @@ export function useTranslation() {
       const d = date instanceof Date ? date : new Date(date);
       const now = new Date();
       const diffMs = now.getTime() - d.getTime();
-      const diffSec = Math.floor(diffMs / 1000);
-      const diffMin = Math.floor(diffSec / 60);
-      const diffHour = Math.floor(diffMin / 60);
-      const diffDay = Math.floor(diffHour / 24);
+      const absDiffSec = Math.floor(Math.abs(diffMs) / 1000);
 
-      if (diffSec < 60) return t("common.justNow");
-      if (diffMin < 60) return t("common.ago", { time: t("common.minutes", { count: diffMin }) });
-      if (diffHour < 24) return t("common.ago", { time: t("common.hours", { count: diffHour }) });
-      if (diffDay < 7) return t("common.ago", { time: t("common.days", { count: diffDay }) });
-      return formatDate(d, { month: "short", day: "numeric" });
+      const units: [number, Intl.RelativeTimeFormatUnit][] = [
+        [absDiffSec, "second"],
+        [Math.floor(absDiffSec / 60), "minute"],
+        [Math.floor(absDiffSec / 3600), "hour"],
+        [Math.floor(absDiffSec / 86400), "day"],
+        [Math.floor(absDiffSec / 604800), "week"],
+        [Math.floor(absDiffSec / 2592000), "month"],
+        [Math.floor(absDiffSec / 31536000), "year"],
+      ];
+
+      for (const [value, unit] of units) {
+        if (value < 2 && unit !== "second") continue;
+        const formatter = getRelativeFormatter(ctx.lang);
+        const result = formatter.format(-value, unit);
+        if (result !== String(-value)) return result;
+      }
+
+      try {
+        return new Intl.DateTimeFormat(ctx.lang, {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }).format(d);
+      } catch {
+        return d.toLocaleDateString();
+      }
     },
-    [t, formatDate]
+    [ctx.lang]
   );
 
   return {
