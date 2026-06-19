@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -12,20 +14,24 @@ import {
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { UserMenu } from "@/components/UserMenu";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { CommandPalette, CommandTrigger } from "@/components/CommandPalette";
 import { MobileSidebar } from "@/components/MobileSidebar";
 import { AdminGuard } from "@/components/AdminGuard";
+import { useTranslation } from "@/i18n/hooks/useTranslation";
 
-const navItems = [
-  { href: "/admin", icon: LayoutDashboard, label: "Overview" },
-  { href: "/admin/users", icon: Users, label: "Users" },
-  { href: "/admin/verifications", icon: ShieldCheck, label: "Verifications" },
-  { href: "/admin/listings", icon: FileText, label: "Listings" },
-  { href: "/admin/reports", icon: Flag, label: "Reports" },
-  { href: "/admin/ai", icon: Bot, label: "AI Config" },
+const navItemsFn = (t: (key: string) => string) => [
+  { href: "/admin", icon: LayoutDashboard, label: t("nav.overview") },
+  { href: "/admin/users", icon: Users, label: t("nav.users") },
+  { href: "/admin/verifications", icon: ShieldCheck, label: t("nav.verifications") },
+  { href: "/admin/listings", icon: FileText, label: t("nav.listings") },
+  { href: "/admin/reports", icon: Flag, label: t("nav.reports") },
+  { href: "/admin/ai", icon: Bot, label: t("nav.aiConfig") },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
+
   return (
     <AdminGuard>
     <div className="min-h-screen flex bg-cream-50">
@@ -37,12 +43,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <div className="px-5 py-3 border-b border-cream-200">
           <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-red-600">
-            <AlertOctagon size={11} /> Admin console
+            <AlertOctagon size={11} /> {t("nav.adminConsole")}
           </span>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItems.map((n) => (
+          {navItemsFn(t).map((n) => (
             <Link
               key={n.href}
               href={n.href}
@@ -59,7 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             href="/dashboard"
             className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-cream-200 transition"
           >
-            <ArrowLeft size={16} /> Back to app
+            <ArrowLeft size={16} /> {t("nav.backToApp")}
           </Link>
         </div>
       </aside>
@@ -69,16 +75,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex items-center gap-2 min-w-0">
             <MobileSidebar preset="admin" />
             <span className="badge !bg-red-500/15 !text-red-600 shrink-0">ADMIN</span>
-            <span className="text-xs text-ink-500 hidden sm:inline">Actions here affect every user.</span>
+            <span className="text-xs text-ink-500 hidden sm:inline">{t("admin.actionsAffectAll")}</span>
           </div>
           <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             <CommandTrigger />
             <ThemeToggle />
             <UserMenu />
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto">{children}      </main>
+        <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>
     </AdminGuard>

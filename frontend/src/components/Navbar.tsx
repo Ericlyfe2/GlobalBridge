@@ -8,17 +8,21 @@ import { ThemeToggle } from "./ThemeToggle";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { UserMenu } from "./UserMenu";
 import { getToken } from "@/lib/auth";
+import { useTranslation } from "@/i18n/hooks/useTranslation";
 
-const guestLinks = [
-  { href: "/auth?mode=signup", label: "Opportunities", id: "opportunities" },
-  { href: "/auth?mode=signup", label: "Housing", id: "housing" },
-  { href: "/auth?mode=signup", label: "Community", id: "community" },
-  { href: "/auth?mode=signup", label: "Jobs", id: "jobs" },
+const guestLinksFn = (t: (key: string) => string) => [
+  { href: "/auth?mode=signup", label: t("nav.opportunities"), id: "opportunities" },
+  { href: "/auth?mode=signup", label: t("nav.housing"), id: "housing" },
+  { href: "/auth?mode=signup", label: t("nav.community"), id: "community" },
+  { href: "/auth?mode=signup", label: t("nav.jobs"), id: "jobs" },
 ];
 
 export function Navbar() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [authed] = useState(() => !!getToken());
+
+  const guestLinks = guestLinksFn(t);
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-cream-50/80 border-b border-cream-200">
@@ -29,7 +33,7 @@ export function Navbar() {
 
         <div className="hidden md:flex items-center gap-1">
           {(authed ? [
-            { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
+            { href: "/dashboard", icon: LayoutDashboard, label: t("nav.dashboard"), id: "dashboard" },
             ...guestLinks,
           ] : guestLinks).map((l) => (
             <Link
@@ -49,8 +53,8 @@ export function Navbar() {
             <UserMenu />
           ) : (
             <>
-              <Link href="/auth?mode=signin" className="btn-ghost text-sm">Sign in</Link>
-              <Link href="/auth?mode=signup" className="btn-accent text-sm">Get started</Link>
+              <Link href="/auth?mode=signin" className="btn-ghost text-sm">{t("nav.signIn")}</Link>
+              <Link href="/auth?mode=signup" className="btn-accent text-sm">{t("nav.getStarted")}</Link>
             </>
           )}
         </div>
@@ -70,7 +74,7 @@ export function Navbar() {
       {open && (
         <div className="md:hidden border-t border-cream-200 px-6 py-4 space-y-2 bg-cream-50">
           {(authed ? [
-            { href: "/dashboard", label: "Dashboard", id: "dashboard" },
+            { href: "/dashboard", label: t("nav.dashboard"), id: "dashboard" },
             ...guestLinks,
           ] : guestLinks).map((l) => (
             <Link
@@ -87,11 +91,11 @@ export function Navbar() {
           </div>
           <div className="pt-2 border-t border-cream-200 flex flex-col gap-2">
             {authed ? (
-              <Link href="/" className="btn-ghost text-sm">Home</Link>
+              <Link href="/" className="btn-ghost text-sm">{t("nav.home")}</Link>
             ) : (
               <>
-                <Link href="/auth?mode=signin" className="btn-ghost text-sm" onClick={() => setOpen(false)}>Sign in</Link>
-                <Link href="/auth?mode=signup" className="btn-accent text-sm" onClick={() => setOpen(false)}>Get started</Link>
+                <Link href="/auth?mode=signin" className="btn-ghost text-sm" onClick={() => setOpen(false)}>{t("nav.signIn")}</Link>
+                <Link href="/auth?mode=signup" className="btn-accent text-sm" onClick={() => setOpen(false)}>{t("nav.getStarted")}</Link>
               </>
             )}
           </div>

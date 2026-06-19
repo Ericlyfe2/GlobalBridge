@@ -7,6 +7,7 @@ import {
   ArrowRight, ShieldCheck, TrendingUp, Loader2, AlertCircle, Plane, BadgeCheck, ChevronRight,
 } from "lucide-react";
 import { authFetch, getUser } from "@/lib/auth";
+import { useTranslation } from "@/i18n/hooks/useTranslation";
 
 type Dashboard = {
   profile: { completion: number; missingFields: string[]; verificationStatus: string };
@@ -21,21 +22,22 @@ type Opportunity = {
   deadline: string | null; funding_amount?: number | null; currency?: string | null;
 };
 
-const QUICK_ACTIONS = [
-  { href: "/opportunities", icon: Award, label: "Find Scholarships" },
-  { href: "/tools/uni-success", icon: GraduationCap, label: "Find Universities" },
-  { href: "/housing", icon: Home, label: "Browse Housing" },
-  { href: "/community/mentors", icon: Users, label: "Connect Mentors" },
-  { href: "/assistant", icon: Bot, label: "AI Assistant" },
-  { href: "/jobs/resume-builder", icon: FileText, label: "Resume Builder" },
-];
-
 export default function StudentDashboard() {
   const [data, setData] = useState<Dashboard | null>(null);
   const [opps, setOpps] = useState<Opportunity[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const firstName = (getUser()?.full_name || "there").split(" ")[0];
+  const { t } = useTranslation();
+
+  const QUICK_ACTIONS = [
+    { href: "/opportunities", icon: Award, label: t("dashboard.browseOpportunities") },
+    { href: "/tools/uni-success", icon: GraduationCap, label: t("dashboard.browseOpportunities") },
+    { href: "/housing", icon: Home, label: t("dashboard.findHousing") },
+    { href: "/community/mentors", icon: Users, label: t("community.findMentors") },
+    { href: "/assistant", icon: Bot, label: t("nav.aiAssistant") },
+    { href: "/jobs/resume-builder", icon: FileText, label: "Resume Builder" },
+  ];
 
   useEffect(() => {
     let active = true;
@@ -91,7 +93,7 @@ export default function StudentDashboard() {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[#0A2540] dark:text-white">
-            Welcome back, {firstName} 👋
+            {t("dashboard.welcome", { name: firstName })} 👋
           </h1>
           <p className="mt-1 text-sm text-ink-500 dark:text-gray-400">
             Here&apos;s your journey at a glance.
@@ -122,11 +124,11 @@ export default function StudentDashboard() {
 
       {/* Quick actions */}
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-ink-700 dark:text-gray-300">Quick actions</h2>
+        <h2 className="mb-3 text-sm font-semibold text-ink-700 dark:text-gray-300">{t("dashboard.quickActions")}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {QUICK_ACTIONS.map((a) => (
             <Link
-              key={a.label} href={a.href}
+              key={a.href} href={a.href}
               className="group flex flex-col items-start gap-2 rounded-xl border border-cream-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900"
             >
               <span className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
@@ -165,7 +167,7 @@ export default function StudentDashboard() {
         </SectionCard>
 
         {/* Upcoming deadlines */}
-        <SectionCard title="Upcoming deadlines" href="/opportunities" className="lg:col-span-1">
+        <SectionCard title={t("dashboard.upcomingDeadlines")} href="/opportunities" className="lg:col-span-1">
           {data.deadlines.length === 0 ? (
             <Empty>No upcoming deadlines.</Empty>
           ) : (
@@ -186,7 +188,7 @@ export default function StudentDashboard() {
         </SectionCard>
 
         {/* Community discussions */}
-        <SectionCard title="Community discussions" href="/forums" className="lg:col-span-1">
+        <SectionCard title={t("dashboard.recentDiscussions")} href="/forums" className="lg:col-span-1">
           {data.discussions.length === 0 ? (
             <Empty>No discussions yet.</Empty>
           ) : (
@@ -256,6 +258,7 @@ function Stat({ icon: Icon, label, value }: { icon: React.ComponentType<{ size?:
 }
 
 function ProfileCard({ completion, missing }: { completion: number; missing: string[] }) {
+  const { t } = useTranslation();
   const r = 34, c = 2 * Math.PI * r, offset = c - (completion / 100) * c;
   return (
     <div className="flex items-center gap-4 rounded-xl border border-cream-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
@@ -265,19 +268,19 @@ function ProfileCard({ completion, missing }: { completion: number; missing: str
           <circle cx="40" cy="40" r={r} fill="none" strokeWidth="7" strokeLinecap="round"
             className="stroke-emerald-500" strokeDasharray={c} strokeDashoffset={offset} />
         </svg>
-        <span className="absolute text-sm font-bold text-[#0A2540] dark:text-white">{completion}%</span>
+        <span className="absolute text-sm font-bold text-[#0A2540] dark:text-white">{t("dashboard.profileCompletion", { percent: completion })}</span>
       </div>
       <div className="min-w-0">
         <p className="text-sm font-semibold text-ink-800 dark:text-gray-200">Profile completion</p>
         {missing.length > 0 ? (
           <p className="mt-1 text-xs text-ink-500 dark:text-gray-400">
-            Add: {missing.slice(0, 2).join(", ")}{missing.length > 2 ? "…" : ""}
+            {t("dashboard.missingFields", { fields: missing.slice(0, 2).join(", ") })}{missing.length > 2 ? "…" : ""}
           </p>
         ) : (
           <p className="mt-1 text-xs text-emerald-600">All set — great work!</p>
         )}
         <Link href="/dashboard/profile" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700">
-          Complete profile <ArrowRight size={12} />
+          {t("dashboard.completeProfile")} <ArrowRight size={12} />
         </Link>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { LocaleProvider } from "@/i18n/provider";
 import { ToastProvider } from "@/components/Toast";
-import { LanguageProvider } from "@/components/LanguageProvider";
 import { AuthSync } from "@/components/AuthSync";
 
 export const metadata: Metadata = {
@@ -25,19 +25,32 @@ const themeInitScript = `
 })();
 `;
 
+const langInitScript = `
+(function () {
+  try {
+    var stored = localStorage.getItem('gb-lang');
+    if (stored) {
+      document.documentElement.lang = stored;
+      var rtl = ["ar"].includes(stored);
+      document.documentElement.dir = rtl ? "rtl" : "ltr";
+    }
+  } catch (e) {}
+})();
+`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript + langInitScript }} />
       </head>
       <body>
-        <LanguageProvider>
+        <LocaleProvider>
           <ToastProvider>
             <AuthSync />
             {children}
           </ToastProvider>
-        </LanguageProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

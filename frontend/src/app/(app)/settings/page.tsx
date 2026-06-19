@@ -2,68 +2,58 @@
 
 import { useState } from "react";
 import { Bell, Lock, Globe, Trash2, Moon } from "lucide-react";
+import { useTranslation } from "@/i18n/hooks/useTranslation";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function SettingsPage() {
+  const { t, lang, setLang } = useTranslation();
   const [emailNotif, setEmailNotif] = useState(true);
   const [smsNotif, setSmsNotif] = useState(false);
   const [pushNotif, setPushNotif] = useState(true);
-  const [language, setLanguage] = useState("en");
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">
       <header className="mb-8">
-        <h1 className="text-3xl font-display font-semibold text-ink-900">Settings</h1>
-        <p className="text-sm text-ink-600 mt-1">Manage notifications, security, and account preferences.</p>
+        <h1 className="text-3xl font-display font-semibold text-ink-900">{t("settings.title")}</h1>
+        <p className="text-sm text-ink-600 mt-1">{t("settings.account")}</p>
       </header>
 
       <div className="space-y-6">
-        {/* Notifications */}
-        <Section icon={<Bell size={16} />} title="Notifications">
-          <Toggle label="Email notifications" sub="Application deadlines, mentor replies, verified opportunities." value={emailNotif} onChange={setEmailNotif} />
-          <Toggle label="SMS alerts" sub="Critical reminders only (visa deadlines, scam alerts)." value={smsNotif} onChange={setSmsNotif} />
-          <Toggle label="Browser push" sub="Real-time notifications when GlobalBridge is open." value={pushNotif} onChange={setPushNotif} />
+        <Section icon={<Bell size={16} />} title={t("settings.notifications")}>
+          <Toggle label={t("settings.emailNotifications")} sub={t("notifications.types.deadline", { title: "" }).trim() || "Application deadlines, mentor replies, verified opportunities."} value={emailNotif} onChange={setEmailNotif} />
+          <Toggle label={t("settings.smsNotifications")} sub="Critical reminders only (visa deadlines, scam alerts)." value={smsNotif} onChange={setSmsNotif} />
+          <Toggle label={t("settings.pushNotifications")} sub="Real-time notifications when GlobalBridge is open." value={pushNotif} onChange={setPushNotif} />
         </Section>
 
-        {/* Language */}
-        <Section icon={<Globe size={16} />} title="Language">
+        <Section icon={<Globe size={16} />} title={t("settings.languageLabel")}>
           <label className="block">
-            <span className="block text-xs font-medium text-ink-600 mb-1.5">Display language</span>
-            <select value={language} onChange={(e) => setLanguage(e.target.value)} className="input max-w-xs">
-              <option value="en">English</option>
-              <option value="fr">Français</option>
-              <option value="es">Español</option>
-              <option value="ar">العربية</option>
-              <option value="zh">中文</option>
-              <option value="hi">हिन्दी</option>
-            </select>
-            <p className="text-xs text-ink-500 mt-2">AI assistant responds in your selected language.</p>
+            <span className="block text-xs font-medium text-ink-600 mb-1.5">{t("common.language")}</span>
+            <LanguageSwitcher variant="full" />
+            <p className="text-xs text-ink-500 mt-2">{t("settings.languageDescription")}</p>
           </label>
         </Section>
 
-        {/* Appearance */}
-        <Section icon={<Moon size={16} />} title="Appearance">
+        <Section icon={<Moon size={16} />} title={t("settings.appearance")}>
           <p className="text-sm text-ink-600">
-            Use the moon/sun toggle in the top bar to switch theme. Preference is saved to this device.
+            {t("settings.themeDescription")}
           </p>
         </Section>
 
-        {/* Security */}
-        <Section icon={<Lock size={16} />} title="Security">
-          <button className="btn-ghost border border-cream-300 text-sm">Change password</button>
-          <button className="btn-ghost border border-cream-300 text-sm">Enable two-factor authentication</button>
-          <button className="btn-ghost border border-cream-300 text-sm">Active sessions</button>
+        <Section icon={<Lock size={16} />} title={t("settings.security")}>
+          <button className="btn-ghost border border-cream-300 text-sm">{t("settings.updatePassword")}</button>
+          <button className="btn-ghost border border-cream-300 text-sm">{t("settings.enableTwoFactor") || "Enable two-factor authentication"}</button>
+          <button className="btn-ghost border border-cream-300 text-sm">{t("settings.sessions")}</button>
         </Section>
 
-        {/* Danger zone */}
         <div className="card border-red-200 dark:border-red-900/40">
           <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-red-600 mb-2">
-            <Trash2 size={16} /> Danger zone
+            <Trash2 size={16} /> {t("settings.dangerZone")}
           </h2>
           <p className="text-sm text-ink-600 mb-4">
-            Deleting your account removes your profile, messages, and applications. This cannot be undone.
+            {t("settings.deleteWarning")}
           </p>
           <button className="px-4 py-2 rounded-md text-sm font-medium border border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition">
-            Delete account
+            {t("settings.deleteAccount")}
           </button>
         </div>
       </div>

@@ -1,7 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { Logo } from "./Logo";
+import { useTranslation } from "@/i18n/hooks/useTranslation";
 
 export function Footer() {
+  const { t } = useTranslation();
+
   return (
     <footer className="border-t border-cream-200 bg-cream-100 mt-24">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16">
@@ -9,39 +14,39 @@ export function Footer() {
           <div className="col-span-2">
             <Logo />
             <p className="mt-4 text-sm text-ink-600 max-w-xs">
-              Trusted companion for international students and immigrants — before, during, and after their journey.
+              {t("footer.description")}
             </p>
-            <p className="mt-6 text-xs text-ink-500">© 2025 GlobalBridge · Group 8 FYP</p>
+            <p className="mt-6 text-xs text-ink-500">{t("footer.copyright")}</p>
           </div>
 
-          <FooterCol title="Platform" items={[
-            { href: "/opportunities", label: "Opportunities" },
-            { href: "/housing", label: "Housing" },
-            { href: "/jobs", label: "Jobs" },
-            { href: "/assistant", label: "AI Assistant" },
-            { href: "/pricing", label: "Pricing" },
+          <FooterCol title={t("footer.platform")} items={[
+            { href: "/opportunities", label: t("nav.opportunities") },
+            { href: "/housing", label: t("nav.housing") },
+            { href: "/jobs", label: t("nav.jobs") },
+            { href: "/assistant", label: t("nav.aiAssistant") },
+            { href: "/pricing", label: t("footer.pricing") },
           ]} />
 
-          <FooterCol title="Community" items={[
-            { href: "/community", label: "Mentors" },
-            { href: "/forums", label: "Forums" },
-            { href: "/stories", label: "Success Stories" },
-            { href: "/scam-alerts", label: "Scam Alerts" },
+          <FooterCol title={t("footer.community")} items={[
+            { href: "/community", label: t("footer.mentors") },
+            { href: "/forums", label: t("footer.forums") },
+            { href: "/stories", label: t("footer.successStories") },
+            { href: "/scam-alerts", label: t("footer.scamAlerts") },
           ]} />
 
-          <FooterCol title="Resources" items={[
-            { href: "/toolkit/cost", label: "Cost Calculator" },
-            { href: "/toolkit/banking", label: "Banking Guide" },
-            { href: "/toolkit/healthcare", label: "Healthcare" },
-            { href: "/toolkit/sos", label: "Emergency SOS" },
+          <FooterCol title={t("footer.resources")} items={[
+            { href: "/toolkit/cost", label: t("footer.costCalculator") },
+            { href: "/toolkit/banking", label: t("footer.bankingGuide") },
+            { href: "/toolkit/healthcare", label: t("footer.healthcare") },
+            { href: "/toolkit/sos", label: t("footer.emergencySOS") },
           ]} />
 
-          <FooterCol title="Company" items={[
-            { href: "/about", label: "About" },
-            { href: "/help", label: "Help" },
-            { href: "/contact", label: "Contact" },
-            { href: "/privacy", label: "Privacy" },
-            { href: "/terms", label: "Terms" },
+          <FooterCol title={t("footer.company")} items={[
+            { href: "/about", label: t("common.about") },
+            { href: "/help", label: t("common.help") },
+            { href: "/contact", label: t("common.contact") },
+            { href: "/privacy", label: t("common.privacy") },
+            { href: "/terms", label: t("common.terms") },
           ]} />
         </div>
       </div>

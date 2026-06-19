@@ -3,7 +3,13 @@ import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
-const SYSTEM_PROMPT = `You are GlobalBridge's immigration assistant.
+const LANG_NAMES: Record<string, string> = {
+  en: "English", fr: "French", es: "Spanish", de: "German", it: "Italian",
+  pt: "Portuguese", ar: "Arabic", zh: "Chinese (Simplified)", ja: "Japanese",
+  ko: "Korean", ru: "Russian", tr: "Turkish", hi: "Hindi", sw: "Swahili",
+};
+
+const BASE_SYSTEM = `You are GlobalBridge's immigration assistant.
 
 ## Your job
 Help international students and immigrants navigate visas, study permits, work permits, scholarships, housing, banking, and life-abroad questions for any origin → destination country pair.
@@ -44,7 +50,10 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { messages: { role: "user" | "assistant"; content: string }[] };
+  let body: {
+    messages: { role: "user" | "assistant"; content: string }[];
+    lang?: string;
+  };
   try {
     body = await req.json();
   } catch {
@@ -55,7 +64,9 @@ export async function POST(req: Request) {
     return Response.json({ error: "messages[] required" }, { status: 400 });
   }
 
-  // Clean conversation history. Strip the assistant's seed greeting if it's the first message.
+  const targetLang = body.lang || "en";
+  const langName = LANG_NAMES[targetLang] ?? "English";
+
   const cleaned = body.messages
     .filter((m, i) => !(i === 0 && m.role === "assistant"))
     .map((m) => ({ role: m.role, content: m.content }));
@@ -64,11 +75,15 @@ export async function POST(req: Request) {
     return Response.json({ error: "First message must be from user" }, { status: 400 });
   }
 
-  // Cost-drain guard: 20 chat calls / minute / IP.
   const rl = rateLimit(`chat:${clientIp(req)}`, 20, 60_000);
   if (!rl.ok) return tooMany(rl.retryAfter);
 
   const client = new Anthropic({ apiKey });
+
+  const langInstruction =
+    targetLang !== "en"
+      ? `\n\n## Language requirement\nYou MUST respond entirely in ${langName}. The user's platform language is set to ${langName}. Every sentence of your response must be in ${langName}. Only URLs, brand names (GlobalBridge), and untranslatable terms may remain in English.`
+      : "";
 
   try {
     const completion = await client.messages.create({
@@ -77,7 +92,7 @@ export async function POST(req: Request) {
       system: [
         {
           type: "text",
-          text: SYSTEM_PROMPT,
+          text: BASE_SYSTEM + langInstruction,
           cache_control: { type: "ephemeral" },
         },
       ],
@@ -90,7 +105,6 @@ export async function POST(req: Request) {
       .join("\n")
       .trim();
 
-    // Extract any source URLs the model embedded
     const sources: { title: string; url: string }[] = [];
     const urlMatches = text.match(/https?:\/\/[^\s)]+/g) ?? [];
     for (const url of urlMatches.slice(0, 5)) {
@@ -103,6 +117,7 @@ export async function POST(req: Request) {
     return Response.json({
       reply: text || "I couldn't generate a response. Try rephrasing.",
       sources,
+      lang: targetLang,
       usage: {
         input_tokens: completion.usage.input_tokens,
         output_tokens: completion.usage.output_tokens,

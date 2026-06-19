@@ -19,7 +19,6 @@ import {
   Sparkles,
   ClipboardList,
   Calendar,
-  Star,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -27,6 +26,7 @@ import { UserMenu } from "@/components/UserMenu";
 import dynamic from "next/dynamic";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { AuthGuard } from "@/components/AuthGuard";
+import { useTranslation } from "@/i18n/hooks/useTranslation";
 
 const CommandPalette = dynamic(() => import("@/components/CommandPalette").then((m) => m.CommandPalette), { ssr: false });
 const CommandTrigger = dynamic(() => import("@/components/CommandPalette").then((m) => m.CommandTrigger), { ssr: false });
@@ -34,50 +34,50 @@ const MobileSidebar = dynamic(() => import("@/components/MobileSidebar").then((m
 
 type Role = "student" | "mentor" | "employer" | "admin" | null;
 
-const STUDENT_NAV = [
-  { href: "/dashboard/student", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/assistant", icon: Bot, label: "AI Assistant" },
-  { href: "/opportunities", icon: Award, label: "Opportunities" },
-  { href: "/housing", icon: Home, label: "Housing" },
-  { href: "/community", icon: Users, label: "Community" },
-  { href: "/jobs", icon: Briefcase, label: "Jobs" },
-  { href: "/messages", icon: MessageSquare, label: "Messages" },
-  { href: "/notifications", icon: Bell, label: "Notifications" },
-  { href: "/toolkit", icon: LifeBuoy, label: "Toolkit" },
-  { href: "/tools/doc-checker", icon: FileCheck, label: "Doc Checker" },
-  { href: "/tools/scholarship-matcher", icon: Sparkles, label: "Scholarship Match" },
-  { href: "/tools/timeline", icon: ClipboardList, label: "Timeline Planner" },
-];
-
-const MENTOR_NAV = [
-  { href: "/dashboard/mentor", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/dashboard/mentor", icon: Calendar, label: "My Sessions" },
-  { href: "/messages", icon: MessageSquare, label: "Messages" },
-  { href: "/community", icon: Users, label: "Community" },
-  { href: "/notifications", icon: Bell, label: "Notifications" },
-  { href: "/toolkit", icon: LifeBuoy, label: "Toolkit" },
-  { href: "/assistant", icon: Bot, label: "AI Assistant" },
-];
-
-const EMPLOYER_NAV = [
-  { href: "/dashboard/employer", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/jobs", icon: Briefcase, label: "My Postings" },
-  { href: "/community", icon: Users, label: "Candidates" },
-  { href: "/messages", icon: MessageSquare, label: "Messages" },
-  { href: "/notifications", icon: Bell, label: "Notifications" },
-  { href: "/assistant", icon: Bot, label: "AI Assistant" },
-];
-
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
-  const [role] = useState<Role>(() => {
-    try { return localStorage.getItem("user-role") as Role; } catch { return null; }
-  });
+  const [role, setRole] = useState<Role>(null);
 
-  const navItems = role === "mentor" ? MENTOR_NAV
-    : role === "employer" ? EMPLOYER_NAV
-    : STUDENT_NAV;
+  useEffect(() => {
+    try { setRole(localStorage.getItem("user-role") as Role); } catch { setRole(null); }
+  }, []);
+
+  const navItems =
+    role === "mentor"
+      ? [
+          { href: "/dashboard/mentor", icon: LayoutDashboard, label: t("nav.dashboard") },
+          { href: "/dashboard/mentor", icon: Calendar, label: t("nav.mySessions") },
+          { href: "/messages", icon: MessageSquare, label: t("nav.messages") },
+          { href: "/community", icon: Users, label: t("nav.community") },
+          { href: "/notifications", icon: Bell, label: t("nav.notifications") },
+          { href: "/toolkit", icon: LifeBuoy, label: t("nav.toolkit") },
+          { href: "/assistant", icon: Bot, label: t("nav.aiAssistant") },
+        ]
+      : role === "employer"
+        ? [
+            { href: "/dashboard/employer", icon: LayoutDashboard, label: t("nav.dashboard") },
+            { href: "/jobs", icon: Briefcase, label: t("nav.myPostings") },
+            { href: "/community", icon: Users, label: t("nav.candidates") },
+            { href: "/messages", icon: MessageSquare, label: t("nav.messages") },
+            { href: "/notifications", icon: Bell, label: t("nav.notifications") },
+            { href: "/assistant", icon: Bot, label: t("nav.aiAssistant") },
+          ]
+        : [
+            { href: "/dashboard/student", icon: LayoutDashboard, label: t("nav.dashboard") },
+            { href: "/assistant", icon: Bot, label: t("nav.aiAssistant") },
+            { href: "/opportunities", icon: Award, label: t("nav.opportunities") },
+            { href: "/housing", icon: Home, label: t("nav.housing") },
+            { href: "/community", icon: Users, label: t("nav.community") },
+            { href: "/jobs", icon: Briefcase, label: t("nav.jobs") },
+            { href: "/messages", icon: MessageSquare, label: t("nav.messages") },
+            { href: "/notifications", icon: Bell, label: t("nav.notifications") },
+            { href: "/toolkit", icon: LifeBuoy, label: t("nav.toolkit") },
+            { href: "/tools/doc-checker", icon: FileCheck, label: t("nav.docChecker") },
+            { href: "/tools/scholarship-matcher", icon: Sparkles, label: t("nav.scholarshipMatch") },
+            { href: "/tools/timeline", icon: ClipboardList, label: t("nav.timelinePlanner") },
+          ];
 
   function signOut() {
     try {
@@ -119,10 +119,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <div className="border-t border-cream-200 p-3 space-y-1">
           <Link href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-cream-200 transition">
-            <Settings size={16} /> Settings
+            <Settings size={16} /> {t("nav.settings")}
           </Link>
           <button onClick={signOut} className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-cream-200 transition">
-            <LogOut size={16} /> Sign out
+            <LogOut size={16} /> {t("nav.signOut")}
           </button>
         </div>
       </aside>
