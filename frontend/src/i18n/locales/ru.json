@@ -234,7 +234,142 @@
     "ctaButton": "Создать бесплатный аккаунт",
     "ctaAssistantButton": "Поговорить с ИИ-ассистентом",
     "statStudents": "Students guided",
-    "statVisaSuccess": "Visa success rate"
+    "statVisaSuccess": "Visa success rate",
+    "hero": {
+      "label": "[RU] Study abroad, held together",
+      "title": "[RU] Your move,<br />held together.",
+      "subtitle": "Visa guidance, verified housing, mentorship, jobs, and life support — one platform, before, during, and after you arrive.",
+      "startFree": "[RU] Start free",
+      "meetNetwork": "[RU] Meet the network",
+      "scroll": "[RU] Scroll",
+      "cards": {
+        "tokyo": {
+          "title": "[RU] Tokyo",
+          "tag": "Japan — Asia Pacific"
+        },
+        "berlin": {
+          "title": "[RU] Berlin",
+          "tag": "Germany — Europe"
+        },
+        "toronto": {
+          "title": "[RU] Toronto",
+          "tag": "Canada — North America"
+        },
+        "dubai": {
+          "title": "[RU] Dubai",
+          "tag": "UAE — Middle East"
+        },
+        "london": {
+          "title": "[RU] London",
+          "tag": "United Kingdom — Europe"
+        }
+      }
+    },
+    "visa": {
+      "title": "[RU] AI Visa Assistant",
+      "dek": "[RU] Any visa. Any country. Zero guesswork.",
+      "detail": "Conversational guidance that adapts to your destination, your passport, and your timeline — with a step-by-step document checklist that updates itself as embassies change the rules.",
+      "bullet1": "[RU] Country-specific checklist, generated in minutes",
+      "bullet2": "[RU] Plain-language answers to embassy questions",
+      "bullet3": "[RU] Deadline tracking with reminders that actually fire",
+      "checklist": {
+        "step1": "[RU] University Acceptance Letter",
+        "step2": "[RU] Proof of Financial Support",
+        "step3": "[RU] Passport Validity Check",
+        "step4": "[RU] Biometrics Appointment"
+      }
+    },
+    "housing": {
+      "title": "[RU] Verified Housing",
+      "dek": "[RU] A key waiting for you, not a listing that vanishes.",
+      "detail": "[RU] Every landlord is identity-checked before their listing goes live. Match with roommates who share your move-in date, and book your place before you board.",
+      "bullet1": "[RU] Identity-verified landlords only",
+      "bullet2": "[RU] Roommate matching by city, dates, and habits",
+      "bullet3": "Book and pay before you land — no showings needed"
+    },
+    "jobs": {
+      "title": "[RU] Jobs & Internships",
+      "dek": "[RU] Filtered for the one thing that matters: sponsorship.",
+      "detail": "[RU] Search roles that actually sponsor your visa type, track a company's sponsorship history before you apply, and let the AI resume builder tune your CV per market.",
+      "bullet1": "[RU] Filter by visa-sponsor status, not guesswork",
+      "bullet2": "[RU] AI resume builder tuned to local hiring norms",
+      "bullet3": "[RU] Sponsorship-history tracker per employer",
+      "sponsorRoles": "[RU] Sponsor Roles",
+      "interviewLift": "[RU] Interview Lift",
+      "visaSponsorBadge": "[RU] VISA-SPONSOR"
+    },
+    "mentorship": {
+      "title": "[RU] Mentorship Network",
+      "dek": "[RU] People who already lived it, one message away.",
+      "detail": "[RU] Connect with people who've spent years in your destination city. Join cultural hubs and events built around where you're headed, not where you're from."
+    },
+    "lifeSupport": {
+      "title": "[RU] Life Support Toolkit",
+      "dek": "[RU] Everything after the flight lands.",
+      "detail": "Cost calculators, healthcare guides, banking setup, and an emergency SOS — all in one place, so the small logistics never become the hard part.",
+      "tool1": "[RU] Cost calculator",
+      "tool1Note": "[RU] Budget by city, down to groceries",
+      "tool2": "[RU] Healthcare guide",
+      "tool2Note": "[RU] Insurance & clinics, explained",
+      "tool3": "[RU] Banking setup",
+      "tool3Note": "[RU] Open an account before you land",
+      "tool4": "[RU] Emergency SOS",
+      "tool4Note": "[RU] One tap, always on"
+    },
+    "closing": {
+      "title": "[RU] Every piece, one bridge."
+    },
+    "reviews": {
+      "r1": {
+        "serviceTitle": "[RU] AI Visa Assistant",
+        "quote": "It told me exactly which biometrics appointment to book first — I would have missed the window otherwise."
+      },
+      "r2": {
+        "serviceTitle": "[RU] Verified Housing",
+        "quote": "[RU] I signed my lease from home. No video call landlord ever went quiet on me."
+      },
+      "r3": {
+        "serviceTitle": "[RU] Mentorship Network",
+        "quote": "[RU] My mentor met me at arrivals. That's not something a brochure tells you to expect."
+      },
+      "r4": {
+        "serviceTitle": "[RU] Jobs & Internships",
+        "quote": "[RU] Every listing I applied to already sponsored my visa type. I stopped wasting weeks on dead ends."
+      },
+      "r5": {
+        "serviceTitle": "[RU] Life Support Toolkit",
+        "quote": "[RU] The bank setup guide alone saved me a week of standing in the wrong lines."
+      },
+      "label": "[RU] Proof, not promises",
+      "title": "[RU] Real people. Real moves.",
+      "subtitle": "Thousands of immigrants trust GlobalBridge every year — here's what they say.",
+      "cta": "[RU] Start your journey"
+    },
+    "footer": {
+      "subtitle": "[RU] Your move, held together.",
+      "sitemap": "[RU] Sitemap",
+      "company": "[RU] Company",
+      "status": "[RU] Status",
+      "time": "[RU] Time",
+      "allSystemsLive": "[RU] All systems live",
+      "bridgesBuilt": "[RU] bridges built ↑",
+      "backToTop": "[RU] Back to top",
+      "copyright": "© 2026 Global Bridge",
+      "about": "[RU] About",
+      "careers": "[RU] Careers",
+      "press": "[RU] Press",
+      "contact": "[RU] Contact",
+      "trustSafety": "[RU] Trust & Safety",
+      "getChecklist": "[RU] Get the checklist",
+      "checklistSent": "[RU] Checklist on its way",
+      "cities": {
+        "toronto": "[RU] Toronto",
+        "london": "[RU] London",
+        "berlin": "[RU] Berlin",
+        "sydney": "[RU] Sydney",
+        "dublin": "[RU] Dublin"
+      }
+    }
   },
   "auth": {
     "welcomeBack": "С возвращением",

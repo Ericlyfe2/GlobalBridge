@@ -6,6 +6,7 @@ import { ToastProvider } from "@/components/Toast";
 import { AuthSync } from "@/components/AuthSync";
 import { HreflangMeta } from "@/components/HreflangMeta";
 import { SUPPORTED_LANGUAGES, type Lang } from "@/i18n/config";
+import SmoothScroll from "@/components/SmoothScroll";
 
 export const metadata: Metadata = {
   title: "GlobalBridge — Your Trusted Guide Abroad",
@@ -57,7 +58,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <LocaleProvider initialLang={lang}>
           <ToastProvider>
             <AuthSync />
-            {children}
+            <SmoothScroll>
+              {children}
+            </SmoothScroll>
           </ToastProvider>
         </LocaleProvider>
       </body>

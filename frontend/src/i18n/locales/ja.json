@@ -228,7 +228,142 @@
     "ctaButton": "無料アカウント作成",
     "ctaAssistantButton": "AIアシスタントに質問",
     "statStudents": "Students guided",
-    "statVisaSuccess": "Visa success rate"
+    "statVisaSuccess": "Visa success rate",
+    "hero": {
+      "label": "[JA] Study abroad, held together",
+      "title": "[JA] Your move,<br />held together.",
+      "subtitle": "Visa guidance, verified housing, mentorship, jobs, and life support — one platform, before, during, and after you arrive.",
+      "startFree": "[JA] Start free",
+      "meetNetwork": "[JA] Meet the network",
+      "scroll": "[JA] Scroll",
+      "cards": {
+        "tokyo": {
+          "title": "[JA] Tokyo",
+          "tag": "Japan — Asia Pacific"
+        },
+        "berlin": {
+          "title": "[JA] Berlin",
+          "tag": "Germany — Europe"
+        },
+        "toronto": {
+          "title": "[JA] Toronto",
+          "tag": "Canada — North America"
+        },
+        "dubai": {
+          "title": "[JA] Dubai",
+          "tag": "UAE — Middle East"
+        },
+        "london": {
+          "title": "[JA] London",
+          "tag": "United Kingdom — Europe"
+        }
+      }
+    },
+    "visa": {
+      "title": "[JA] AI Visa Assistant",
+      "dek": "[JA] Any visa. Any country. Zero guesswork.",
+      "detail": "Conversational guidance that adapts to your destination, your passport, and your timeline — with a step-by-step document checklist that updates itself as embassies change the rules.",
+      "bullet1": "[JA] Country-specific checklist, generated in minutes",
+      "bullet2": "[JA] Plain-language answers to embassy questions",
+      "bullet3": "[JA] Deadline tracking with reminders that actually fire",
+      "checklist": {
+        "step1": "[JA] University Acceptance Letter",
+        "step2": "[JA] Proof of Financial Support",
+        "step3": "[JA] Passport Validity Check",
+        "step4": "[JA] Biometrics Appointment"
+      }
+    },
+    "housing": {
+      "title": "[JA] Verified Housing",
+      "dek": "[JA] A key waiting for you, not a listing that vanishes.",
+      "detail": "[JA] Every landlord is identity-checked before their listing goes live. Match with roommates who share your move-in date, and book your place before you board.",
+      "bullet1": "[JA] Identity-verified landlords only",
+      "bullet2": "[JA] Roommate matching by city, dates, and habits",
+      "bullet3": "Book and pay before you land — no showings needed"
+    },
+    "jobs": {
+      "title": "[JA] Jobs & Internships",
+      "dek": "[JA] Filtered for the one thing that matters: sponsorship.",
+      "detail": "[JA] Search roles that actually sponsor your visa type, track a company's sponsorship history before you apply, and let the AI resume builder tune your CV per market.",
+      "bullet1": "[JA] Filter by visa-sponsor status, not guesswork",
+      "bullet2": "[JA] AI resume builder tuned to local hiring norms",
+      "bullet3": "[JA] Sponsorship-history tracker per employer",
+      "sponsorRoles": "[JA] Sponsor Roles",
+      "interviewLift": "[JA] Interview Lift",
+      "visaSponsorBadge": "[JA] VISA-SPONSOR"
+    },
+    "mentorship": {
+      "title": "[JA] Mentorship Network",
+      "dek": "[JA] People who already lived it, one message away.",
+      "detail": "[JA] Connect with people who've spent years in your destination city. Join cultural hubs and events built around where you're headed, not where you're from."
+    },
+    "lifeSupport": {
+      "title": "[JA] Life Support Toolkit",
+      "dek": "[JA] Everything after the flight lands.",
+      "detail": "Cost calculators, healthcare guides, banking setup, and an emergency SOS — all in one place, so the small logistics never become the hard part.",
+      "tool1": "[JA] Cost calculator",
+      "tool1Note": "[JA] Budget by city, down to groceries",
+      "tool2": "[JA] Healthcare guide",
+      "tool2Note": "[JA] Insurance & clinics, explained",
+      "tool3": "[JA] Banking setup",
+      "tool3Note": "[JA] Open an account before you land",
+      "tool4": "[JA] Emergency SOS",
+      "tool4Note": "[JA] One tap, always on"
+    },
+    "closing": {
+      "title": "[JA] Every piece, one bridge."
+    },
+    "reviews": {
+      "r1": {
+        "serviceTitle": "[JA] AI Visa Assistant",
+        "quote": "It told me exactly which biometrics appointment to book first — I would have missed the window otherwise."
+      },
+      "r2": {
+        "serviceTitle": "[JA] Verified Housing",
+        "quote": "[JA] I signed my lease from home. No video call landlord ever went quiet on me."
+      },
+      "r3": {
+        "serviceTitle": "[JA] Mentorship Network",
+        "quote": "[JA] My mentor met me at arrivals. That's not something a brochure tells you to expect."
+      },
+      "r4": {
+        "serviceTitle": "[JA] Jobs & Internships",
+        "quote": "[JA] Every listing I applied to already sponsored my visa type. I stopped wasting weeks on dead ends."
+      },
+      "r5": {
+        "serviceTitle": "[JA] Life Support Toolkit",
+        "quote": "[JA] The bank setup guide alone saved me a week of standing in the wrong lines."
+      },
+      "label": "[JA] Proof, not promises",
+      "title": "[JA] Real people. Real moves.",
+      "subtitle": "Thousands of immigrants trust GlobalBridge every year — here's what they say.",
+      "cta": "[JA] Start your journey"
+    },
+    "footer": {
+      "subtitle": "[JA] Your move, held together.",
+      "sitemap": "[JA] Sitemap",
+      "company": "[JA] Company",
+      "status": "[JA] Status",
+      "time": "[JA] Time",
+      "allSystemsLive": "[JA] All systems live",
+      "bridgesBuilt": "[JA] bridges built ↑",
+      "backToTop": "[JA] Back to top",
+      "copyright": "© 2026 Global Bridge",
+      "about": "[JA] About",
+      "careers": "[JA] Careers",
+      "press": "[JA] Press",
+      "contact": "[JA] Contact",
+      "trustSafety": "[JA] Trust & Safety",
+      "getChecklist": "[JA] Get the checklist",
+      "checklistSent": "[JA] Checklist on its way",
+      "cities": {
+        "toronto": "[JA] Toronto",
+        "london": "[JA] London",
+        "berlin": "[JA] Berlin",
+        "sydney": "[JA] Sydney",
+        "dublin": "[JA] Dublin"
+      }
+    }
   },
   "auth": {
     "welcomeBack": "おかえりなさい",

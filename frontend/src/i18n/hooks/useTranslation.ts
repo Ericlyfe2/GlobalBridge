@@ -63,13 +63,20 @@ function getRelativeFormatter(lang: Lang): Intl.RelativeTimeFormat {
   return f;
 }
 
+import enDict from "../locales/en.json";
+
 export function useTranslation() {
   const ctx = useContext(LocaleContext);
   if (!ctx) throw new Error("useTranslation must be used within a LocaleProvider");
 
   const t = useCallback(
     (key: string, params?: TranslationParams): string => {
-      const value = resolveValue(ctx.translations, key);
+      let value = resolveValue(ctx.translations, key);
+      
+      if (value === undefined) {
+        value = resolveValue(enDict as Record<string, unknown>, key);
+      }
+      
       if (value === undefined) return key;
 
       if (isPluralForms(value) && params?.count !== undefined) {
