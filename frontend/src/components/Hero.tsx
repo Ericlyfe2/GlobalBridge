@@ -198,7 +198,7 @@ export default function Hero() {
         src="/video/hero-loop.mp4"
       />
 
-      {/* ── Carousel cards (rendered behind text) ── */}
+      {/* ── Carousel cards (rendered behind text) ── 
       <div className="absolute inset-0 z-10 pointer-events-none">
         {CARDS.map((card, i) => (
           <div
@@ -224,7 +224,7 @@ export default function Hero() {
             </div>
           </div>
         ))}
-      </div>
+      </div>*/}
 
       {/* ── Gradients for text legibility & aesthetic ── */}
       {/* Desktop/Base legibility: Dark behind text on the left, clear on the right for the carousel */}
@@ -309,9 +309,7 @@ export default function Hero() {
       </div>
 
       {/* Scroll hint */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-30 font-mono text-[11px] tracking-widest uppercase text-cream-50/60">
-        {t("landing.hero.scroll")}
-      </div>
+      
     </section>
   );
 }
