@@ -4,6 +4,8 @@ import { createContext, useCallback, useEffect, useMemo, useRef, useState } from
 import { usePathname, useRouter } from "next/navigation";
 import { DEFAULT_LANG, getLocalizedPath, isRtlLang, SUPPORTED_LANGUAGES, type Lang } from "./config";
 import { detectLanguage, saveLang, saveLangToProfile } from "./utils";
+// Import English locale eagerly so the first render has translations available
+import enDict from "./locales/en.json";
 
 type TranslationDict = Record<string, unknown>;
 
@@ -29,7 +31,8 @@ async function loadLocale(lang: Lang): Promise<TranslationDict> {
 }
 
 const localeCache = new Map<Lang, TranslationDict>();
-localeCache.set("en", {} as TranslationDict);
+// Pre-populate English so the first render never shows raw keys
+localeCache.set("en", enDict as unknown as TranslationDict);
 
 export function LocaleProvider({
   children,
@@ -40,8 +43,11 @@ export function LocaleProvider({
 }) {
   const [lang, setLangState] = useState<Lang>(initialLang ?? DEFAULT_LANG);
   const [translating, setTranslating] = useState(false);
-  const [translations, setTranslations] = useState<TranslationDict>({});
-  const loadedRef = useRef<Set<Lang>>(new Set());
+  // Seed state with English translations so first render is never empty
+  const [translations, setTranslations] = useState<TranslationDict>(
+    localeCache.get(initialLang ?? DEFAULT_LANG) ?? (enDict as unknown as TranslationDict)
+  );
+  const loadedRef = useRef<Set<Lang>>(new Set<Lang>(["en"]));
   const router = useRouter();
   const pathname = usePathname();
   const initialisedRef = useRef(false);
@@ -70,7 +76,10 @@ export function LocaleProvider({
     initialisedRef.current = true;
     const detected = detectLanguage(initialLang);
     setLangState(detected);
-    loadAndCache(detected);
+    // Only fetch if it's not English (already loaded) or a different initial lang
+    if (detected !== "en" || !localeCache.has(detected)) {
+      loadAndCache(detected);
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

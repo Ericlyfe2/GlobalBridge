@@ -228,7 +228,142 @@
     "ctaButton": "무료 계정 만들기",
     "ctaAssistantButton": "AI 어시스턴트와 대화하기",
     "statStudents": "Students guided",
-    "statVisaSuccess": "Visa success rate"
+    "statVisaSuccess": "Visa success rate",
+    "hero": {
+      "label": "[KO] Study abroad, held together",
+      "title": "[KO] Your move,<br />held together.",
+      "subtitle": "Visa guidance, verified housing, mentorship, jobs, and life support — one platform, before, during, and after you arrive.",
+      "startFree": "[KO] Start free",
+      "meetNetwork": "[KO] Meet the network",
+      "scroll": "[KO] Scroll",
+      "cards": {
+        "tokyo": {
+          "title": "[KO] Tokyo",
+          "tag": "Japan — Asia Pacific"
+        },
+        "berlin": {
+          "title": "[KO] Berlin",
+          "tag": "Germany — Europe"
+        },
+        "toronto": {
+          "title": "[KO] Toronto",
+          "tag": "Canada — North America"
+        },
+        "dubai": {
+          "title": "[KO] Dubai",
+          "tag": "UAE — Middle East"
+        },
+        "london": {
+          "title": "[KO] London",
+          "tag": "United Kingdom — Europe"
+        }
+      }
+    },
+    "visa": {
+      "title": "[KO] AI Visa Assistant",
+      "dek": "[KO] Any visa. Any country. Zero guesswork.",
+      "detail": "Conversational guidance that adapts to your destination, your passport, and your timeline — with a step-by-step document checklist that updates itself as embassies change the rules.",
+      "bullet1": "[KO] Country-specific checklist, generated in minutes",
+      "bullet2": "[KO] Plain-language answers to embassy questions",
+      "bullet3": "[KO] Deadline tracking with reminders that actually fire",
+      "checklist": {
+        "step1": "[KO] University Acceptance Letter",
+        "step2": "[KO] Proof of Financial Support",
+        "step3": "[KO] Passport Validity Check",
+        "step4": "[KO] Biometrics Appointment"
+      }
+    },
+    "housing": {
+      "title": "[KO] Verified Housing",
+      "dek": "[KO] A key waiting for you, not a listing that vanishes.",
+      "detail": "[KO] Every landlord is identity-checked before their listing goes live. Match with roommates who share your move-in date, and book your place before you board.",
+      "bullet1": "[KO] Identity-verified landlords only",
+      "bullet2": "[KO] Roommate matching by city, dates, and habits",
+      "bullet3": "Book and pay before you land — no showings needed"
+    },
+    "jobs": {
+      "title": "[KO] Jobs & Internships",
+      "dek": "[KO] Filtered for the one thing that matters: sponsorship.",
+      "detail": "[KO] Search roles that actually sponsor your visa type, track a company's sponsorship history before you apply, and let the AI resume builder tune your CV per market.",
+      "bullet1": "[KO] Filter by visa-sponsor status, not guesswork",
+      "bullet2": "[KO] AI resume builder tuned to local hiring norms",
+      "bullet3": "[KO] Sponsorship-history tracker per employer",
+      "sponsorRoles": "[KO] Sponsor Roles",
+      "interviewLift": "[KO] Interview Lift",
+      "visaSponsorBadge": "[KO] VISA-SPONSOR"
+    },
+    "mentorship": {
+      "title": "[KO] Mentorship Network",
+      "dek": "[KO] People who already lived it, one message away.",
+      "detail": "[KO] Connect with people who've spent years in your destination city. Join cultural hubs and events built around where you're headed, not where you're from."
+    },
+    "lifeSupport": {
+      "title": "[KO] Life Support Toolkit",
+      "dek": "[KO] Everything after the flight lands.",
+      "detail": "Cost calculators, healthcare guides, banking setup, and an emergency SOS — all in one place, so the small logistics never become the hard part.",
+      "tool1": "[KO] Cost calculator",
+      "tool1Note": "[KO] Budget by city, down to groceries",
+      "tool2": "[KO] Healthcare guide",
+      "tool2Note": "[KO] Insurance & clinics, explained",
+      "tool3": "[KO] Banking setup",
+      "tool3Note": "[KO] Open an account before you land",
+      "tool4": "[KO] Emergency SOS",
+      "tool4Note": "[KO] One tap, always on"
+    },
+    "closing": {
+      "title": "[KO] Every piece, one bridge."
+    },
+    "reviews": {
+      "r1": {
+        "serviceTitle": "[KO] AI Visa Assistant",
+        "quote": "It told me exactly which biometrics appointment to book first — I would have missed the window otherwise."
+      },
+      "r2": {
+        "serviceTitle": "[KO] Verified Housing",
+        "quote": "[KO] I signed my lease from home. No video call landlord ever went quiet on me."
+      },
+      "r3": {
+        "serviceTitle": "[KO] Mentorship Network",
+        "quote": "[KO] My mentor met me at arrivals. That's not something a brochure tells you to expect."
+      },
+      "r4": {
+        "serviceTitle": "[KO] Jobs & Internships",
+        "quote": "[KO] Every listing I applied to already sponsored my visa type. I stopped wasting weeks on dead ends."
+      },
+      "r5": {
+        "serviceTitle": "[KO] Life Support Toolkit",
+        "quote": "[KO] The bank setup guide alone saved me a week of standing in the wrong lines."
+      },
+      "label": "[KO] Proof, not promises",
+      "title": "[KO] Real people. Real moves.",
+      "subtitle": "Thousands of immigrants trust GlobalBridge every year — here's what they say.",
+      "cta": "[KO] Start your journey"
+    },
+    "footer": {
+      "subtitle": "[KO] Your move, held together.",
+      "sitemap": "[KO] Sitemap",
+      "company": "[KO] Company",
+      "status": "[KO] Status",
+      "time": "[KO] Time",
+      "allSystemsLive": "[KO] All systems live",
+      "bridgesBuilt": "[KO] bridges built ↑",
+      "backToTop": "[KO] Back to top",
+      "copyright": "© 2026 Global Bridge",
+      "about": "[KO] About",
+      "careers": "[KO] Careers",
+      "press": "[KO] Press",
+      "contact": "[KO] Contact",
+      "trustSafety": "[KO] Trust & Safety",
+      "getChecklist": "[KO] Get the checklist",
+      "checklistSent": "[KO] Checklist on its way",
+      "cities": {
+        "toronto": "[KO] Toronto",
+        "london": "[KO] London",
+        "berlin": "[KO] Berlin",
+        "sydney": "[KO] Sydney",
+        "dublin": "[KO] Dublin"
+      }
+    }
   },
   "auth": {
     "welcomeBack": "환영합니다",

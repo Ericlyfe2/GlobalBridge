@@ -228,7 +228,142 @@
     "ctaButton": "免费创建账户",
     "ctaAssistantButton": "与 AI 助手对话",
     "statStudents": "Students guided",
-    "statVisaSuccess": "Visa success rate"
+    "statVisaSuccess": "Visa success rate",
+    "hero": {
+      "label": "一站式留学服务",
+      "title": "你的旅程，<br />紧密相连。",
+      "subtitle": "签证指导、认证住房、导师网络、工作和生活支持——一个平台，覆盖你抵达前、中、后。",
+      "startFree": "免费开始",
+      "meetNetwork": "认识导师网络",
+      "scroll": "向下滚动",
+      "cards": {
+        "tokyo": {
+          "title": "Tokyo",
+          "tag": "Japan — Asia Pacific"
+        },
+        "berlin": {
+          "title": "Berlin",
+          "tag": "Germany — Europe"
+        },
+        "toronto": {
+          "title": "Toronto",
+          "tag": "Canada — North America"
+        },
+        "dubai": {
+          "title": "Dubai",
+          "tag": "UAE — Middle East"
+        },
+        "london": {
+          "title": "London",
+          "tag": "United Kingdom — Europe"
+        }
+      }
+    },
+    "visa": {
+      "title": "AI 签证助手",
+      "dek": "任何签证。任何国家。告别盲猜。",
+      "detail": "适应你的目的地、护照和时间表的对话式指导——提供实时更新的材料清单。",
+      "bullet1": "几分钟内生成特定国家的材料清单",
+      "bullet2": "用简单易懂的语言回答大使馆问题",
+      "bullet3": "截止日期跟踪与提醒",
+      "checklist": {
+        "step1": "University Acceptance Letter",
+        "step2": "Proof of Financial Support",
+        "step3": "Passport Validity Check",
+        "step4": "Biometrics Appointment"
+      }
+    },
+    "housing": {
+      "title": "认证住房",
+      "dek": "一把等你的钥匙，而不是虚假的房源。",
+      "detail": "每个房东在发布前都经过身份验证。在登机前匹配室友并预订住所。",
+      "bullet1": "仅限身份验证房东",
+      "bullet2": "按城市、日期和习惯匹配室友",
+      "bullet3": "落地前预订并支付——无需看房"
+    },
+    "jobs": {
+      "title": "工作与实习",
+      "dek": "专注于最重要的事：签证赞助。",
+      "detail": "搜索实际赞助你签证类型的职位，在申请前查看公司的赞助历史。",
+      "bullet1": "按签证赞助状态过滤，拒绝盲目申请",
+      "bullet2": "适应当地招聘规范的AI简历生成器",
+      "bullet3": "雇主签证赞助历史跟踪",
+      "sponsorRoles": "赞助职位",
+      "interviewLift": "面试提升",
+      "visaSponsorBadge": "签证赞助"
+    },
+    "mentorship": {
+      "title": "导师网络",
+      "dek": "过来人的经验，一条信息即可获取。",
+      "detail": "与在你目的城市生活多年的人建立联系。加入文化中心和活动。"
+    },
+    "lifeSupport": {
+      "title": "生活支持工具包",
+      "dek": "航班落地后的一切。",
+      "detail": "生活成本计算器、医疗指南、银行开户和紧急SOS——全在一个地方。",
+      "tool1": "成本计算器",
+      "tool1Note": "按城市做预算",
+      "tool2": "医疗指南",
+      "tool2Note": "保险和诊所解析",
+      "tool3": "银行开户",
+      "tool3Note": "落地前开户",
+      "tool4": "紧急 SOS",
+      "tool4Note": "一键呼救"
+    },
+    "closing": {
+      "title": "每一部分，一座桥梁。"
+    },
+    "reviews": {
+      "r1": {
+        "serviceTitle": "AI Visa Assistant",
+        "quote": "It told me exactly which biometrics appointment to book first — I would have missed the window otherwise."
+      },
+      "r2": {
+        "serviceTitle": "Verified Housing",
+        "quote": "I signed my lease from home. No video call landlord ever went quiet on me."
+      },
+      "r3": {
+        "serviceTitle": "Mentorship Network",
+        "quote": "My mentor met me at arrivals. That's not something a brochure tells you to expect."
+      },
+      "r4": {
+        "serviceTitle": "Jobs & Internships",
+        "quote": "Every listing I applied to already sponsored my visa type. I stopped wasting weeks on dead ends."
+      },
+      "r5": {
+        "serviceTitle": "Life Support Toolkit",
+        "quote": "The bank setup guide alone saved me a week of standing in the wrong lines."
+      },
+      "label": "用事实说话",
+      "title": "真实的人。真实的搬迁。",
+      "subtitle": "每年有数千名移民信任 GlobalBridge —— 这是他们的评价。",
+      "cta": "开启你的旅程"
+    },
+    "footer": {
+      "subtitle": "你的旅程，紧密相连。",
+      "sitemap": "Sitemap",
+      "company": "Company",
+      "status": "Status",
+      "time": "Time",
+      "allSystemsLive": "All systems live",
+      "bridgesBuilt": "bridges built ↑",
+      "backToTop": "Back to top",
+      "copyright": "© 2026 Global Bridge",
+      "about": "About",
+      "careers": "Careers",
+      "press": "Press",
+      "contact": "Contact",
+      "trustSafety": "Trust & Safety",
+      "getChecklist": "Get the checklist",
+      "checklistSent": "Checklist on its way",
+      "cities": {
+        "toronto": "Toronto",
+        "london": "London",
+        "berlin": "Berlin",
+        "sydney": "Sydney",
+        "dublin": "Dublin"
+      }
+    }
   },
   "auth": {
     "welcomeBack": "欢迎回来",

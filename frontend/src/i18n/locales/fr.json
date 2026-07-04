@@ -231,7 +231,142 @@
     "ctaButton": "Créer un compte gratuit",
     "ctaAssistantButton": "Parler à l'Assistant IA",
     "statStudents": "Students guided",
-    "statVisaSuccess": "Visa success rate"
+    "statVisaSuccess": "Visa success rate",
+    "hero": {
+      "label": "Étudier à l'étranger, tout en un",
+      "title": "Votre projet,<br />réuni.",
+      "subtitle": "Orientation visa, logement vérifié, mentorat, emplois et soutien — une seule plateforme, avant, pendant et après votre arrivée.",
+      "startFree": "Commencer gratuitement",
+      "meetNetwork": "Découvrir le réseau",
+      "scroll": "Défiler",
+      "cards": {
+        "tokyo": {
+          "title": "Tokyo",
+          "tag": "Japan — Asia Pacific"
+        },
+        "berlin": {
+          "title": "Berlin",
+          "tag": "Germany — Europe"
+        },
+        "toronto": {
+          "title": "Toronto",
+          "tag": "Canada — North America"
+        },
+        "dubai": {
+          "title": "Dubai",
+          "tag": "UAE — Middle East"
+        },
+        "london": {
+          "title": "London",
+          "tag": "United Kingdom — Europe"
+        }
+      }
+    },
+    "visa": {
+      "title": "Assistant IA Visa",
+      "dek": "Tout visa. Tout pays. Aucune devinette.",
+      "detail": "Un guide conversationnel adapté à votre destination, votre passeport et vos délais — avec une liste de documents qui se met à jour.",
+      "bullet1": "Liste de contrôle par pays, générée en quelques minutes",
+      "bullet2": "Réponses claires aux questions des ambassades",
+      "bullet3": "Suivi des délais avec de vrais rappels",
+      "checklist": {
+        "step1": "University Acceptance Letter",
+        "step2": "Proof of Financial Support",
+        "step3": "Passport Validity Check",
+        "step4": "Biometrics Appointment"
+      }
+    },
+    "housing": {
+      "title": "Logement Vérifié",
+      "dek": "Une clé qui vous attend, pas une fausse annonce.",
+      "detail": "Chaque propriétaire a son identité vérifiée. Trouvez des colocataires et réservez votre logement avant de prendre l'avion.",
+      "bullet1": "Uniquement des propriétaires vérifiés",
+      "bullet2": "Recherche de colocataires par ville et habitudes",
+      "bullet3": "Réservez et payez avant d'arriver"
+    },
+    "jobs": {
+      "title": "Emplois et Stages",
+      "dek": "Filtré pour ce qui compte : le parrainage.",
+      "detail": "Cherchez des postes qui parrainent votre type de visa. Suivez l'historique de parrainage de l'entreprise avant de postuler.",
+      "bullet1": "Filtre par statut de parrainage visa",
+      "bullet2": "Générateur de CV IA adapté au marché local",
+      "bullet3": "Suivi de l'historique de parrainage par employeur",
+      "sponsorRoles": "Postes avec Parrainage",
+      "interviewLift": "Aide Entretien",
+      "visaSponsorBadge": "PARRAINAGE-VISA"
+    },
+    "mentorship": {
+      "title": "Réseau de Mentorat",
+      "dek": "Ceux qui l'ont déjà vécu, à un message de distance.",
+      "detail": "Connectez-vous avec des personnes qui ont passé des années dans votre ville de destination."
+    },
+    "lifeSupport": {
+      "title": "Boîte à Outils",
+      "dek": "Tout après l'atterrissage du vol.",
+      "detail": "Calculateurs de coûts, guides de santé, banque et SOS urgence — tout au même endroit.",
+      "tool1": "Calculateur de coût",
+      "tool1Note": "Budget par ville",
+      "tool2": "Guide de santé",
+      "tool2Note": "Assurances et cliniques",
+      "tool3": "Configuration bancaire",
+      "tool3Note": "Ouvrez un compte avant d'arriver",
+      "tool4": "SOS Urgence",
+      "tool4Note": "Toujours activé"
+    },
+    "closing": {
+      "title": "Chaque pièce, un seul pont."
+    },
+    "reviews": {
+      "r1": {
+        "serviceTitle": "AI Visa Assistant",
+        "quote": "It told me exactly which biometrics appointment to book first — I would have missed the window otherwise."
+      },
+      "r2": {
+        "serviceTitle": "Verified Housing",
+        "quote": "I signed my lease from home. No video call landlord ever went quiet on me."
+      },
+      "r3": {
+        "serviceTitle": "Mentorship Network",
+        "quote": "My mentor met me at arrivals. That's not something a brochure tells you to expect."
+      },
+      "r4": {
+        "serviceTitle": "Jobs & Internships",
+        "quote": "Every listing I applied to already sponsored my visa type. I stopped wasting weeks on dead ends."
+      },
+      "r5": {
+        "serviceTitle": "Life Support Toolkit",
+        "quote": "The bank setup guide alone saved me a week of standing in the wrong lines."
+      },
+      "label": "Preuves, pas de promesses",
+      "title": "Vraies personnes. Vrais projets.",
+      "subtitle": "Des milliers d'immigrants font confiance à GlobalBridge chaque année — voici ce qu'ils disent.",
+      "cta": "Commencez votre voyage"
+    },
+    "footer": {
+      "subtitle": "Votre projet, réuni.",
+      "sitemap": "Sitemap",
+      "company": "Company",
+      "status": "Status",
+      "time": "Time",
+      "allSystemsLive": "All systems live",
+      "bridgesBuilt": "bridges built ↑",
+      "backToTop": "Back to top",
+      "copyright": "© 2026 Global Bridge",
+      "about": "About",
+      "careers": "Careers",
+      "press": "Press",
+      "contact": "Contact",
+      "trustSafety": "Trust & Safety",
+      "getChecklist": "Get the checklist",
+      "checklistSent": "Checklist on its way",
+      "cities": {
+        "toronto": "Toronto",
+        "london": "London",
+        "berlin": "Berlin",
+        "sydney": "Sydney",
+        "dublin": "Dublin"
+      }
+    }
   },
   "auth": {
     "welcomeBack": "Bon retour",
