@@ -75,12 +75,12 @@ export default function LifeSupportSection() {
               <div 
                 key={i} 
                 className={`life-tile p-6 rounded-xl border flex flex-col justify-between aspect-square transition-colors ${
-                  tool.sos 
-                    ? "sos-tile bg-white border-amber-500/30 shadow-[0_0_0_0_rgba(217,119,6,0.3)] hover:border-amber-500" 
-                    : "bg-white border-cream-200 hover:border-clay-500/30"
+                  tool.sos
+                    ? "sos-tile bg-white border-amber-500/30 shadow-[0_0_0_0_rgba(217,119,6,0.3)] hover:border-amber-500"
+                    : "bg-white border-slate-200 hover:border-clay-500/30"
                 }`}
               >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tool.sos ? "bg-amber-500/10 text-amber-500" : "bg-cream-100 text-ink-600"}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tool.sos ? "bg-amber-500/10 text-amber-500" : "bg-slate-100 text-slate-600"}`}>
                   {tool.sos ? (
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -92,8 +92,8 @@ export default function LifeSupportSection() {
                   )}
                 </div>
                 <div>
-                  <h3 className={`font-medium mb-1 ${tool.sos ? "text-amber-500" : "text-ink-900"}`}>{t(tool.labelKey)}</h3>
-                  <p className="text-sm text-ink-500">{t(tool.noteKey)}</p>
+                  <h3 className={`font-medium mb-1 ${tool.sos ? "text-amber-500" : "text-slate-900"}`}>{t(tool.labelKey)}</h3>
+                  <p className="text-sm text-slate-500">{t(tool.noteKey)}</p>
                 </div>
               </div>
             ))}

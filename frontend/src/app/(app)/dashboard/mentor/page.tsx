@@ -17,7 +17,7 @@ type MentorDashboard = {
 };
 
 const MANAGE = [
-  { href: "/community/mentors", icon: UserCheck, label: "Manage mentees" },
+  { href: "/community", icon: UserCheck, label: "Manage mentees" },
   { href: "/messages", icon: CalendarPlus, label: "Schedule meetings" },
   { href: "/forums", icon: MessageSquare, label: "Answer questions" },
   { href: "/stories", icon: FileText, label: "Publish guides" },

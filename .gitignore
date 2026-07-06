@@ -21,3 +21,6 @@ coverage/
 backend/uploads/
 package-lock.json
 bun.lock
+
+# Local Claude Code settings (machine-specific permissions)
+.claude/settings.local.json
