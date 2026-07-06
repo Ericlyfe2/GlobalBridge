@@ -19,3 +19,5 @@ coverage/
 
 # Local file uploads (dev storage backend)
 backend/uploads/
+package-lock.json
+bun.lock
