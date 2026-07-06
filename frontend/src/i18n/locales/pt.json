@@ -231,7 +231,142 @@
     "ctaButton": "Criar conta gratuita",
     "ctaAssistantButton": "Conversar com o Assistente de IA",
     "statStudents": "Students guided",
-    "statVisaSuccess": "Visa success rate"
+    "statVisaSuccess": "Visa success rate",
+    "hero": {
+      "label": "[PT] Study abroad, held together",
+      "title": "[PT] Your move,<br />held together.",
+      "subtitle": "Visa guidance, verified housing, mentorship, jobs, and life support — one platform, before, during, and after you arrive.",
+      "startFree": "[PT] Start free",
+      "meetNetwork": "[PT] Meet the network",
+      "scroll": "[PT] Scroll",
+      "cards": {
+        "tokyo": {
+          "title": "[PT] Tokyo",
+          "tag": "Japan — Asia Pacific"
+        },
+        "berlin": {
+          "title": "[PT] Berlin",
+          "tag": "Germany — Europe"
+        },
+        "toronto": {
+          "title": "[PT] Toronto",
+          "tag": "Canada — North America"
+        },
+        "dubai": {
+          "title": "[PT] Dubai",
+          "tag": "UAE — Middle East"
+        },
+        "london": {
+          "title": "[PT] London",
+          "tag": "United Kingdom — Europe"
+        }
+      }
+    },
+    "visa": {
+      "title": "[PT] AI Visa Assistant",
+      "dek": "[PT] Any visa. Any country. Zero guesswork.",
+      "detail": "Conversational guidance that adapts to your destination, your passport, and your timeline — with a step-by-step document checklist that updates itself as embassies change the rules.",
+      "bullet1": "[PT] Country-specific checklist, generated in minutes",
+      "bullet2": "[PT] Plain-language answers to embassy questions",
+      "bullet3": "[PT] Deadline tracking with reminders that actually fire",
+      "checklist": {
+        "step1": "[PT] University Acceptance Letter",
+        "step2": "[PT] Proof of Financial Support",
+        "step3": "[PT] Passport Validity Check",
+        "step4": "[PT] Biometrics Appointment"
+      }
+    },
+    "housing": {
+      "title": "[PT] Verified Housing",
+      "dek": "[PT] A key waiting for you, not a listing that vanishes.",
+      "detail": "[PT] Every landlord is identity-checked before their listing goes live. Match with roommates who share your move-in date, and book your place before you board.",
+      "bullet1": "[PT] Identity-verified landlords only",
+      "bullet2": "[PT] Roommate matching by city, dates, and habits",
+      "bullet3": "Book and pay before you land — no showings needed"
+    },
+    "jobs": {
+      "title": "[PT] Jobs & Internships",
+      "dek": "[PT] Filtered for the one thing that matters: sponsorship.",
+      "detail": "[PT] Search roles that actually sponsor your visa type, track a company's sponsorship history before you apply, and let the AI resume builder tune your CV per market.",
+      "bullet1": "[PT] Filter by visa-sponsor status, not guesswork",
+      "bullet2": "[PT] AI resume builder tuned to local hiring norms",
+      "bullet3": "[PT] Sponsorship-history tracker per employer",
+      "sponsorRoles": "[PT] Sponsor Roles",
+      "interviewLift": "[PT] Interview Lift",
+      "visaSponsorBadge": "[PT] VISA-SPONSOR"
+    },
+    "mentorship": {
+      "title": "[PT] Mentorship Network",
+      "dek": "[PT] People who already lived it, one message away.",
+      "detail": "[PT] Connect with people who've spent years in your destination city. Join cultural hubs and events built around where you're headed, not where you're from."
+    },
+    "lifeSupport": {
+      "title": "[PT] Life Support Toolkit",
+      "dek": "[PT] Everything after the flight lands.",
+      "detail": "Cost calculators, healthcare guides, banking setup, and an emergency SOS — all in one place, so the small logistics never become the hard part.",
+      "tool1": "[PT] Cost calculator",
+      "tool1Note": "[PT] Budget by city, down to groceries",
+      "tool2": "[PT] Healthcare guide",
+      "tool2Note": "[PT] Insurance & clinics, explained",
+      "tool3": "[PT] Banking setup",
+      "tool3Note": "[PT] Open an account before you land",
+      "tool4": "[PT] Emergency SOS",
+      "tool4Note": "[PT] One tap, always on"
+    },
+    "closing": {
+      "title": "[PT] Every piece, one bridge."
+    },
+    "reviews": {
+      "r1": {
+        "serviceTitle": "[PT] AI Visa Assistant",
+        "quote": "It told me exactly which biometrics appointment to book first — I would have missed the window otherwise."
+      },
+      "r2": {
+        "serviceTitle": "[PT] Verified Housing",
+        "quote": "[PT] I signed my lease from home. No video call landlord ever went quiet on me."
+      },
+      "r3": {
+        "serviceTitle": "[PT] Mentorship Network",
+        "quote": "[PT] My mentor met me at arrivals. That's not something a brochure tells you to expect."
+      },
+      "r4": {
+        "serviceTitle": "[PT] Jobs & Internships",
+        "quote": "[PT] Every listing I applied to already sponsored my visa type. I stopped wasting weeks on dead ends."
+      },
+      "r5": {
+        "serviceTitle": "[PT] Life Support Toolkit",
+        "quote": "[PT] The bank setup guide alone saved me a week of standing in the wrong lines."
+      },
+      "label": "[PT] Proof, not promises",
+      "title": "[PT] Real people. Real moves.",
+      "subtitle": "Thousands of immigrants trust GlobalBridge every year — here's what they say.",
+      "cta": "[PT] Start your journey"
+    },
+    "footer": {
+      "subtitle": "[PT] Your move, held together.",
+      "sitemap": "[PT] Sitemap",
+      "company": "[PT] Company",
+      "status": "[PT] Status",
+      "time": "[PT] Time",
+      "allSystemsLive": "[PT] All systems live",
+      "bridgesBuilt": "[PT] bridges built ↑",
+      "backToTop": "[PT] Back to top",
+      "copyright": "© 2026 Global Bridge",
+      "about": "[PT] About",
+      "careers": "[PT] Careers",
+      "press": "[PT] Press",
+      "contact": "[PT] Contact",
+      "trustSafety": "[PT] Trust & Safety",
+      "getChecklist": "[PT] Get the checklist",
+      "checklistSent": "[PT] Checklist on its way",
+      "cities": {
+        "toronto": "[PT] Toronto",
+        "london": "[PT] London",
+        "berlin": "[PT] Berlin",
+        "sydney": "[PT] Sydney",
+        "dublin": "[PT] Dublin"
+      }
+    }
   },
   "auth": {
     "welcomeBack": "Bem-vindo de volta",

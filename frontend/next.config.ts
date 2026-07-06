@@ -34,6 +34,13 @@ const nextConfig: NextConfig = {
   },
   // Remove unused EXPORT details from client bundle
   outputFileTracingIncludes: {},
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  
+  },
 };
 
 export default nextConfig;

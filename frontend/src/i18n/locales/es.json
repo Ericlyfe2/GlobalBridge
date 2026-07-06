@@ -231,7 +231,142 @@
     "ctaButton": "Crear cuenta gratis",
     "ctaAssistantButton": "Hablar con el Asistente IA",
     "statStudents": "Students guided",
-    "statVisaSuccess": "Visa success rate"
+    "statVisaSuccess": "Visa success rate",
+    "hero": {
+      "label": "Estudiar en el extranjero, todo en uno",
+      "title": "Tu viaje,<br />unido.",
+      "subtitle": "Orientación de visa, vivienda verificada, mentoría, empleos y apoyo — una plataforma, antes, durante y después de tu llegada.",
+      "startFree": "Comenzar gratis",
+      "meetNetwork": "Conoce la red",
+      "scroll": "Desplazar",
+      "cards": {
+        "tokyo": {
+          "title": "Tokyo",
+          "tag": "Japan — Asia Pacific"
+        },
+        "berlin": {
+          "title": "Berlin",
+          "tag": "Germany — Europe"
+        },
+        "toronto": {
+          "title": "Toronto",
+          "tag": "Canada — North America"
+        },
+        "dubai": {
+          "title": "Dubai",
+          "tag": "UAE — Middle East"
+        },
+        "london": {
+          "title": "London",
+          "tag": "United Kingdom — Europe"
+        }
+      }
+    },
+    "visa": {
+      "title": "Asistente de Visa IA",
+      "dek": "Cualquier visa. Cualquier país. Sin adivinanzas.",
+      "detail": "Orientación conversacional que se adapta a tu destino, tu pasaporte y tus plazos — con una lista de documentos paso a paso.",
+      "bullet1": "Lista de control específica del país en minutos",
+      "bullet2": "Respuestas claras a las preguntas de la embajada",
+      "bullet3": "Seguimiento de plazos con recordatorios",
+      "checklist": {
+        "step1": "University Acceptance Letter",
+        "step2": "Proof of Financial Support",
+        "step3": "Passport Validity Check",
+        "step4": "Biometrics Appointment"
+      }
+    },
+    "housing": {
+      "title": "Vivienda Verificada",
+      "dek": "Una llave esperándote, no un anuncio falso.",
+      "detail": "Todo propietario está verificado. Encuentra compañeros de piso y reserva antes de volar.",
+      "bullet1": "Solo propietarios verificados",
+      "bullet2": "Búsqueda de compañeros de cuarto",
+      "bullet3": "Reserva y paga antes de aterrizar"
+    },
+    "jobs": {
+      "title": "Empleos y Prácticas",
+      "dek": "Filtrado por lo que importa: patrocinio.",
+      "detail": "Busca puestos que patrocinan tu visa. Sigue el historial de la empresa antes de aplicar.",
+      "bullet1": "Filtrar por patrocinador de visa",
+      "bullet2": "Creador de CV IA adaptado al mercado",
+      "bullet3": "Historial de patrocinio por empleador",
+      "sponsorRoles": "Roles con Patrocinio",
+      "interviewLift": "Ayuda de Entrevista",
+      "visaSponsorBadge": "PATROCINADOR-VISA"
+    },
+    "mentorship": {
+      "title": "Red de Mentoría",
+      "dek": "Personas que ya lo vivieron, a un mensaje de distancia.",
+      "detail": "Conéctate con personas que han pasado años en tu ciudad de destino."
+    },
+    "lifeSupport": {
+      "title": "Herramientas de Apoyo",
+      "dek": "Todo después de que aterrice el vuelo.",
+      "detail": "Calculadoras de costos, guías de salud, banco y SOS de emergencia — todo en un solo lugar.",
+      "tool1": "Calculadora de costos",
+      "tool1Note": "Presupuesto por ciudad",
+      "tool2": "Guía de salud",
+      "tool2Note": "Seguros y clínicas",
+      "tool3": "Configuración bancaria",
+      "tool3Note": "Abre una cuenta antes de llegar",
+      "tool4": "SOS de Emergencia",
+      "tool4Note": "Siempre activo"
+    },
+    "closing": {
+      "title": "Cada pieza, un puente."
+    },
+    "reviews": {
+      "r1": {
+        "serviceTitle": "AI Visa Assistant",
+        "quote": "It told me exactly which biometrics appointment to book first — I would have missed the window otherwise."
+      },
+      "r2": {
+        "serviceTitle": "Verified Housing",
+        "quote": "I signed my lease from home. No video call landlord ever went quiet on me."
+      },
+      "r3": {
+        "serviceTitle": "Mentorship Network",
+        "quote": "My mentor met me at arrivals. That's not something a brochure tells you to expect."
+      },
+      "r4": {
+        "serviceTitle": "Jobs & Internships",
+        "quote": "Every listing I applied to already sponsored my visa type. I stopped wasting weeks on dead ends."
+      },
+      "r5": {
+        "serviceTitle": "Life Support Toolkit",
+        "quote": "The bank setup guide alone saved me a week of standing in the wrong lines."
+      },
+      "label": "Pruebas, no promesas",
+      "title": "Personas reales. Viajes reales.",
+      "subtitle": "Miles de inmigrantes confían en GlobalBridge cada año — esto es lo que dicen.",
+      "cta": "Comienza tu viaje"
+    },
+    "footer": {
+      "subtitle": "Tu viaje, unido.",
+      "sitemap": "Sitemap",
+      "company": "Company",
+      "status": "Status",
+      "time": "Time",
+      "allSystemsLive": "All systems live",
+      "bridgesBuilt": "bridges built ↑",
+      "backToTop": "Back to top",
+      "copyright": "© 2026 Global Bridge",
+      "about": "About",
+      "careers": "Careers",
+      "press": "Press",
+      "contact": "Contact",
+      "trustSafety": "Trust & Safety",
+      "getChecklist": "Get the checklist",
+      "checklistSent": "Checklist on its way",
+      "cities": {
+        "toronto": "Toronto",
+        "london": "London",
+        "berlin": "Berlin",
+        "sydney": "Sydney",
+        "dublin": "Dublin"
+      }
+    }
   },
   "auth": {
     "welcomeBack": "Bienvenido de nuevo",
