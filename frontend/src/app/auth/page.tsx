@@ -305,9 +305,15 @@ function AuthContent() {
 
             {isSignup && (
               <p className="mt-6 text-center text-xs leading-relaxed text-ink-400 dark:text-gray-500">
-                {t("auth.agreeToTerms")}{" "}
-                <Link href="/terms" className="underline hover:text-ink-600">{t("auth.terms")}</Link> {t("common.and")}{" "}
-                <Link href="/privacy" className="underline hover:text-ink-600">{t("auth.privacyPolicy")}</Link>.
+                {t("auth.agreeToTerms").split(/(\{terms\}|\{privacy\})/g).map((part, i) => {
+                  if (part === "{terms}") {
+                    return <Link key={i} href="/terms" className="underline hover:text-ink-600">{t("auth.terms")}</Link>;
+                  }
+                  if (part === "{privacy}") {
+                    return <Link key={i} href="/privacy" className="underline hover:text-ink-600">{t("auth.privacyPolicy")}</Link>;
+                  }
+                  return <span key={i}>{part}</span>;
+                })}.
               </p>
             )}
           </div>

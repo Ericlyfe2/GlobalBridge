@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, ElementType } from "react";
+import { useRef, ElementType, ComponentType, ReactNode, Ref } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 
@@ -40,9 +40,10 @@ export default function ScrubTextAnimation({
 
   // Split text by spaces
   const words = (text || "").split(" ");
+  const Component = Tag as ComponentType<{ className?: string; children?: ReactNode; ref?: Ref<HTMLElement> }>;
 
   return (
-    <Tag ref={containerRef as any} className={className || "inline-block"}>
+    <Component ref={containerRef} className={className || "inline-block"}>
       {words.map((word, i) => {
         // Strip punctuation for matching
         const cleanWord = word.replace(/[^\w]/g, "").toLowerCase();
@@ -58,6 +59,6 @@ export default function ScrubTextAnimation({
           </span>
         );
       })}
-    </Tag>
+    </Component>
   );
 }

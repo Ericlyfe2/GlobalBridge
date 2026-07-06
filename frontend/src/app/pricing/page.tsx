@@ -58,7 +58,7 @@ const tiers: Tier[] = [
     price: "Custom", cadence: "/year",
     tagline: "For universities, recruiters, and partner organizations.",
     cta: "Talk to sales", ctaHref: "/contact?topic=institution",
-    icon: <Zap size={18} />, tone: "bg-ink-900 text-white",
+    icon: <Zap size={18} />, tone: "bg-slate-900 text-white",
     features: [
       { label: "Everything in Verified", included: true },
       { label: "Bulk student onboarding (CSV import)", included: true },

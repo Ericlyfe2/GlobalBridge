@@ -74,6 +74,9 @@ export function setSession(token: string, user: SessionUser) {
     const initials =
       user.full_name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "?";
     localStorage.setItem("user-initials", initials);
+    localStorage.setItem("user-role", user.role);
+    localStorage.setItem("user-name", user.full_name);
+    localStorage.setItem("user-email", user.email);
   } catch {}
 }
 
