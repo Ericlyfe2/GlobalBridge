@@ -2,6 +2,7 @@ import { Router } from "express";
 import { query, queryOne } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
 import { sanitizeObject } from "../lib/sanitize";
+import { buildDailySeries, clampDays } from "../lib/analytics";
 
 export const usersRouter = Router();
 
@@ -292,6 +293,24 @@ usersRouter.get("/summary/all", requireAuth, requireRole("admin"), async (_req, 
       total_opportunities: 0, ai_conversations: 0, success_stories: 0,
     };
     res.json({ stats: result ?? zero });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Admin: daily signups over the last N days (zero-filled). Must be before /:id.
+usersRouter.get("/summary/signups", requireAuth, requireRole("admin"), async (req, res, next) => {
+  try {
+    const days = clampDays(req.query.days);
+    const rows = await query<{ day: string; count: number }>(
+      `SELECT date_trunc('day', created_at)::date AS day, COUNT(*)::int AS count
+         FROM users
+        WHERE created_at >= CURRENT_DATE - (($1::int - 1) * INTERVAL '1 day')
+        GROUP BY 1
+        ORDER BY 1`,
+      [days],
+    );
+    res.json({ days, series: buildDailySeries(rows, days) });
   } catch (err) {
     next(err);
   }
