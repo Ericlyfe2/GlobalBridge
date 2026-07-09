@@ -231,141 +231,141 @@
     "ctaSubtitle": "GlobalBridgeを活用して国際教育を自信を持って進める何千人もの学生に仲間入りしましょう。",
     "ctaButton": "無料アカウント作成",
     "ctaAssistantButton": "AIアシスタントに質問",
-    "statStudents": "Students guided",
-    "statVisaSuccess": "Visa success rate",
+    "statStudents": "サポートした学生",
+    "statVisaSuccess": "ビザ成功率",
     "hero": {
-      "label": "[JA] Study abroad, held together",
-      "title": "[JA] Your move,<br />held together.",
-      "subtitle": "Visa guidance, verified housing, mentorship, jobs, and life support — one platform, before, during, and after you arrive.",
-      "startFree": "[JA] Start free",
-      "meetNetwork": "[JA] Meet the network",
-      "scroll": "[JA] Scroll",
+      "label": "海外留学を、ひとつに",
+      "title": "あなたの新生活を、<br />ひとつに。",
+      "subtitle": "ビザ相談、認証済みの住まい、メンター、仕事、生活サポート——渡航前・渡航中・渡航後をひとつのプラットフォームで。",
+      "startFree": "無料で始める",
+      "meetNetwork": "ネットワークを見る",
+      "scroll": "スクロール",
       "cards": {
         "tokyo": {
-          "title": "[JA] Tokyo",
-          "tag": "Japan — Asia Pacific"
+          "title": "東京",
+          "tag": "日本 — アジア太平洋"
         },
         "berlin": {
-          "title": "[JA] Berlin",
-          "tag": "Germany — Europe"
+          "title": "ベルリン",
+          "tag": "ドイツ — ヨーロッパ"
         },
         "toronto": {
-          "title": "[JA] Toronto",
-          "tag": "Canada — North America"
+          "title": "トロント",
+          "tag": "カナダ — 北米"
         },
         "dubai": {
-          "title": "[JA] Dubai",
-          "tag": "UAE — Middle East"
+          "title": "ドバイ",
+          "tag": "UAE — 中東"
         },
         "london": {
-          "title": "[JA] London",
-          "tag": "United Kingdom — Europe"
+          "title": "ロンドン",
+          "tag": "イギリス — ヨーロッパ"
         }
       }
     },
     "visa": {
-      "title": "[JA] AI Visa Assistant",
-      "dek": "[JA] Any visa. Any country. Zero guesswork.",
-      "detail": "Conversational guidance that adapts to your destination, your passport, and your timeline — with a step-by-step document checklist that updates itself as embassies change the rules.",
-      "bullet1": "[JA] Country-specific checklist, generated in minutes",
-      "bullet2": "[JA] Plain-language answers to embassy questions",
-      "bullet3": "[JA] Deadline tracking with reminders that actually fire",
+      "title": "AIビザアシスタント",
+      "dek": "どんなビザも。どんな国も。迷いはゼロ。",
+      "detail": "渡航先・パスポート・スケジュールに合わせて対話形式で案内。大使館がルールを変更するたびに自動更新される、ステップごとの書類チェックリスト付き。",
+      "bullet1": "国別のチェックリストを数分で作成",
+      "bullet2": "大使館の質問にわかりやすく回答",
+      "bullet3": "締め切りを管理し、確実に届くリマインダー",
       "checklist": {
-        "step1": "[JA] University Acceptance Letter",
-        "step2": "[JA] Proof of Financial Support",
-        "step3": "[JA] Passport Validity Check",
-        "step4": "[JA] Biometrics Appointment"
+        "step1": "大学の入学許可書",
+        "step2": "資金証明",
+        "step3": "パスポートの有効期限確認",
+        "step4": "生体認証の予約"
       }
     },
     "housing": {
-      "title": "[JA] Verified Housing",
-      "dek": "[JA] A key waiting for you, not a listing that vanishes.",
-      "detail": "[JA] Every landlord is identity-checked before their listing goes live. Match with roommates who share your move-in date, and book your place before you board.",
-      "bullet1": "[JA] Identity-verified landlords only",
-      "bullet2": "[JA] Roommate matching by city, dates, and habits",
-      "bullet3": "Book and pay before you land — no showings needed"
+      "title": "認証済みの住まい",
+      "dek": "消える物件ではなく、あなたを待つ鍵を。",
+      "detail": "すべての貸主は掲載前に本人確認を行います。入居日が同じルームメイトとマッチングし、渡航前にお部屋を予約できます。",
+      "bullet1": "本人確認済みの貸主のみ",
+      "bullet2": "都市・日程・生活習慣でルームメイトをマッチング",
+      "bullet3": "到着前に予約・支払い——内見は不要"
     },
     "jobs": {
-      "title": "[JA] Jobs & Internships",
-      "dek": "[JA] Filtered for the one thing that matters: sponsorship.",
-      "detail": "[JA] Search roles that actually sponsor your visa type, track a company's sponsorship history before you apply, and let the AI resume builder tune your CV per market.",
-      "bullet1": "[JA] Filter by visa-sponsor status, not guesswork",
-      "bullet2": "[JA] AI resume builder tuned to local hiring norms",
-      "bullet3": "[JA] Sponsorship-history tracker per employer",
-      "sponsorRoles": "[JA] Sponsor Roles",
-      "interviewLift": "[JA] Interview Lift",
-      "visaSponsorBadge": "[JA] VISA-SPONSOR"
+      "title": "仕事とインターンシップ",
+      "dek": "最も大切な一点で絞り込み：ビザのスポンサー。",
+      "detail": "あなたのビザを実際にスポンサーする求人を検索し、応募前に企業のスポンサー実績を確認。AI履歴書ビルダーが市場ごとに履歴書を最適化します。",
+      "bullet1": "推測ではなく、ビザスポンサーの有無で絞り込み",
+      "bullet2": "現地の採用慣行に合わせたAI履歴書ビルダー",
+      "bullet3": "雇用主ごとのスポンサー実績トラッカー",
+      "sponsorRoles": "スポンサー求人",
+      "interviewLift": "面接アップ",
+      "visaSponsorBadge": "ビザスポンサー"
     },
     "mentorship": {
-      "title": "[JA] Mentorship Network",
-      "dek": "[JA] People who already lived it, one message away.",
-      "detail": "[JA] Connect with people who've spent years in your destination city. Join cultural hubs and events built around where you're headed, not where you're from."
+      "title": "メンターネットワーク",
+      "dek": "すでに経験した人たちに、メッセージひとつで。",
+      "detail": "渡航先の街で何年も過ごした人とつながりましょう。出身地ではなく、行き先を軸にした文化交流やイベントに参加できます。"
     },
     "lifeSupport": {
-      "title": "[JA] Life Support Toolkit",
-      "dek": "[JA] Everything after the flight lands.",
-      "detail": "Cost calculators, healthcare guides, banking setup, and an emergency SOS — all in one place, so the small logistics never become the hard part.",
-      "tool1": "[JA] Cost calculator",
-      "tool1Note": "[JA] Budget by city, down to groceries",
-      "tool2": "[JA] Healthcare guide",
-      "tool2Note": "[JA] Insurance & clinics, explained",
-      "tool3": "[JA] Banking setup",
-      "tool3Note": "[JA] Open an account before you land",
-      "tool4": "[JA] Emergency SOS",
-      "tool4Note": "[JA] One tap, always on"
+      "title": "生活サポートキット",
+      "dek": "着陸したあとの、すべてを。",
+      "detail": "生活費計算ツール、医療ガイド、銀行口座の開設、緊急SOS——すべてひとつに。小さな手続きが大きな壁にならないように。",
+      "tool1": "生活費計算ツール",
+      "tool1Note": "都市ごとに、食料品まで予算化",
+      "tool2": "医療ガイド",
+      "tool2Note": "保険と病院をわかりやすく",
+      "tool3": "銀行口座の開設",
+      "tool3Note": "到着前に口座を開設",
+      "tool4": "緊急SOS",
+      "tool4Note": "ワンタップ、いつでも"
     },
     "closing": {
-      "title": "[JA] Every piece, one bridge."
+      "title": "すべてのピースを、ひとつの架け橋に。"
     },
     "reviews": {
       "r1": {
-        "serviceTitle": "[JA] AI Visa Assistant",
-        "quote": "It told me exactly which biometrics appointment to book first — I would have missed the window otherwise."
+        "serviceTitle": "AIビザアシスタント",
+        "quote": "最初にどの生体認証の予約を取るべきか正確に教えてくれました。そうでなければ期限を逃していました。"
       },
       "r2": {
-        "serviceTitle": "[JA] Verified Housing",
-        "quote": "[JA] I signed my lease from home. No video call landlord ever went quiet on me."
+        "serviceTitle": "認証済みの住まい",
+        "quote": "自宅から賃貸契約を結びました。ビデオ通話をした貸主が音信不通になることは一度もありませんでした。"
       },
       "r3": {
-        "serviceTitle": "[JA] Mentorship Network",
-        "quote": "[JA] My mentor met me at arrivals. That's not something a brochure tells you to expect."
+        "serviceTitle": "メンターネットワーク",
+        "quote": "メンターが到着ロビーで出迎えてくれました。パンフレットには書かれていない体験です。"
       },
       "r4": {
-        "serviceTitle": "[JA] Jobs & Internships",
-        "quote": "[JA] Every listing I applied to already sponsored my visa type. I stopped wasting weeks on dead ends."
+        "serviceTitle": "仕事とインターンシップ",
+        "quote": "応募した求人はすべて、私のビザをスポンサーしていました。行き止まりに何週間も費やすのをやめられました。"
       },
       "r5": {
-        "serviceTitle": "[JA] Life Support Toolkit",
-        "quote": "[JA] The bank setup guide alone saved me a week of standing in the wrong lines."
+        "serviceTitle": "生活サポートキット",
+        "quote": "銀行口座ガイドだけで、間違った列に並ぶ一週間を節約できました。"
       },
-      "label": "[JA] Proof, not promises",
-      "title": "[JA] Real people. Real moves.",
-      "subtitle": "Thousands of immigrants trust GlobalBridge every year — here's what they say.",
-      "cta": "[JA] Start your journey"
+      "label": "約束ではなく、実績",
+      "title": "本物の人。本物の移住。",
+      "subtitle": "毎年何千人もの移住者がGlobalBridgeを信頼しています——その声をご紹介します。",
+      "cta": "旅を始める"
     },
     "footer": {
-      "subtitle": "[JA] Your move, held together.",
-      "sitemap": "[JA] Sitemap",
-      "company": "[JA] Company",
-      "status": "[JA] Status",
-      "time": "[JA] Time",
-      "allSystemsLive": "[JA] All systems live",
-      "bridgesBuilt": "[JA] bridges built ↑",
-      "backToTop": "[JA] Back to top",
+      "subtitle": "あなたの新生活を、ひとつに。",
+      "sitemap": "サイトマップ",
+      "company": "会社",
+      "status": "ステータス",
+      "time": "時刻",
+      "allSystemsLive": "すべてのシステム稼働中",
+      "bridgesBuilt": "架け橋を構築 ↑",
+      "backToTop": "トップへ戻る",
       "copyright": "© 2026 Global Bridge",
-      "about": "[JA] About",
-      "careers": "[JA] Careers",
-      "press": "[JA] Press",
-      "contact": "[JA] Contact",
-      "trustSafety": "[JA] Trust & Safety",
-      "getChecklist": "[JA] Get the checklist",
-      "checklistSent": "[JA] Checklist on its way",
+      "about": "会社概要",
+      "careers": "採用情報",
+      "press": "プレス",
+      "contact": "お問い合わせ",
+      "trustSafety": "信頼と安全",
+      "getChecklist": "チェックリストを入手",
+      "checklistSent": "チェックリストを送信中",
       "cities": {
-        "toronto": "[JA] Toronto",
-        "london": "[JA] London",
-        "berlin": "[JA] Berlin",
-        "sydney": "[JA] Sydney",
-        "dublin": "[JA] Dublin"
+        "toronto": "トロント",
+        "london": "ロンドン",
+        "berlin": "ベルリン",
+        "sydney": "シドニー",
+        "dublin": "ダブリン"
       }
     }
   },

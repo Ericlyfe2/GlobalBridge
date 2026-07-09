@@ -246,141 +246,141 @@
     "ctaSubtitle": "انضم إلى آلاف الطلاب الذين يستخدمون GlobalBridge لخوض تجربتهم التعليمية الدولية بثقة.",
     "ctaButton": "إنشاء حساب مجاني",
     "ctaAssistantButton": "تحدث إلى المساعد الذكي",
-    "statStudents": "Students guided",
-    "statVisaSuccess": "Visa success rate",
+    "statStudents": "طلاب تم إرشادهم",
+    "statVisaSuccess": "معدل نجاح التأشيرات",
     "hero": {
-      "label": "[AR] Study abroad, held together",
-      "title": "[AR] Your move,<br />held together.",
-      "subtitle": "Visa guidance, verified housing, mentorship, jobs, and life support — one platform, before, during, and after you arrive.",
-      "startFree": "[AR] Start free",
-      "meetNetwork": "[AR] Meet the network",
-      "scroll": "[AR] Scroll",
+      "label": "الدراسة في الخارج، ونحن معك في كل خطوة",
+      "title": "انتقالك،<br />ونحن معك في كل خطوة.",
+      "subtitle": "إرشاد التأشيرات، سكن موثّق، منتورينغ، وظائف، ودعم للحياة — منصة واحدة، قبل وصولك وأثناءه وبعده.",
+      "startFree": "ابدأ مجانًا",
+      "meetNetwork": "تعرّف على الشبكة",
+      "scroll": "مرّر",
       "cards": {
         "tokyo": {
-          "title": "[AR] Tokyo",
-          "tag": "Japan — Asia Pacific"
+          "title": "طوكيو",
+          "tag": "اليابان — آسيا والمحيط الهادئ"
         },
         "berlin": {
-          "title": "[AR] Berlin",
-          "tag": "Germany — Europe"
+          "title": "برلين",
+          "tag": "ألمانيا — أوروبا"
         },
         "toronto": {
-          "title": "[AR] Toronto",
-          "tag": "Canada — North America"
+          "title": "تورنتو",
+          "tag": "كندا — أمريكا الشمالية"
         },
         "dubai": {
-          "title": "[AR] Dubai",
-          "tag": "UAE — Middle East"
+          "title": "دبي",
+          "tag": "الإمارات — الشرق الأوسط"
         },
         "london": {
-          "title": "[AR] London",
-          "tag": "United Kingdom — Europe"
+          "title": "لندن",
+          "tag": "المملكة المتحدة — أوروبا"
         }
       }
     },
     "visa": {
-      "title": "[AR] AI Visa Assistant",
-      "dek": "[AR] Any visa. Any country. Zero guesswork.",
-      "detail": "Conversational guidance that adapts to your destination, your passport, and your timeline — with a step-by-step document checklist that updates itself as embassies change the rules.",
-      "bullet1": "[AR] Country-specific checklist, generated in minutes",
-      "bullet2": "[AR] Plain-language answers to embassy questions",
-      "bullet3": "[AR] Deadline tracking with reminders that actually fire",
+      "title": "مساعد التأشيرات بالذكاء الاصطناعي",
+      "dek": "أي تأشيرة. أي بلد. دون تخمين.",
+      "detail": "إرشاد تحاوري يتكيّف مع وجهتك وجواز سفرك وجدولك الزمني — مع قائمة مستندات خطوة بخطوة تُحدّث نفسها كلما غيّرت السفارات القواعد.",
+      "bullet1": "قائمة تحقق خاصة بكل بلد، تُنشأ في دقائق",
+      "bullet2": "إجابات بلغة بسيطة على أسئلة السفارة",
+      "bullet3": "تتبّع المواعيد النهائية مع تذكيرات تصلك فعلاً",
       "checklist": {
-        "step1": "[AR] University Acceptance Letter",
-        "step2": "[AR] Proof of Financial Support",
-        "step3": "[AR] Passport Validity Check",
-        "step4": "[AR] Biometrics Appointment"
+        "step1": "خطاب قبول الجامعة",
+        "step2": "إثبات القدرة المالية",
+        "step3": "التحقق من صلاحية جواز السفر",
+        "step4": "موعد البصمة الحيوية"
       }
     },
     "housing": {
-      "title": "[AR] Verified Housing",
-      "dek": "[AR] A key waiting for you, not a listing that vanishes.",
-      "detail": "[AR] Every landlord is identity-checked before their listing goes live. Match with roommates who share your move-in date, and book your place before you board.",
-      "bullet1": "[AR] Identity-verified landlords only",
-      "bullet2": "[AR] Roommate matching by city, dates, and habits",
-      "bullet3": "Book and pay before you land — no showings needed"
+      "title": "سكن موثّق",
+      "dek": "مفتاح ينتظرك، لا إعلان يختفي.",
+      "detail": "يتم التحقق من هوية كل مالك قبل نشر إعلانه. طابِق مع زملاء سكن يشاركونك تاريخ الانتقال، واحجز مكانك قبل أن تسافر.",
+      "bullet1": "ملّاك موثّقو الهوية فقط",
+      "bullet2": "مطابقة زملاء السكن حسب المدينة والتواريخ والعادات",
+      "bullet3": "احجز وادفع قبل وصولك — دون حاجة إلى معاينات"
     },
     "jobs": {
-      "title": "[AR] Jobs & Internships",
-      "dek": "[AR] Filtered for the one thing that matters: sponsorship.",
-      "detail": "[AR] Search roles that actually sponsor your visa type, track a company's sponsorship history before you apply, and let the AI resume builder tune your CV per market.",
-      "bullet1": "[AR] Filter by visa-sponsor status, not guesswork",
-      "bullet2": "[AR] AI resume builder tuned to local hiring norms",
-      "bullet3": "[AR] Sponsorship-history tracker per employer",
-      "sponsorRoles": "[AR] Sponsor Roles",
-      "interviewLift": "[AR] Interview Lift",
-      "visaSponsorBadge": "[AR] VISA-SPONSOR"
+      "title": "الوظائف والتدريب",
+      "dek": "مُصفّاة حسب الأهم: الكفالة.",
+      "detail": "ابحث عن وظائف تكفل تأشيرتك فعلاً، وتتبّع سجل الكفالة لدى الشركة قبل التقديم، ودع مُنشئ السيرة الذاتية بالذكاء الاصطناعي يضبط سيرتك لكل سوق.",
+      "bullet1": "التصفية حسب حالة كفالة التأشيرة، لا بالتخمين",
+      "bullet2": "منشئ سيرة ذاتية بالذكاء الاصطناعي مضبوط على أعراف التوظيف المحلية",
+      "bullet3": "متتبّع سجل الكفالة لكل صاحب عمل",
+      "sponsorRoles": "وظائف بكفالة",
+      "interviewLift": "زيادة المقابلات",
+      "visaSponsorBadge": "كفيل تأشيرة"
     },
     "mentorship": {
-      "title": "[AR] Mentorship Network",
-      "dek": "[AR] People who already lived it, one message away.",
-      "detail": "[AR] Connect with people who've spent years in your destination city. Join cultural hubs and events built around where you're headed, not where you're from."
+      "title": "شبكة الإرشاد",
+      "dek": "أشخاص عاشوا التجربة من قبل، على بُعد رسالة.",
+      "detail": "تواصل مع أشخاص قضوا سنوات في مدينتك المقصودة. انضم إلى ملتقيات وفعاليات ثقافية مبنية حول وجهتك، لا حول مكان مجيئك."
     },
     "lifeSupport": {
-      "title": "[AR] Life Support Toolkit",
-      "dek": "[AR] Everything after the flight lands.",
-      "detail": "Cost calculators, healthcare guides, banking setup, and an emergency SOS — all in one place, so the small logistics never become the hard part.",
-      "tool1": "[AR] Cost calculator",
-      "tool1Note": "[AR] Budget by city, down to groceries",
-      "tool2": "[AR] Healthcare guide",
-      "tool2Note": "[AR] Insurance & clinics, explained",
-      "tool3": "[AR] Banking setup",
-      "tool3Note": "[AR] Open an account before you land",
-      "tool4": "[AR] Emergency SOS",
-      "tool4Note": "[AR] One tap, always on"
+      "title": "حقيبة الحياة اليومية",
+      "dek": "كل ما يأتي بعد هبوط الطائرة.",
+      "detail": "حاسبات التكاليف، وأدلة الرعاية الصحية، وفتح الحساب البنكي، واستغاثة طارئة — كلها في مكان واحد، حتى لا تصبح التفاصيل الصغيرة أصعب جزء.",
+      "tool1": "حاسبة التكاليف",
+      "tool1Note": "ميزانية حسب المدينة، حتى البقالة",
+      "tool2": "دليل الرعاية الصحية",
+      "tool2Note": "التأمين والعيادات، بشرح مبسّط",
+      "tool3": "فتح حساب بنكي",
+      "tool3Note": "افتح حسابًا قبل وصولك",
+      "tool4": "استغاثة طارئة",
+      "tool4Note": "لمسة واحدة، متاحة دائمًا"
     },
     "closing": {
-      "title": "[AR] Every piece, one bridge."
+      "title": "كل قطعة، جسر واحد."
     },
     "reviews": {
       "r1": {
-        "serviceTitle": "[AR] AI Visa Assistant",
-        "quote": "It told me exactly which biometrics appointment to book first — I would have missed the window otherwise."
+        "serviceTitle": "مساعد التأشيرات بالذكاء الاصطناعي",
+        "quote": "أخبرني بالضبط أي موعد بصمة حيوية أحجزه أولاً — لولا ذلك لفاتتني المهلة."
       },
       "r2": {
-        "serviceTitle": "[AR] Verified Housing",
-        "quote": "[AR] I signed my lease from home. No video call landlord ever went quiet on me."
+        "serviceTitle": "سكن موثّق",
+        "quote": "وقّعت عقد الإيجار من المنزل. لم يختفِ أي مالك بعد مكالمة فيديو."
       },
       "r3": {
-        "serviceTitle": "[AR] Mentorship Network",
-        "quote": "[AR] My mentor met me at arrivals. That's not something a brochure tells you to expect."
+        "serviceTitle": "شبكة الإرشاد",
+        "quote": "استقبلني مرشدي عند صالة الوصول. هذا ما لا يخبرك أي كتيّب بتوقّعه."
       },
       "r4": {
-        "serviceTitle": "[AR] Jobs & Internships",
-        "quote": "[AR] Every listing I applied to already sponsored my visa type. I stopped wasting weeks on dead ends."
+        "serviceTitle": "الوظائف والتدريب",
+        "quote": "كل وظيفة تقدّمت إليها كانت تكفل نوع تأشيرتي بالفعل. توقّفت عن إضاعة أسابيع في طرق مسدودة."
       },
       "r5": {
-        "serviceTitle": "[AR] Life Support Toolkit",
-        "quote": "[AR] The bank setup guide alone saved me a week of standing in the wrong lines."
+        "serviceTitle": "حقيبة الحياة اليومية",
+        "quote": "دليل فتح الحساب البنكي وحده وفّر عليّ أسبوعًا من الوقوف في الطوابير الخاطئة."
       },
-      "label": "[AR] Proof, not promises",
-      "title": "[AR] Real people. Real moves.",
-      "subtitle": "Thousands of immigrants trust GlobalBridge every year — here's what they say.",
-      "cta": "[AR] Start your journey"
+      "label": "دليل، لا وعود",
+      "title": "أشخاص حقيقيون. انتقالات حقيقية.",
+      "subtitle": "يثق آلاف المهاجرين في GlobalBridge كل عام — وهذا ما يقولونه.",
+      "cta": "ابدأ رحلتك"
     },
     "footer": {
-      "subtitle": "[AR] Your move, held together.",
-      "sitemap": "[AR] Sitemap",
-      "company": "[AR] Company",
-      "status": "[AR] Status",
-      "time": "[AR] Time",
-      "allSystemsLive": "[AR] All systems live",
-      "bridgesBuilt": "[AR] bridges built ↑",
-      "backToTop": "[AR] Back to top",
+      "subtitle": "انتقالك، ونحن معك في كل خطوة.",
+      "sitemap": "خريطة الموقع",
+      "company": "الشركة",
+      "status": "الحالة",
+      "time": "الوقت",
+      "allSystemsLive": "جميع الأنظمة تعمل",
+      "bridgesBuilt": "جسور بُنيت ↑",
+      "backToTop": "العودة إلى الأعلى",
       "copyright": "© 2026 Global Bridge",
-      "about": "[AR] About",
-      "careers": "[AR] Careers",
-      "press": "[AR] Press",
-      "contact": "[AR] Contact",
-      "trustSafety": "[AR] Trust & Safety",
-      "getChecklist": "[AR] Get the checklist",
-      "checklistSent": "[AR] Checklist on its way",
+      "about": "من نحن",
+      "careers": "الوظائف",
+      "press": "الصحافة",
+      "contact": "تواصل",
+      "trustSafety": "الثقة والأمان",
+      "getChecklist": "احصل على القائمة",
+      "checklistSent": "القائمة في الطريق",
       "cities": {
-        "toronto": "[AR] Toronto",
-        "london": "[AR] London",
-        "berlin": "[AR] Berlin",
-        "sydney": "[AR] Sydney",
-        "dublin": "[AR] Dublin"
+        "toronto": "تورنتو",
+        "london": "لندن",
+        "berlin": "برلين",
+        "sydney": "سيدني",
+        "dublin": "دبلن"
       }
     }
   },

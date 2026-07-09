@@ -234,141 +234,141 @@
     "ctaSubtitle": "Unisciti a migliaia di studenti che usano GlobalBridge per navigare la loro istruzione internazionale con sicurezza.",
     "ctaButton": "Crea account gratuito",
     "ctaAssistantButton": "Parla con l'Assistente AI",
-    "statStudents": "Students guided",
-    "statVisaSuccess": "Visa success rate",
+    "statStudents": "Studenti seguiti",
+    "statVisaSuccess": "Tasso di successo dei visti",
     "hero": {
-      "label": "[IT] Study abroad, held together",
-      "title": "[IT] Your move,<br />held together.",
-      "subtitle": "Visa guidance, verified housing, mentorship, jobs, and life support — one platform, before, during, and after you arrive.",
-      "startFree": "[IT] Start free",
-      "meetNetwork": "[IT] Meet the network",
-      "scroll": "[IT] Scroll",
+      "label": "Studiare all'estero, senza lasciarti solo",
+      "title": "Il tuo trasferimento,<br />tutto sotto controllo.",
+      "subtitle": "Assistenza per il visto, alloggi verificati, mentorship, lavoro e supporto quotidiano – un'unica piattaforma, prima, durante e dopo il tuo arrivo.",
+      "startFree": "Inizia gratis",
+      "meetNetwork": "Scopri la rete",
+      "scroll": "Scorri",
       "cards": {
         "tokyo": {
-          "title": "[IT] Tokyo",
-          "tag": "Japan — Asia Pacific"
+          "title": "Tokyo",
+          "tag": "Giappone – Asia-Pacifico"
         },
         "berlin": {
-          "title": "[IT] Berlin",
-          "tag": "Germany — Europe"
+          "title": "Berlino",
+          "tag": "Germania – Europa"
         },
         "toronto": {
-          "title": "[IT] Toronto",
-          "tag": "Canada — North America"
+          "title": "Toronto",
+          "tag": "Canada – Nord America"
         },
         "dubai": {
-          "title": "[IT] Dubai",
-          "tag": "UAE — Middle East"
+          "title": "Dubai",
+          "tag": "EAU – Medio Oriente"
         },
         "london": {
-          "title": "[IT] London",
-          "tag": "United Kingdom — Europe"
+          "title": "Londra",
+          "tag": "Regno Unito – Europa"
         }
       }
     },
     "visa": {
-      "title": "[IT] AI Visa Assistant",
-      "dek": "[IT] Any visa. Any country. Zero guesswork.",
-      "detail": "Conversational guidance that adapts to your destination, your passport, and your timeline — with a step-by-step document checklist that updates itself as embassies change the rules.",
-      "bullet1": "[IT] Country-specific checklist, generated in minutes",
-      "bullet2": "[IT] Plain-language answers to embassy questions",
-      "bullet3": "[IT] Deadline tracking with reminders that actually fire",
+      "title": "Assistente Visti IA",
+      "dek": "Qualsiasi visto. Qualsiasi paese. Nessun dubbio.",
+      "detail": "Una guida conversazionale che si adatta alla tua destinazione, al tuo passaporto e ai tuoi tempi – con una checklist di documenti passo dopo passo che si aggiorna quando le ambasciate cambiano le regole.",
+      "bullet1": "Checklist specifica per paese, generata in pochi minuti",
+      "bullet2": "Risposte chiare alle domande dell'ambasciata",
+      "bullet3": "Monitoraggio delle scadenze con promemoria che arrivano davvero",
       "checklist": {
-        "step1": "[IT] University Acceptance Letter",
-        "step2": "[IT] Proof of Financial Support",
-        "step3": "[IT] Passport Validity Check",
-        "step4": "[IT] Biometrics Appointment"
+        "step1": "Lettera di ammissione dell'università",
+        "step2": "Prova di disponibilità economica",
+        "step3": "Verifica della validità del passaporto",
+        "step4": "Appuntamento per i dati biometrici"
       }
     },
     "housing": {
-      "title": "[IT] Verified Housing",
-      "dek": "[IT] A key waiting for you, not a listing that vanishes.",
-      "detail": "[IT] Every landlord is identity-checked before their listing goes live. Match with roommates who share your move-in date, and book your place before you board.",
-      "bullet1": "[IT] Identity-verified landlords only",
-      "bullet2": "[IT] Roommate matching by city, dates, and habits",
-      "bullet3": "Book and pay before you land — no showings needed"
+      "title": "Alloggi verificati",
+      "dek": "Una chiave che ti aspetta, non un annuncio che sparisce.",
+      "detail": "Ogni locatore viene verificato prima che il suo annuncio venga pubblicato. Trova coinquilini con la tua stessa data di ingresso e prenota la tua sistemazione prima di partire.",
+      "bullet1": "Solo locatori con identità verificata",
+      "bullet2": "Abbinamento dei coinquilini per città, date e abitudini",
+      "bullet3": "Prenota e paga prima di partire – nessuna visita necessaria"
     },
     "jobs": {
-      "title": "[IT] Jobs & Internships",
-      "dek": "[IT] Filtered for the one thing that matters: sponsorship.",
-      "detail": "[IT] Search roles that actually sponsor your visa type, track a company's sponsorship history before you apply, and let the AI resume builder tune your CV per market.",
-      "bullet1": "[IT] Filter by visa-sponsor status, not guesswork",
-      "bullet2": "[IT] AI resume builder tuned to local hiring norms",
-      "bullet3": "[IT] Sponsorship-history tracker per employer",
-      "sponsorRoles": "[IT] Sponsor Roles",
-      "interviewLift": "[IT] Interview Lift",
-      "visaSponsorBadge": "[IT] VISA-SPONSOR"
+      "title": "Lavoro & Tirocini",
+      "dek": "Filtrati per l'unica cosa che conta: la sponsorizzazione.",
+      "detail": "Cerca posizioni che sponsorizzano davvero il tuo tipo di visto, controlla lo storico delle sponsorizzazioni di un'azienda prima di candidarti e lascia che il generatore di CV con IA adatti il tuo curriculum a ogni mercato.",
+      "bullet1": "Filtra per stato di sponsorizzazione del visto, non a caso",
+      "bullet2": "Generatore di CV con IA adattato alle norme di assunzione locali",
+      "bullet3": "Storico delle sponsorizzazioni per ogni datore di lavoro",
+      "sponsorRoles": "Posizioni con sponsorizzazione",
+      "interviewLift": "Boost al colloquio",
+      "visaSponsorBadge": "SPONSOR-VISTO"
     },
     "mentorship": {
-      "title": "[IT] Mentorship Network",
-      "dek": "[IT] People who already lived it, one message away.",
-      "detail": "[IT] Connect with people who've spent years in your destination city. Join cultural hubs and events built around where you're headed, not where you're from."
+      "title": "Rete di mentori",
+      "dek": "Persone che l'hanno già vissuto, a un messaggio di distanza.",
+      "detail": "Mettiti in contatto con persone che hanno trascorso anni nella tua città di destinazione. Partecipa a punti d'incontro ed eventi culturali costruiti attorno a dove stai andando, non a dove vieni."
     },
     "lifeSupport": {
-      "title": "[IT] Life Support Toolkit",
-      "dek": "[IT] Everything after the flight lands.",
-      "detail": "Cost calculators, healthcare guides, banking setup, and an emergency SOS — all in one place, so the small logistics never become the hard part.",
-      "tool1": "[IT] Cost calculator",
-      "tool1Note": "[IT] Budget by city, down to groceries",
-      "tool2": "[IT] Healthcare guide",
-      "tool2Note": "[IT] Insurance & clinics, explained",
-      "tool3": "[IT] Banking setup",
-      "tool3Note": "[IT] Open an account before you land",
-      "tool4": "[IT] Emergency SOS",
-      "tool4Note": "[IT] One tap, always on"
+      "title": "Kit per la vita quotidiana",
+      "dek": "Tutto ciò che viene dopo l'atterraggio.",
+      "detail": "Calcolatori dei costi, guide sanitarie, apertura del conto e un SOS di emergenza – tutto in un unico posto, così i piccoli imprevisti non diventano mai il problema più grande.",
+      "tool1": "Calcolatore dei costi",
+      "tool1Note": "Budget per città, fino alla spesa",
+      "tool2": "Guida alla sanità",
+      "tool2Note": "Assicurazione e cliniche, spiegate",
+      "tool3": "Apertura del conto",
+      "tool3Note": "Apri un conto prima di atterrare",
+      "tool4": "SOS di emergenza",
+      "tool4Note": "Un tocco, sempre attivo"
     },
     "closing": {
-      "title": "[IT] Every piece, one bridge."
+      "title": "Ogni tassello, un solo ponte."
     },
     "reviews": {
       "r1": {
-        "serviceTitle": "[IT] AI Visa Assistant",
-        "quote": "It told me exactly which biometrics appointment to book first — I would have missed the window otherwise."
+        "serviceTitle": "Assistente Visti IA",
+        "quote": "Mi ha detto esattamente quale appuntamento biometrico prenotare per primo – altrimenti avrei perso la finestra utile."
       },
       "r2": {
-        "serviceTitle": "[IT] Verified Housing",
-        "quote": "[IT] I signed my lease from home. No video call landlord ever went quiet on me."
+        "serviceTitle": "Alloggi verificati",
+        "quote": "Ho firmato il contratto di affitto da casa. Nessun locatore visto in videochiamata è poi sparito nel nulla."
       },
       "r3": {
-        "serviceTitle": "[IT] Mentorship Network",
-        "quote": "[IT] My mentor met me at arrivals. That's not something a brochure tells you to expect."
+        "serviceTitle": "Rete di mentori",
+        "quote": "Il mio mentore mi ha accolto agli arrivi. Non è una cosa che un opuscolo ti dice di aspettarti."
       },
       "r4": {
-        "serviceTitle": "[IT] Jobs & Internships",
-        "quote": "[IT] Every listing I applied to already sponsored my visa type. I stopped wasting weeks on dead ends."
+        "serviceTitle": "Lavoro & Tirocini",
+        "quote": "Ogni annuncio a cui mi sono candidato sponsorizzava già il mio tipo di visto. Ho smesso di perdere settimane in vicoli ciechi."
       },
       "r5": {
-        "serviceTitle": "[IT] Life Support Toolkit",
-        "quote": "[IT] The bank setup guide alone saved me a week of standing in the wrong lines."
+        "serviceTitle": "Kit per la vita quotidiana",
+        "quote": "La sola guida all'apertura del conto mi ha risparmiato una settimana in code sbagliate."
       },
-      "label": "[IT] Proof, not promises",
-      "title": "[IT] Real people. Real moves.",
-      "subtitle": "Thousands of immigrants trust GlobalBridge every year — here's what they say.",
-      "cta": "[IT] Start your journey"
+      "label": "Fatti, non promesse",
+      "title": "Persone vere. Trasferimenti veri.",
+      "subtitle": "Ogni anno migliaia di immigrati si fidano di GlobalBridge – ecco cosa dicono.",
+      "cta": "Inizia il tuo percorso"
     },
     "footer": {
-      "subtitle": "[IT] Your move, held together.",
-      "sitemap": "[IT] Sitemap",
-      "company": "[IT] Company",
-      "status": "[IT] Status",
-      "time": "[IT] Time",
-      "allSystemsLive": "[IT] All systems live",
-      "bridgesBuilt": "[IT] bridges built ↑",
-      "backToTop": "[IT] Back to top",
+      "subtitle": "Il tuo trasferimento, tutto sotto controllo.",
+      "sitemap": "Mappa del sito",
+      "company": "Azienda",
+      "status": "Stato",
+      "time": "Ora",
+      "allSystemsLive": "Tutti i sistemi attivi",
+      "bridgesBuilt": "ponti costruiti ↑",
+      "backToTop": "Torna su",
       "copyright": "© 2026 Global Bridge",
-      "about": "[IT] About",
-      "careers": "[IT] Careers",
-      "press": "[IT] Press",
-      "contact": "[IT] Contact",
-      "trustSafety": "[IT] Trust & Safety",
-      "getChecklist": "[IT] Get the checklist",
-      "checklistSent": "[IT] Checklist on its way",
+      "about": "Chi siamo",
+      "careers": "Lavora con noi",
+      "press": "Stampa",
+      "contact": "Contatti",
+      "trustSafety": "Fiducia e sicurezza",
+      "getChecklist": "Ottieni la checklist",
+      "checklistSent": "Checklist in arrivo",
       "cities": {
-        "toronto": "[IT] Toronto",
-        "london": "[IT] London",
-        "berlin": "[IT] Berlin",
-        "sydney": "[IT] Sydney",
-        "dublin": "[IT] Dublin"
+        "toronto": "Toronto",
+        "london": "Londra",
+        "berlin": "Berlino",
+        "sydney": "Sydney",
+        "dublin": "Dublino"
       }
     }
   },

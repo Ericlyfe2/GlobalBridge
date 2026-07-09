@@ -231,141 +231,141 @@
     "ctaSubtitle": "GlobalBridge와 함께 자신감 있게 국제 교육을 준비하는 수천 명의 학생들과 함께하세요.",
     "ctaButton": "무료 계정 만들기",
     "ctaAssistantButton": "AI 어시스턴트와 대화하기",
-    "statStudents": "Students guided",
-    "statVisaSuccess": "Visa success rate",
+    "statStudents": "안내한 학생 수",
+    "statVisaSuccess": "비자 성공률",
     "hero": {
-      "label": "[KO] Study abroad, held together",
-      "title": "[KO] Your move,<br />held together.",
-      "subtitle": "Visa guidance, verified housing, mentorship, jobs, and life support — one platform, before, during, and after you arrive.",
-      "startFree": "[KO] Start free",
-      "meetNetwork": "[KO] Meet the network",
-      "scroll": "[KO] Scroll",
+      "label": "해외 유학, 함께 준비해요",
+      "title": "당신의 이주,<br />함께 준비해요.",
+      "subtitle": "비자 안내, 인증된 주택, 멘토링, 일자리, 생활 지원 — 도착 전, 도중, 이후까지 하나의 플랫폼에서.",
+      "startFree": "무료로 시작하기",
+      "meetNetwork": "네트워크 만나기",
+      "scroll": "스크롤",
       "cards": {
         "tokyo": {
-          "title": "[KO] Tokyo",
-          "tag": "Japan — Asia Pacific"
+          "title": "도쿄",
+          "tag": "일본 — 아시아 태평양"
         },
         "berlin": {
-          "title": "[KO] Berlin",
-          "tag": "Germany — Europe"
+          "title": "베를린",
+          "tag": "독일 — 유럽"
         },
         "toronto": {
-          "title": "[KO] Toronto",
-          "tag": "Canada — North America"
+          "title": "토론토",
+          "tag": "캐나다 — 북미"
         },
         "dubai": {
-          "title": "[KO] Dubai",
-          "tag": "UAE — Middle East"
+          "title": "두바이",
+          "tag": "UAE — 중동"
         },
         "london": {
-          "title": "[KO] London",
-          "tag": "United Kingdom — Europe"
+          "title": "런던",
+          "tag": "영국 — 유럽"
         }
       }
     },
     "visa": {
-      "title": "[KO] AI Visa Assistant",
-      "dek": "[KO] Any visa. Any country. Zero guesswork.",
-      "detail": "Conversational guidance that adapts to your destination, your passport, and your timeline — with a step-by-step document checklist that updates itself as embassies change the rules.",
-      "bullet1": "[KO] Country-specific checklist, generated in minutes",
-      "bullet2": "[KO] Plain-language answers to embassy questions",
-      "bullet3": "[KO] Deadline tracking with reminders that actually fire",
+      "title": "AI 비자 도우미",
+      "dek": "어떤 비자든. 어떤 나라든. 추측은 없이.",
+      "detail": "목적지, 여권, 일정에 맞춰 대화형으로 안내하고, 대사관이 규정을 바꿀 때마다 스스로 업데이트되는 단계별 서류 체크리스트를 제공합니다.",
+      "bullet1": "국가별 체크리스트를 몇 분 만에 생성",
+      "bullet2": "대사관 질문에 대한 쉬운 답변",
+      "bullet3": "실제로 울리는 알림과 함께 마감일 관리",
       "checklist": {
-        "step1": "[KO] University Acceptance Letter",
-        "step2": "[KO] Proof of Financial Support",
-        "step3": "[KO] Passport Validity Check",
-        "step4": "[KO] Biometrics Appointment"
+        "step1": "대학 입학 허가서",
+        "step2": "재정 능력 증명",
+        "step3": "여권 유효기간 확인",
+        "step4": "생체정보 예약"
       }
     },
     "housing": {
-      "title": "[KO] Verified Housing",
-      "dek": "[KO] A key waiting for you, not a listing that vanishes.",
-      "detail": "[KO] Every landlord is identity-checked before their listing goes live. Match with roommates who share your move-in date, and book your place before you board.",
-      "bullet1": "[KO] Identity-verified landlords only",
-      "bullet2": "[KO] Roommate matching by city, dates, and habits",
-      "bullet3": "Book and pay before you land — no showings needed"
+      "title": "인증된 주택",
+      "dek": "사라지는 매물이 아니라, 당신을 기다리는 열쇠.",
+      "detail": "모든 집주인은 매물 등록 전 신원 확인을 거칩니다. 입주일이 같은 룸메이트와 매칭하고, 탑승 전에 집을 예약하세요.",
+      "bullet1": "신원 확인된 집주인만",
+      "bullet2": "도시, 날짜, 생활 습관으로 룸메이트 매칭",
+      "bullet3": "도착 전에 예약하고 결제하세요 — 방문 없이"
     },
     "jobs": {
-      "title": "[KO] Jobs & Internships",
-      "dek": "[KO] Filtered for the one thing that matters: sponsorship.",
-      "detail": "[KO] Search roles that actually sponsor your visa type, track a company's sponsorship history before you apply, and let the AI resume builder tune your CV per market.",
-      "bullet1": "[KO] Filter by visa-sponsor status, not guesswork",
-      "bullet2": "[KO] AI resume builder tuned to local hiring norms",
-      "bullet3": "[KO] Sponsorship-history tracker per employer",
-      "sponsorRoles": "[KO] Sponsor Roles",
-      "interviewLift": "[KO] Interview Lift",
-      "visaSponsorBadge": "[KO] VISA-SPONSOR"
+      "title": "채용 및 인턴십",
+      "dek": "가장 중요한 한 가지, 스폰서십으로 필터링.",
+      "detail": "실제로 당신의 비자를 스폰서하는 일자리를 검색하고, 지원 전 회사의 스폰서 이력을 확인하며, AI 이력서 빌더가 시장에 맞게 이력서를 조정하도록 하세요.",
+      "bullet1": "추측이 아니라 비자 스폰서 여부로 필터링",
+      "bullet2": "현지 채용 관행에 맞춘 AI 이력서 빌더",
+      "bullet3": "고용주별 스폰서 이력 추적",
+      "sponsorRoles": "스폰서 채용",
+      "interviewLift": "면접 상승",
+      "visaSponsorBadge": "비자 스폰서"
     },
     "mentorship": {
-      "title": "[KO] Mentorship Network",
-      "dek": "[KO] People who already lived it, one message away.",
-      "detail": "[KO] Connect with people who've spent years in your destination city. Join cultural hubs and events built around where you're headed, not where you're from."
+      "title": "멘토 네트워크",
+      "dek": "이미 겪어본 사람들, 메시지 하나면 닿아요.",
+      "detail": "목적지 도시에서 여러 해를 보낸 사람들과 연결되세요. 출신지가 아니라 향하는 곳을 중심으로 한 문화 모임과 행사에 참여하세요."
     },
     "lifeSupport": {
-      "title": "[KO] Life Support Toolkit",
-      "dek": "[KO] Everything after the flight lands.",
-      "detail": "Cost calculators, healthcare guides, banking setup, and an emergency SOS — all in one place, so the small logistics never become the hard part.",
-      "tool1": "[KO] Cost calculator",
-      "tool1Note": "[KO] Budget by city, down to groceries",
-      "tool2": "[KO] Healthcare guide",
-      "tool2Note": "[KO] Insurance & clinics, explained",
-      "tool3": "[KO] Banking setup",
-      "tool3Note": "[KO] Open an account before you land",
-      "tool4": "[KO] Emergency SOS",
-      "tool4Note": "[KO] One tap, always on"
+      "title": "생활 지원 키트",
+      "dek": "비행기가 착륙한 뒤의 모든 것.",
+      "detail": "생활비 계산기, 의료 가이드, 은행 계좌 개설, 긴급 SOS — 모두 한곳에 모아, 사소한 일들이 결코 가장 어려운 부분이 되지 않도록.",
+      "tool1": "생활비 계산기",
+      "tool1Note": "도시별로, 식료품까지 예산 관리",
+      "tool2": "의료 가이드",
+      "tool2Note": "보험과 병원, 쉽게 설명",
+      "tool3": "은행 계좌 개설",
+      "tool3Note": "도착 전에 계좌를 개설하세요",
+      "tool4": "긴급 SOS",
+      "tool4Note": "한 번의 탭, 언제나 켜짐"
     },
     "closing": {
-      "title": "[KO] Every piece, one bridge."
+      "title": "모든 조각을, 하나의 다리로."
     },
     "reviews": {
       "r1": {
-        "serviceTitle": "[KO] AI Visa Assistant",
-        "quote": "It told me exactly which biometrics appointment to book first — I would have missed the window otherwise."
+        "serviceTitle": "AI 비자 도우미",
+        "quote": "어떤 생체정보 예약을 먼저 잡아야 하는지 정확히 알려줬어요 — 아니었으면 기한을 놓쳤을 거예요."
       },
       "r2": {
-        "serviceTitle": "[KO] Verified Housing",
-        "quote": "[KO] I signed my lease from home. No video call landlord ever went quiet on me."
+        "serviceTitle": "인증된 주택",
+        "quote": "집에서 임대 계약을 마쳤어요. 영상 통화를 한 집주인 중 연락이 끊긴 사람은 없었습니다."
       },
       "r3": {
-        "serviceTitle": "[KO] Mentorship Network",
-        "quote": "[KO] My mentor met me at arrivals. That's not something a brochure tells you to expect."
+        "serviceTitle": "멘토 네트워크",
+        "quote": "멘토가 입국장에서 저를 맞아줬어요. 어떤 안내책자도 알려주지 않는 경험이죠."
       },
       "r4": {
-        "serviceTitle": "[KO] Jobs & Internships",
-        "quote": "[KO] Every listing I applied to already sponsored my visa type. I stopped wasting weeks on dead ends."
+        "serviceTitle": "채용 및 인턴십",
+        "quote": "지원한 모든 공고가 이미 제 비자 유형을 스폰서했어요. 막다른 길에 몇 주씩 낭비하는 일을 멈췄죠."
       },
       "r5": {
-        "serviceTitle": "[KO] Life Support Toolkit",
-        "quote": "[KO] The bank setup guide alone saved me a week of standing in the wrong lines."
+        "serviceTitle": "생활 지원 키트",
+        "quote": "은행 계좌 개설 가이드 하나만으로 엉뚱한 줄에 서는 일주일을 아꼈어요."
       },
-      "label": "[KO] Proof, not promises",
-      "title": "[KO] Real people. Real moves.",
-      "subtitle": "Thousands of immigrants trust GlobalBridge every year — here's what they say.",
-      "cta": "[KO] Start your journey"
+      "label": "약속이 아니라 증거",
+      "title": "진짜 사람들. 진짜 이주.",
+      "subtitle": "매년 수천 명의 이민자가 GlobalBridge를 신뢰합니다 — 그들의 이야기를 들어보세요.",
+      "cta": "여정을 시작하세요"
     },
     "footer": {
-      "subtitle": "[KO] Your move, held together.",
-      "sitemap": "[KO] Sitemap",
-      "company": "[KO] Company",
-      "status": "[KO] Status",
-      "time": "[KO] Time",
-      "allSystemsLive": "[KO] All systems live",
-      "bridgesBuilt": "[KO] bridges built ↑",
-      "backToTop": "[KO] Back to top",
+      "subtitle": "당신의 이주, 함께 준비해요.",
+      "sitemap": "사이트맵",
+      "company": "회사",
+      "status": "상태",
+      "time": "시간",
+      "allSystemsLive": "모든 시스템 정상",
+      "bridgesBuilt": "구축된 다리 ↑",
+      "backToTop": "맨 위로",
       "copyright": "© 2026 Global Bridge",
-      "about": "[KO] About",
-      "careers": "[KO] Careers",
-      "press": "[KO] Press",
-      "contact": "[KO] Contact",
-      "trustSafety": "[KO] Trust & Safety",
-      "getChecklist": "[KO] Get the checklist",
-      "checklistSent": "[KO] Checklist on its way",
+      "about": "소개",
+      "careers": "채용",
+      "press": "언론",
+      "contact": "문의",
+      "trustSafety": "신뢰와 안전",
+      "getChecklist": "체크리스트 받기",
+      "checklistSent": "체크리스트 전송 중",
       "cities": {
-        "toronto": "[KO] Toronto",
-        "london": "[KO] London",
-        "berlin": "[KO] Berlin",
-        "sydney": "[KO] Sydney",
-        "dublin": "[KO] Dublin"
+        "toronto": "토론토",
+        "london": "런던",
+        "berlin": "베를린",
+        "sydney": "시드니",
+        "dublin": "더블린"
       }
     }
   },

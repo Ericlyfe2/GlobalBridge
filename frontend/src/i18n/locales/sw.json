@@ -234,141 +234,141 @@
     "ctaSubtitle": "Jiunge na maelfu ya wanafunzi wanaotumia GlobalBridge kuelekeza elimu yao ya kimataifa kwa ujasiri.",
     "ctaButton": "Unda akaunti bure",
     "ctaAssistantButton": "Zungumza na Msaidizi wa AI",
-    "statStudents": "Students guided",
-    "statVisaSuccess": "Visa success rate",
+    "statStudents": "Wanafunzi walioongozwa",
+    "statVisaSuccess": "Kiwango cha mafanikio ya visa",
     "hero": {
-      "label": "[SW] Study abroad, held together",
-      "title": "[SW] Your move,<br />held together.",
-      "subtitle": "Visa guidance, verified housing, mentorship, jobs, and life support — one platform, before, during, and after you arrive.",
-      "startFree": "[SW] Start free",
-      "meetNetwork": "[SW] Meet the network",
-      "scroll": "[SW] Scroll",
+      "label": "Kusomea nje ya nchi, tukiwa pamoja nawe",
+      "title": "Safari yako,<br />tukiwa pamoja nawe.",
+      "subtitle": "Mwongozo wa visa, makazi yaliyothibitishwa, ushauri, kazi na msaada wa maisha – jukwaa moja, kabla, wakati na baada ya kuwasili kwako.",
+      "startFree": "Anza bila malipo",
+      "meetNetwork": "Kutana na mtandao",
+      "scroll": "Teleza",
       "cards": {
         "tokyo": {
-          "title": "[SW] Tokyo",
-          "tag": "Japan — Asia Pacific"
+          "title": "Tokyo",
+          "tag": "Japani – Asia-Pasifiki"
         },
         "berlin": {
-          "title": "[SW] Berlin",
-          "tag": "Germany — Europe"
+          "title": "Berlin",
+          "tag": "Ujerumani – Ulaya"
         },
         "toronto": {
-          "title": "[SW] Toronto",
-          "tag": "Canada — North America"
+          "title": "Toronto",
+          "tag": "Kanada – Amerika Kaskazini"
         },
         "dubai": {
-          "title": "[SW] Dubai",
-          "tag": "UAE — Middle East"
+          "title": "Dubai",
+          "tag": "UAE – Mashariki ya Kati"
         },
         "london": {
-          "title": "[SW] London",
-          "tag": "United Kingdom — Europe"
+          "title": "London",
+          "tag": "Uingereza – Ulaya"
         }
       }
     },
     "visa": {
-      "title": "[SW] AI Visa Assistant",
-      "dek": "[SW] Any visa. Any country. Zero guesswork.",
-      "detail": "Conversational guidance that adapts to your destination, your passport, and your timeline — with a step-by-step document checklist that updates itself as embassies change the rules.",
-      "bullet1": "[SW] Country-specific checklist, generated in minutes",
-      "bullet2": "[SW] Plain-language answers to embassy questions",
-      "bullet3": "[SW] Deadline tracking with reminders that actually fire",
+      "title": "Msaidizi wa Visa wa AI",
+      "dek": "Visa yoyote. Nchi yoyote. Bila kubahatisha.",
+      "detail": "Mwongozo wa mazungumzo unaobadilika kulingana na unakoenda, pasipoti yako, na ratiba yako – ukiwa na orodha ya hatua kwa hatua ya nyaraka inayojisasisha balozi zinapobadilisha sheria.",
+      "bullet1": "Orodha mahususi kwa kila nchi, imetengenezwa kwa dakika",
+      "bullet2": "Majibu ya lugha rahisi kwa maswali ya ubalozi",
+      "bullet3": "Ufuatiliaji wa tarehe za mwisho na vikumbusho vinavyofanya kazi kweli",
       "checklist": {
-        "step1": "[SW] University Acceptance Letter",
-        "step2": "[SW] Proof of Financial Support",
-        "step3": "[SW] Passport Validity Check",
-        "step4": "[SW] Biometrics Appointment"
+        "step1": "Barua ya kukubaliwa chuo kikuu",
+        "step2": "Uthibitisho wa uwezo wa kifedha",
+        "step3": "Ukaguzi wa uhalali wa pasipoti",
+        "step4": "Miadi ya alama za kibayometriki"
       }
     },
     "housing": {
-      "title": "[SW] Verified Housing",
-      "dek": "[SW] A key waiting for you, not a listing that vanishes.",
-      "detail": "[SW] Every landlord is identity-checked before their listing goes live. Match with roommates who share your move-in date, and book your place before you board.",
-      "bullet1": "[SW] Identity-verified landlords only",
-      "bullet2": "[SW] Roommate matching by city, dates, and habits",
-      "bullet3": "Book and pay before you land — no showings needed"
+      "title": "Makazi yaliyothibitishwa",
+      "dek": "Ufunguo unaokusubiri, si tangazo linalotoweka.",
+      "detail": "Kila mwenye nyumba huthibitishwa utambulisho kabla tangazo lake kuchapishwa. Pata wenzako wa chumba wenye tarehe sawa ya kuhamia, na uhifadhi mahali pako kabla ya kupanda ndege.",
+      "bullet1": "Wenye nyumba waliothibitishwa utambulisho pekee",
+      "bullet2": "Ulinganishaji wa wenza wa chumba kwa mji, tarehe na tabia",
+      "bullet3": "Weka nafasi na ulipe kabla ya kufika – hakuna maonyesho yanayohitajika"
     },
     "jobs": {
-      "title": "[SW] Jobs & Internships",
-      "dek": "[SW] Filtered for the one thing that matters: sponsorship.",
-      "detail": "[SW] Search roles that actually sponsor your visa type, track a company's sponsorship history before you apply, and let the AI resume builder tune your CV per market.",
-      "bullet1": "[SW] Filter by visa-sponsor status, not guesswork",
-      "bullet2": "[SW] AI resume builder tuned to local hiring norms",
-      "bullet3": "[SW] Sponsorship-history tracker per employer",
-      "sponsorRoles": "[SW] Sponsor Roles",
-      "interviewLift": "[SW] Interview Lift",
-      "visaSponsorBadge": "[SW] VISA-SPONSOR"
+      "title": "Kazi na Mafunzo",
+      "dek": "Zimechujwa kwa kitu kimoja muhimu: udhamini.",
+      "detail": "Tafuta nafasi zinazodhamini aina yako ya visa kweli, fuatilia historia ya udhamini ya kampuni kabla ya kuomba, na uache mtengenezaji wa wasifu wa AI urekebishe CV yako kwa kila soko.",
+      "bullet1": "Chuja kwa hali ya udhamini wa visa, si kubahatisha",
+      "bullet2": "Mtengenezaji wa wasifu wa AI uliolingana na kanuni za ajira za mahali",
+      "bullet3": "Kifuatiliaji cha historia ya udhamini kwa kila mwajiri",
+      "sponsorRoles": "Nafasi zenye udhamini",
+      "interviewLift": "Ongezeko la mahojiano",
+      "visaSponsorBadge": "MDHAMINI-VISA"
     },
     "mentorship": {
-      "title": "[SW] Mentorship Network",
-      "dek": "[SW] People who already lived it, one message away.",
-      "detail": "[SW] Connect with people who've spent years in your destination city. Join cultural hubs and events built around where you're headed, not where you're from."
+      "title": "Mtandao wa washauri",
+      "dek": "Watu waliokwisha kupitia haya, umbali wa ujumbe mmoja.",
+      "detail": "Unganishwa na watu waliokaa miaka katika mji unaoelekea. Jiunge na vituo vya kitamaduni na matukio yaliyojengwa kuzunguka unakoenda, si unakotoka."
     },
     "lifeSupport": {
-      "title": "[SW] Life Support Toolkit",
-      "dek": "[SW] Everything after the flight lands.",
-      "detail": "Cost calculators, healthcare guides, banking setup, and an emergency SOS — all in one place, so the small logistics never become the hard part.",
-      "tool1": "[SW] Cost calculator",
-      "tool1Note": "[SW] Budget by city, down to groceries",
-      "tool2": "[SW] Healthcare guide",
-      "tool2Note": "[SW] Insurance & clinics, explained",
-      "tool3": "[SW] Banking setup",
-      "tool3Note": "[SW] Open an account before you land",
-      "tool4": "[SW] Emergency SOS",
-      "tool4Note": "[SW] One tap, always on"
+      "title": "Kifurushi cha maisha ya kila siku",
+      "dek": "Kila kitu baada ya ndege kutua.",
+      "detail": "Vikokotoo vya gharama, miongozo ya afya, ufunguzi wa akaunti ya benki, na SOS ya dharura – vyote mahali pamoja, ili mambo madogo yasiwe kamwe sehemu ngumu.",
+      "tool1": "Kikokotoo cha gharama",
+      "tool1Note": "Bajeti kwa mji, hadi vyakula",
+      "tool2": "Mwongozo wa afya",
+      "tool2Note": "Bima na kliniki, zimeelezwa",
+      "tool3": "Ufunguzi wa akaunti ya benki",
+      "tool3Note": "Fungua akaunti kabla ya kufika",
+      "tool4": "SOS ya dharura",
+      "tool4Note": "Mguso mmoja, daima tayari"
     },
     "closing": {
-      "title": "[SW] Every piece, one bridge."
+      "title": "Kila kipande, daraja moja."
     },
     "reviews": {
       "r1": {
-        "serviceTitle": "[SW] AI Visa Assistant",
-        "quote": "It told me exactly which biometrics appointment to book first — I would have missed the window otherwise."
+        "serviceTitle": "Msaidizi wa Visa wa AI",
+        "quote": "Ilinieleza hasa miadi ipi ya alama za kibayometriki niweke kwanza – vinginevyo ningekosa muda."
       },
       "r2": {
-        "serviceTitle": "[SW] Verified Housing",
-        "quote": "[SW] I signed my lease from home. No video call landlord ever went quiet on me."
+        "serviceTitle": "Makazi yaliyothibitishwa",
+        "quote": "Nilisaini mkataba wa kupanga nyumba nikiwa nyumbani. Hakuna mwenye nyumba wa simu ya video aliyenyamaza baadaye."
       },
       "r3": {
-        "serviceTitle": "[SW] Mentorship Network",
-        "quote": "[SW] My mentor met me at arrivals. That's not something a brochure tells you to expect."
+        "serviceTitle": "Mtandao wa washauri",
+        "quote": "Mshauri wangu alinipokea kwenye lango la wanaowasili. Hilo si jambo linaloahidiwa na kijitabu chochote."
       },
       "r4": {
-        "serviceTitle": "[SW] Jobs & Internships",
-        "quote": "[SW] Every listing I applied to already sponsored my visa type. I stopped wasting weeks on dead ends."
+        "serviceTitle": "Kazi na Mafunzo",
+        "quote": "Kila nafasi niliyoiomba ilikuwa tayari inadhamini aina yangu ya visa. Niliacha kupoteza wiki kwenye njia zisizo na mwisho."
       },
       "r5": {
-        "serviceTitle": "[SW] Life Support Toolkit",
-        "quote": "[SW] The bank setup guide alone saved me a week of standing in the wrong lines."
+        "serviceTitle": "Kifurushi cha maisha ya kila siku",
+        "quote": "Mwongozo wa ufunguzi wa akaunti pekee uliniokoa wiki nzima ya kusimama kwenye mistari isiyo sahihi."
       },
-      "label": "[SW] Proof, not promises",
-      "title": "[SW] Real people. Real moves.",
-      "subtitle": "Thousands of immigrants trust GlobalBridge every year — here's what they say.",
-      "cta": "[SW] Start your journey"
+      "label": "Ushahidi, si ahadi",
+      "title": "Watu halisi. Safari halisi.",
+      "subtitle": "Maelfu ya wahamiaji huamini GlobalBridge kila mwaka – haya ndiyo wanayosema.",
+      "cta": "Anza safari yako"
     },
     "footer": {
-      "subtitle": "[SW] Your move, held together.",
-      "sitemap": "[SW] Sitemap",
-      "company": "[SW] Company",
-      "status": "[SW] Status",
-      "time": "[SW] Time",
-      "allSystemsLive": "[SW] All systems live",
-      "bridgesBuilt": "[SW] bridges built ↑",
-      "backToTop": "[SW] Back to top",
+      "subtitle": "Safari yako, tukiwa pamoja nawe.",
+      "sitemap": "Ramani ya tovuti",
+      "company": "Kampuni",
+      "status": "Hali",
+      "time": "Muda",
+      "allSystemsLive": "Mifumo yote inafanya kazi",
+      "bridgesBuilt": "madaraja yamejengwa ↑",
+      "backToTop": "Rudi juu",
       "copyright": "© 2026 Global Bridge",
-      "about": "[SW] About",
-      "careers": "[SW] Careers",
-      "press": "[SW] Press",
-      "contact": "[SW] Contact",
-      "trustSafety": "[SW] Trust & Safety",
-      "getChecklist": "[SW] Get the checklist",
-      "checklistSent": "[SW] Checklist on its way",
+      "about": "Kuhusu",
+      "careers": "Ajira",
+      "press": "Habari",
+      "contact": "Wasiliana",
+      "trustSafety": "Uaminifu na Usalama",
+      "getChecklist": "Pata orodha",
+      "checklistSent": "Orodha inakuja",
       "cities": {
-        "toronto": "[SW] Toronto",
-        "london": "[SW] London",
-        "berlin": "[SW] Berlin",
-        "sydney": "[SW] Sydney",
-        "dublin": "[SW] Dublin"
+        "toronto": "Toronto",
+        "london": "London",
+        "berlin": "Berlin",
+        "sydney": "Sydney",
+        "dublin": "Dublin"
       }
     }
   },
