@@ -72,11 +72,17 @@ export function useTranslation() {
   const t = useCallback(
     (key: string, params?: TranslationParams): string => {
       let value = resolveValue(ctx.translations, key);
-      
-      if (value === undefined) {
+
+      // Auto-generated placeholders like "[DE] Some text" are not real
+      // translations — treat them as missing so we fall back to English
+      // instead of rendering the broken "[DE] ..." string to the user.
+      const isPlaceholder =
+        typeof value === "string" && /^\[[A-Za-z]{2}\]\s?/.test(value);
+
+      if (value === undefined || isPlaceholder) {
         value = resolveValue(enDict as Record<string, unknown>, key);
       }
-      
+
       if (value === undefined) return key;
 
       if (isPluralForms(value) && params?.count !== undefined) {
