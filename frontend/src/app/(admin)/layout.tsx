@@ -8,6 +8,7 @@ import {
   Flag,
   FileText,
   Bot,
+  ScrollText,
   AlertOctagon,
   ArrowLeft,
 } from "lucide-react";
@@ -26,6 +27,7 @@ const navItemsFn = (t: (key: string) => string) => [
   { href: "/admin/verifications", icon: ShieldCheck, label: t("nav.verifications") },
   { href: "/admin/listings", icon: FileText, label: t("nav.listings") },
   { href: "/admin/reports", icon: Flag, label: t("nav.reports") },
+  { href: "/admin/audit", icon: ScrollText, label: t("nav.auditLog") },
   { href: "/admin/ai", icon: Bot, label: t("nav.aiConfig") },
 ];
 

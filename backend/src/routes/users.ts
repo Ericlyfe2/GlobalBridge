@@ -3,6 +3,7 @@ import { query, queryOne } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
 import { sanitizeObject } from "../lib/sanitize";
 import { buildDailySeries, clampDays } from "../lib/analytics";
+import { recordAudit } from "../lib/audit";
 
 export const usersRouter = Router();
 
@@ -361,6 +362,7 @@ usersRouter.patch("/me", requireAuth, async (req, res, next) => {
 usersRouter.post("/:id/verify", requireAuth, requireRole("admin"), async (req, res, next) => {
   try {
     await query(`UPDATE users SET verification_status = 'verified' WHERE id = $1`, [req.params.id]);
+    await recordAudit({ adminId: req.user!.sub, action: "user.verify", targetType: "user", targetId: String(req.params.id) });
     res.json({ ok: true });
   } catch (err) {
     next(err);
@@ -375,6 +377,13 @@ usersRouter.patch("/:id/status", requireAuth, requireRole("admin"), async (req, 
       return res.status(400).json({ error: "Invalid status. Use: pending, verified, rejected" });
     }
     await query(`UPDATE users SET verification_status = $1 WHERE id = $2`, [status, req.params.id]);
+    await recordAudit({
+      adminId: req.user!.sub,
+      action: "user.status",
+      targetType: "user",
+      targetId: String(req.params.id),
+      metadata: { status },
+    });
     res.json({ ok: true });
   } catch (err) {
     next(err);

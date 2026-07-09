@@ -312,6 +312,21 @@ CREATE TABLE IF NOT EXISTS scam_alerts (
 );
 
 -- =====================
+-- ADMIN AUDIT LOG — records privileged admin actions for accountability
+-- =====================
+CREATE TABLE IF NOT EXISTS admin_audit_log (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    admin_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    action VARCHAR(100) NOT NULL,
+    target_type VARCHAR(50),
+    target_id UUID,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_admin_audit_created ON admin_audit_log(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_admin_audit_admin ON admin_audit_log(admin_id);
+
+-- =====================
 -- MISSING FOREIGN-KEY INDEXES (audit remediation)
 -- =====================
 CREATE INDEX IF NOT EXISTS idx_forum_replies_author ON forum_replies(author_id);
