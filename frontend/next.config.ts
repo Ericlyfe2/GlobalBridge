@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
 /** Backend API URL. Set NEXT_PUBLIC_API_URL on Vercel to your deployed backend URL. */
 const API = process.env.NEXT_PUBLIC_API_URL;
@@ -33,6 +34,9 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return REWRITE_PATHS;
   },
+  // Pin the workspace root to this app so Next doesn't infer it from the stray
+  // orphan lockfile at the repo root (silences the multiple-lockfiles warning).
+  outputFileTracingRoot: path.join(__dirname),
   // Remove unused EXPORT details from client bundle
   outputFileTracingIncludes: {},
   // TypeScript errors now fail the build — the codebase typechecks clean, so this
