@@ -30,7 +30,29 @@ export function Footer() {
       </div>
 
       {/* Link columns */}
-      <div className="border-t border-white/10">
+      <div className="relative isolate overflow-hidden border-t border-white/10">
+        {/* Background video — plane in flight */}
+        <video
+          aria-hidden
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="none"
+          className="animate-ken-burns pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover"
+        >
+          <source src="/video/plane.mp4" type="video/mp4" />
+        </video>
+        {/* Dark scrim keeps the links legible over the video */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 bg-neutral-950/85"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-neutral-950 via-neutral-950/70 to-neutral-950/80"
+        />
+
         <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
           <div className="grid grid-cols-2 gap-8 md:grid-cols-6">
             <div className="col-span-2">
