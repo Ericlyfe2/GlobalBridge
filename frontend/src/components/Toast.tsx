@@ -60,7 +60,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {children}
       <div
         aria-live="polite"
-        aria-atomic="true"
+        aria-atomic="false"
+        aria-relevant="additions"
         className="fixed bottom-4 right-4 z-[200] flex flex-col gap-2 max-w-sm pointer-events-none"
       >
         {toasts.map((t) => (
