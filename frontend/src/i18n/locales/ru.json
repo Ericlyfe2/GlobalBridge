@@ -134,7 +134,9 @@
     "aiConfig": "Настройки ИИ",
     "home": "Главная",
     "signIn": "Войти",
-    "getStarted": "Начать"
+    "getStarted": "Начать",
+    "openMenu": "Открыть меню",
+    "closeMenu": "Закрыть меню"
   },
   "tools": {
     "countryCompare": {

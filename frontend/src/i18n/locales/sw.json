@@ -128,7 +128,9 @@
     "aiConfig": "Usanidi wa AI",
     "home": "Nyumbani",
     "signIn": "Ingia",
-    "getStarted": "Anza"
+    "getStarted": "Anza",
+    "openMenu": "Fungua menyu",
+    "closeMenu": "Funga menyu"
   },
   "tools": {
     "countryCompare": {

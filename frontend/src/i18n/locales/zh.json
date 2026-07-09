@@ -125,7 +125,9 @@
     "aiConfig": "AI 配置",
     "home": "首页",
     "signIn": "登录",
-    "getStarted": "开始使用"
+    "getStarted": "开始使用",
+    "openMenu": "打开菜单",
+    "closeMenu": "关闭菜单"
   },
   "tools": {
     "countryCompare": {

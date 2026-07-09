@@ -128,7 +128,9 @@
     "aiConfig": "AI Yapılandırması",
     "home": "Ana Sayfa",
     "signIn": "Giriş Yap",
-    "getStarted": "Başlayın"
+    "getStarted": "Başlayın",
+    "openMenu": "Menüyü aç",
+    "closeMenu": "Menüyü kapat"
   },
   "tools": {
     "countryCompare": {

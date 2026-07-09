@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X, LayoutDashboard } from "lucide-react";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
@@ -23,6 +23,16 @@ export function Navbar() {
   const [authed] = useState(() => !!getToken());
 
   const guestLinks = guestLinksFn(t);
+
+  // Close the mobile menu on Escape for keyboard users.
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
 
   return (
     <header className="sticky top-0 z-50 isolate overflow-hidden backdrop-blur-md bg-cream-50/80 border-b border-cream-200">
@@ -79,7 +89,9 @@ export function Navbar() {
           <button
             className="p-2 rounded-md hover:bg-cream-200"
             onClick={() => setOpen(!open)}
-            aria-label="Toggle menu"
+            aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")}
+            aria-expanded={open}
+            aria-controls="mobile-nav"
           >
             {open ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -87,7 +99,7 @@ export function Navbar() {
       </nav>
 
       {open && (
-        <div className="md:hidden border-t border-cream-200 px-6 py-4 space-y-2 bg-cream-50">
+        <div id="mobile-nav" className="md:hidden border-t border-cream-200 px-6 py-4 space-y-2 bg-cream-50">
           {(authed ? [
             { href: "/dashboard", label: t("nav.dashboard"), id: "dashboard" },
             ...guestLinks,

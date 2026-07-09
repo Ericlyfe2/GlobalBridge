@@ -128,7 +128,9 @@
     "aiConfig": "Configuração de IA",
     "home": "Início",
     "signIn": "Entrar",
-    "getStarted": "Começar"
+    "getStarted": "Começar",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu"
   },
   "tools": {
     "countryCompare": {
