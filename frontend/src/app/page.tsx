@@ -12,6 +12,7 @@ import ReviewsSection from "@/components/ReviewsSection";
 import { Footer } from "@/components/Footer";
 import { services } from "@/data/services";
 import AirplanePath from "@/components/AirplanePath";
+import { JsonLd } from "@/components/JsonLd";
 
 export default function Home() {
   const visa = services.find((s) => s.id === "visa")!;
@@ -20,6 +21,7 @@ export default function Home() {
 
   return (
     <div className="bg-cream-50">
+      <JsonLd />
       <Navbar />
       <Hero />
 
