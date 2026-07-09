@@ -4,10 +4,12 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { SkipLink } from "@/components/SkipLink";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen grid md:grid-cols-2">
+      <SkipLink />
       <div className="flex flex-col">
         <header className="px-8 py-6 flex items-center justify-between">
           <Link href="/">
@@ -18,7 +20,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <ThemeToggle />
           </div>
         </header>
-        <main className="flex-1 flex items-center justify-center px-8 py-12">
+        <main id="main-content" className="flex-1 flex items-center justify-center px-8 py-12">
           <div className="w-full max-w-md">{children}</div>
         </main>
         <footer className="px-8 py-6 text-xs text-ink-500">

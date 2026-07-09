@@ -27,6 +27,7 @@ import { UserMenu } from "@/components/UserMenu";
 import dynamic from "next/dynamic";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { AuthGuard } from "@/components/AuthGuard";
+import { SkipLink } from "@/components/SkipLink";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
 
 const CommandPalette = dynamic(() => import("@/components/CommandPalette").then((m) => m.CommandPalette), { ssr: false });
@@ -92,6 +93,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthGuard>
+    <SkipLink />
     <div className="min-h-screen flex bg-cream-50">
       <CommandPalette />
       <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-cream-200 bg-cream-100">
@@ -147,7 +149,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main id="main-content" className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>
     </AuthGuard>
