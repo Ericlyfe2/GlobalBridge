@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description:
+    "How GlobalBridge collects, uses, and protects your personal data across visa guidance, housing, mentorship, and jobs.",
+  alternates: { canonical: "/privacy" },
+};
 
 const sections = [
   { id: "what-we-collect", title: "What we collect" },

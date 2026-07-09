@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, X, Sparkles, ShieldCheck, Zap } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: "Pricing",
+  description:
+    "Simple, transparent pricing for GlobalBridge — AI visa guidance, verified housing, mentorship, and career tools for international students and immigrants.",
+  alternates: { canonical: "/pricing" },
+};
 
 type Tier = {
   name: string; price: string; cadence: string; tagline: string;
