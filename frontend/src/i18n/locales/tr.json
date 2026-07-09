@@ -234,141 +234,141 @@
     "ctaSubtitle": "Uluslararası eğitim yolculuklarında GlobalBridge'i kullanan binlerce öğrenciye katıl.",
     "ctaButton": "Ücretsiz hesap oluştur",
     "ctaAssistantButton": "AI Asistan'la konuş",
-    "statStudents": "Students guided",
-    "statVisaSuccess": "Visa success rate",
+    "statStudents": "Rehberlik edilen öğrenciler",
+    "statVisaSuccess": "Vize başarı oranı",
     "hero": {
-      "label": "[TR] Study abroad, held together",
-      "title": "[TR] Your move,<br />held together.",
-      "subtitle": "Visa guidance, verified housing, mentorship, jobs, and life support — one platform, before, during, and after you arrive.",
-      "startFree": "[TR] Start free",
-      "meetNetwork": "[TR] Meet the network",
-      "scroll": "[TR] Scroll",
+      "label": "Yurt dışında eğitim, her adımda yanında",
+      "title": "Taşınmanın,<br />her adımında yanında.",
+      "subtitle": "Vize rehberliği, doğrulanmış konaklama, mentorluk, işler ve günlük yaşam desteği – varışından önce, sırasında ve sonrasında tek bir platform.",
+      "startFree": "Ücretsiz başla",
+      "meetNetwork": "Ağ ile tanış",
+      "scroll": "Kaydır",
       "cards": {
         "tokyo": {
-          "title": "[TR] Tokyo",
-          "tag": "Japan — Asia Pacific"
+          "title": "Tokyo",
+          "tag": "Japonya – Asya-Pasifik"
         },
         "berlin": {
-          "title": "[TR] Berlin",
-          "tag": "Germany — Europe"
+          "title": "Berlin",
+          "tag": "Almanya – Avrupa"
         },
         "toronto": {
-          "title": "[TR] Toronto",
-          "tag": "Canada — North America"
+          "title": "Toronto",
+          "tag": "Kanada – Kuzey Amerika"
         },
         "dubai": {
-          "title": "[TR] Dubai",
-          "tag": "UAE — Middle East"
+          "title": "Dubai",
+          "tag": "BAE – Orta Doğu"
         },
         "london": {
-          "title": "[TR] London",
-          "tag": "United Kingdom — Europe"
+          "title": "Londra",
+          "tag": "Birleşik Krallık – Avrupa"
         }
       }
     },
     "visa": {
-      "title": "[TR] AI Visa Assistant",
-      "dek": "[TR] Any visa. Any country. Zero guesswork.",
-      "detail": "Conversational guidance that adapts to your destination, your passport, and your timeline — with a step-by-step document checklist that updates itself as embassies change the rules.",
-      "bullet1": "[TR] Country-specific checklist, generated in minutes",
-      "bullet2": "[TR] Plain-language answers to embassy questions",
-      "bullet3": "[TR] Deadline tracking with reminders that actually fire",
+      "title": "Yapay Zekâ Vize Asistanı",
+      "dek": "Her vize. Her ülke. Tahmine yer yok.",
+      "detail": "Hedef ülkene, pasaportuna ve zaman çizelgene uyum sağlayan sohbet tabanlı rehberlik – elçilikler kuralları değiştirdikçe kendini güncelleyen adım adım belge kontrol listesiyle.",
+      "bullet1": "Ülkeye özel kontrol listesi, dakikalar içinde hazır",
+      "bullet2": "Konsolosluk sorularına sade dille yanıtlar",
+      "bullet3": "Gerçekten çalışan hatırlatmalarla son tarih takibi",
       "checklist": {
-        "step1": "[TR] University Acceptance Letter",
-        "step2": "[TR] Proof of Financial Support",
-        "step3": "[TR] Passport Validity Check",
-        "step4": "[TR] Biometrics Appointment"
+        "step1": "Üniversite kabul mektubu",
+        "step2": "Maddi imkân belgesi",
+        "step3": "Pasaport geçerlilik kontrolü",
+        "step4": "Biyometri randevusu"
       }
     },
     "housing": {
-      "title": "[TR] Verified Housing",
-      "dek": "[TR] A key waiting for you, not a listing that vanishes.",
-      "detail": "[TR] Every landlord is identity-checked before their listing goes live. Match with roommates who share your move-in date, and book your place before you board.",
-      "bullet1": "[TR] Identity-verified landlords only",
-      "bullet2": "[TR] Roommate matching by city, dates, and habits",
-      "bullet3": "Book and pay before you land — no showings needed"
+      "title": "Doğrulanmış konaklama",
+      "dek": "Seni bekleyen bir anahtar, kaybolan bir ilan değil.",
+      "detail": "Her ev sahibinin kimliği, ilan yayına girmeden önce doğrulanır. Aynı taşınma tarihine sahip ev arkadaşlarıyla eşleş ve uçağa binmeden yerini ayırt.",
+      "bullet1": "Yalnızca kimliği doğrulanmış ev sahipleri",
+      "bullet2": "Şehre, tarihlere ve alışkanlıklara göre ev arkadaşı eşleştirme",
+      "bullet3": "Varmadan önce rezervasyon yap ve öde – görüntülemeye gerek yok"
     },
     "jobs": {
-      "title": "[TR] Jobs & Internships",
-      "dek": "[TR] Filtered for the one thing that matters: sponsorship.",
-      "detail": "[TR] Search roles that actually sponsor your visa type, track a company's sponsorship history before you apply, and let the AI resume builder tune your CV per market.",
-      "bullet1": "[TR] Filter by visa-sponsor status, not guesswork",
-      "bullet2": "[TR] AI resume builder tuned to local hiring norms",
-      "bullet3": "[TR] Sponsorship-history tracker per employer",
-      "sponsorRoles": "[TR] Sponsor Roles",
-      "interviewLift": "[TR] Interview Lift",
-      "visaSponsorBadge": "[TR] VISA-SPONSOR"
+      "title": "İşler ve Stajlar",
+      "dek": "Tek önemli şeye göre filtrelendi: sponsorluk.",
+      "detail": "Vize türünü gerçekten destekleyen ilanları ara, başvurmadan önce bir şirketin sponsorluk geçmişini incele ve yapay zekâ özgeçmiş oluşturucunun CV'ni her pazara göre ayarlamasına izin ver.",
+      "bullet1": "Tahminle değil, vize sponsorluğu durumuna göre filtrele",
+      "bullet2": "Yerel işe alım normlarına göre ayarlanmış yapay zekâ özgeçmiş oluşturucu",
+      "bullet3": "İşverene göre sponsorluk geçmişi takibi",
+      "sponsorRoles": "Sponsorlu pozisyonlar",
+      "interviewLift": "Mülakat artışı",
+      "visaSponsorBadge": "VİZE SPONSORU"
     },
     "mentorship": {
-      "title": "[TR] Mentorship Network",
-      "dek": "[TR] People who already lived it, one message away.",
-      "detail": "[TR] Connect with people who've spent years in your destination city. Join cultural hubs and events built around where you're headed, not where you're from."
+      "title": "Mentorluk ağı",
+      "dek": "Bunu daha önce yaşayan insanlar, bir mesaj uzağında.",
+      "detail": "Gideceğin şehirde yıllar geçirmiş insanlarla bağlantı kur. Nereden geldiğine değil, nereye gittiğine göre kurulmuş kültürel buluşmalara ve etkinliklere katıl."
     },
     "lifeSupport": {
-      "title": "[TR] Life Support Toolkit",
-      "dek": "[TR] Everything after the flight lands.",
-      "detail": "Cost calculators, healthcare guides, banking setup, and an emergency SOS — all in one place, so the small logistics never become the hard part.",
-      "tool1": "[TR] Cost calculator",
-      "tool1Note": "[TR] Budget by city, down to groceries",
-      "tool2": "[TR] Healthcare guide",
-      "tool2Note": "[TR] Insurance & clinics, explained",
-      "tool3": "[TR] Banking setup",
-      "tool3Note": "[TR] Open an account before you land",
-      "tool4": "[TR] Emergency SOS",
-      "tool4Note": "[TR] One tap, always on"
+      "title": "Günlük yaşam kiti",
+      "dek": "Uçak indikten sonraki her şey.",
+      "detail": "Maliyet hesaplayıcıları, sağlık rehberleri, banka hesabı kurulumu ve acil SOS – hepsi tek yerde, böylece küçük ayrıntılar asla en zor kısım olmaz.",
+      "tool1": "Maliyet hesaplayıcı",
+      "tool1Note": "Şehre göre bütçe, markete kadar",
+      "tool2": "Sağlık rehberi",
+      "tool2Note": "Sigorta ve klinikler, açıklandı",
+      "tool3": "Banka hesabı kurulumu",
+      "tool3Note": "Varmadan önce hesap aç",
+      "tool4": "Acil SOS",
+      "tool4Note": "Tek dokunuş, her zaman açık"
     },
     "closing": {
-      "title": "[TR] Every piece, one bridge."
+      "title": "Her parça, tek bir köprü."
     },
     "reviews": {
       "r1": {
-        "serviceTitle": "[TR] AI Visa Assistant",
-        "quote": "It told me exactly which biometrics appointment to book first — I would have missed the window otherwise."
+        "serviceTitle": "Yapay Zekâ Vize Asistanı",
+        "quote": "İlk olarak hangi biyometri randevusunu almam gerektiğini tam olarak söyledi – yoksa süreyi kaçıracaktım."
       },
       "r2": {
-        "serviceTitle": "[TR] Verified Housing",
-        "quote": "[TR] I signed my lease from home. No video call landlord ever went quiet on me."
+        "serviceTitle": "Doğrulanmış konaklama",
+        "quote": "Kira sözleşmemi evden imzaladım. Görüntülü görüşme yaptığım hiçbir ev sahibi ortadan kaybolmadı."
       },
       "r3": {
-        "serviceTitle": "[TR] Mentorship Network",
-        "quote": "[TR] My mentor met me at arrivals. That's not something a brochure tells you to expect."
+        "serviceTitle": "Mentorluk ağı",
+        "quote": "Mentorum beni gelenler kapısında karşıladı. Bunu hiçbir broşür sana vaat etmez."
       },
       "r4": {
-        "serviceTitle": "[TR] Jobs & Internships",
-        "quote": "[TR] Every listing I applied to already sponsored my visa type. I stopped wasting weeks on dead ends."
+        "serviceTitle": "İşler ve Stajlar",
+        "quote": "Başvurduğum her ilan zaten benim vize türümü destekliyordu. Çıkmaz yollarda haftalar kaybetmeyi bıraktım."
       },
       "r5": {
-        "serviceTitle": "[TR] Life Support Toolkit",
-        "quote": "[TR] The bank setup guide alone saved me a week of standing in the wrong lines."
+        "serviceTitle": "Günlük yaşam kiti",
+        "quote": "Yalnızca banka hesabı rehberi bile beni yanlış kuyruklarda geçecek bir haftadan kurtardı."
       },
-      "label": "[TR] Proof, not promises",
-      "title": "[TR] Real people. Real moves.",
-      "subtitle": "Thousands of immigrants trust GlobalBridge every year — here's what they say.",
-      "cta": "[TR] Start your journey"
+      "label": "Söz değil, kanıt",
+      "title": "Gerçek insanlar. Gerçek taşınmalar.",
+      "subtitle": "Her yıl binlerce göçmen GlobalBridge'e güveniyor – işte söyledikleri.",
+      "cta": "Yolculuğuna başla"
     },
     "footer": {
-      "subtitle": "[TR] Your move, held together.",
-      "sitemap": "[TR] Sitemap",
-      "company": "[TR] Company",
-      "status": "[TR] Status",
-      "time": "[TR] Time",
-      "allSystemsLive": "[TR] All systems live",
-      "bridgesBuilt": "[TR] bridges built ↑",
-      "backToTop": "[TR] Back to top",
+      "subtitle": "Taşınmanın, her adımında yanında.",
+      "sitemap": "Site haritası",
+      "company": "Şirket",
+      "status": "Durum",
+      "time": "Saat",
+      "allSystemsLive": "Tüm sistemler çalışıyor",
+      "bridgesBuilt": "köprü kuruldu ↑",
+      "backToTop": "Başa dön",
       "copyright": "© 2026 Global Bridge",
-      "about": "[TR] About",
-      "careers": "[TR] Careers",
-      "press": "[TR] Press",
-      "contact": "[TR] Contact",
-      "trustSafety": "[TR] Trust & Safety",
-      "getChecklist": "[TR] Get the checklist",
-      "checklistSent": "[TR] Checklist on its way",
+      "about": "Hakkımızda",
+      "careers": "Kariyer",
+      "press": "Basın",
+      "contact": "İletişim",
+      "trustSafety": "Güven ve Güvenlik",
+      "getChecklist": "Kontrol listesini al",
+      "checklistSent": "Kontrol listesi yolda",
       "cities": {
-        "toronto": "[TR] Toronto",
-        "london": "[TR] London",
-        "berlin": "[TR] Berlin",
-        "sydney": "[TR] Sydney",
-        "dublin": "[TR] Dublin"
+        "toronto": "Toronto",
+        "london": "Londra",
+        "berlin": "Berlin",
+        "sydney": "Sidney",
+        "dublin": "Dublin"
       }
     }
   },
