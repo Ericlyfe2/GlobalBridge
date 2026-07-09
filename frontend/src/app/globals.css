@@ -333,6 +333,88 @@ html[dir="rtl"] {
   will-change: transform;
 }
 
+/* ── Auth hero: cinematic animations ──────────────────────── */
+
+/* Slow drifting aurora gradient sweep */
+@keyframes aurora-drift {
+  0%   { transform: translate3d(-8%, -6%, 0) rotate(0deg) scale(1.15); }
+  50%  { transform: translate3d(8%, 6%, 0) rotate(180deg) scale(1.35); }
+  100% { transform: translate3d(-8%, -6%, 0) rotate(360deg) scale(1.15); }
+}
+.animate-aurora { animation: aurora-drift 26s ease-in-out infinite; will-change: transform; }
+.animate-aurora-rev { animation: aurora-drift 34s ease-in-out infinite reverse; will-change: transform; }
+
+/* Floating orbs bobbing up and down */
+@keyframes float-orb {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  33%      { transform: translateY(-26px) translateX(14px); }
+  66%      { transform: translateY(16px) translateX(-12px); }
+}
+.animate-float-orb { animation: float-orb 12s ease-in-out infinite; will-change: transform; }
+
+/* Diagonal light sweep / shimmer across the panel */
+@keyframes light-sweep {
+  0%   { transform: translateX(-120%) skewX(-18deg); opacity: 0; }
+  20%  { opacity: 0.55; }
+  60%  { opacity: 0.15; }
+  100% { transform: translateX(220%) skewX(-18deg); opacity: 0; }
+}
+.animate-light-sweep { animation: light-sweep 7s ease-in-out infinite; will-change: transform, opacity; }
+
+/* Planes flying across the sky, diagonally */
+@keyframes fly-across {
+  0%   { transform: translate3d(-15vw, 30px, 0) rotate(28deg); opacity: 0; }
+  8%   { opacity: 0.9; }
+  92%  { opacity: 0.9; }
+  100% { transform: translate3d(115vw, -140px, 0) rotate(28deg); opacity: 0; }
+}
+.animate-fly { animation: fly-across 15s linear infinite; will-change: transform, opacity; }
+
+/* Rising particles */
+@keyframes rise {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
+  10%  { opacity: 0.8; }
+  90%  { opacity: 0.5; }
+  100% { transform: translateY(-320px) scale(0.4); opacity: 0; }
+}
+.animate-rise { animation: rise linear infinite; will-change: transform, opacity; }
+
+/* Staggered cinematic entrance (blur + slide + fade) */
+@keyframes hero-reveal {
+  from { opacity: 0; transform: translateY(22px); filter: blur(8px); }
+  to   { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.animate-hero-reveal { animation: hero-reveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; will-change: transform, opacity, filter; }
+
+/* Breathing glow ring on the stat / quote cards */
+@keyframes card-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0), inset 0 0 0 0 rgba(16, 185, 129, 0); }
+  50%      { box-shadow: 0 0 32px -6px rgba(16, 185, 129, 0.35), inset 0 0 22px -14px rgba(16, 185, 129, 0.6); }
+}
+.animate-card-breathe { animation: card-breathe 5s ease-in-out infinite; will-change: box-shadow; }
+
+/* Gradient text shimmer for the headline */
+@keyframes text-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.animate-text-shimmer {
+  background-image: linear-gradient(100deg, #ffffff 20%, #6ee7b7 40%, #34d399 50%, #ffffff 70%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-shimmer 6s linear infinite;
+}
+
+/* Ken-Burns slow zoom for the background video */
+@keyframes ken-burns {
+  0%   { transform: scale(1.08) translate(0, 0); }
+  50%  { transform: scale(1.22) translate(-1.5%, -1.5%); }
+  100% { transform: scale(1.08) translate(0, 0); }
+}
+.animate-ken-burns { animation: ken-burns 30s ease-in-out infinite; will-change: transform; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -341,7 +423,17 @@ html[dir="rtl"] {
   }
   .animate-pulse-glow,
   .animate-fade-up,
-  .animate-spin-slow {
+  .animate-spin-slow,
+  .animate-aurora,
+  .animate-aurora-rev,
+  .animate-float-orb,
+  .animate-light-sweep,
+  .animate-fly,
+  .animate-rise,
+  .animate-hero-reveal,
+  .animate-card-breathe,
+  .animate-text-shimmer,
+  .animate-ken-burns {
     animation: none !important;
   }
 }
