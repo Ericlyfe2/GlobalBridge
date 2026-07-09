@@ -7,9 +7,24 @@ import {
 import Link from "next/link";
 import { authFetch } from "@/lib/auth";
 
+type HealthProbe = {
+  name: string;
+  status: "up" | "down" | "not_configured";
+  latencyMs: number | null;
+  detail?: string;
+};
+
+const HEALTH_LABELS: Record<string, string> = {
+  postgres: "PostgreSQL",
+  redis: "Redis cache",
+  ai: "AI service",
+};
+
 export default function AdminOverview() {
   const [stats, setStats] = useState<Record<string, number> | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [health, setHealth] = useState<HealthProbe[] | null>(null);
+  const [healthErr, setHealthErr] = useState(false);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -25,6 +40,30 @@ export default function AdminOverview() {
       }
     })();
     return () => ctrl.abort();
+  }, []);
+
+  // Real system-health probe — refreshed every 30s. Reflects actual service state.
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const res = await authFetch("/api/admin/health", {}, 15000);
+        const data = await res.json();
+        if (!res.ok) throw new Error("health check failed");
+        if (active) {
+          setHealth(data.services as HealthProbe[]);
+          setHealthErr(false);
+        }
+      } catch {
+        if (active) setHealthErr(true);
+      }
+    };
+    load();
+    const id = setInterval(load, 30000);
+    return () => {
+      active = false;
+      clearInterval(id);
+    };
   }, []);
 
   const statCards = stats ? [
@@ -149,24 +188,52 @@ export default function AdminOverview() {
         <div className="card">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display text-lg font-semibold text-ink-900">System status</h2>
-            <Activity size={14} className="text-ink-500" />
+            <Activity size={14} className={healthErr ? "text-red-500" : "text-ink-500"} />
           </div>
-          <ul className="space-y-3">
-            {[
-              { label: "PostgreSQL", status: "Connected", ok: true },
-              { label: "Redis cache", status: "Connected", ok: true },
-              { label: "AI service", status: "Online", ok: true },
-              { label: "Translation", status: "Online", ok: true },
-            ].map((s) => (
-              <li key={s.label} className="flex items-center justify-between text-sm">
-                <span className="text-ink-700">{s.label}</span>
-                <span className={`flex items-center gap-1 text-xs font-medium ${s.ok ? "text-leaf-600" : "text-red-600"}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${s.ok ? "bg-leaf-500" : "bg-red-500"}`} />
-                  {s.status}
-                </span>
-              </li>
-            ))}
-          </ul>
+
+          {healthErr && (
+            <p className="text-xs text-red-600 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+              Unable to reach the API health endpoint.
+            </p>
+          )}
+
+          {!health && !healthErr && (
+            <ul className="space-y-3">
+              {[0, 1, 2].map((i) => (
+                <li key={i} className="flex items-center justify-between">
+                  <span className="h-3 w-24 rounded bg-cream-200 animate-pulse" />
+                  <span className="h-3 w-16 rounded bg-cream-200 animate-pulse" />
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {health && (
+            <ul className="space-y-3">
+              {health.map((s) => {
+                const label = HEALTH_LABELS[s.name] ?? s.name;
+                const cfg =
+                  s.status === "up"
+                    ? { text: "Online", dot: "bg-leaf-500", tone: "text-leaf-600" }
+                    : s.status === "not_configured"
+                    ? { text: "Not configured", dot: "bg-ink-300", tone: "text-ink-500" }
+                    : { text: "Down", dot: "bg-red-500", tone: "text-red-600" };
+                return (
+                  <li key={s.name} className="flex items-center justify-between text-sm">
+                    <span className="text-ink-700">{label}</span>
+                    <span className={`flex items-center gap-1.5 text-xs font-medium ${cfg.tone}`}>
+                      {s.status === "up" && s.latencyMs != null && (
+                        <span className="text-ink-400 tabular-nums">{s.latencyMs}ms</span>
+                      )}
+                      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                      {cfg.text}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       </div>
 
