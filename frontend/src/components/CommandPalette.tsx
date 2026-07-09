@@ -107,7 +107,7 @@ export function CommandPalette() {
     return items.filter((i) =>
       `${i.label} ${i.hint ?? ""} ${i.group}`.toLowerCase().includes(lc),
     );
-  }, [q]);
+  }, [q, items]);
 
   const grouped = useMemo(() => {
     const m: Record<string, Item[]> = {};
@@ -137,6 +137,9 @@ export function CommandPalette() {
       onClick={() => setOpen(false)}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Command palette"
         className="w-full max-w-xl rounded-xl border border-cream-200 bg-[var(--color-surface)] shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
@@ -149,6 +152,7 @@ export function CommandPalette() {
             onChange={(e) => { setQ(e.target.value); setActive(0); }}
             onKeyDown={onInputKey}
             placeholder="Search pages, tools, mentors..."
+            aria-label="Search pages, tools, and destinations"
             className="flex-1 bg-transparent outline-none text-sm text-ink-900 placeholder:text-ink-500"
           />
           <kbd className="text-[10px] text-ink-500 px-1.5 py-0.5 rounded border border-cream-200">ESC</kbd>
