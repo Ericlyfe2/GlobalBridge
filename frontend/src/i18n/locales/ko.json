@@ -120,6 +120,7 @@
     "verifications": "인증",
     "listings": "게시물",
     "reports": "신고",
+    "auditLog": "감사 로그",
     "aiConfig": "AI 설정",
     "home": "홈",
     "signIn": "로그인",
