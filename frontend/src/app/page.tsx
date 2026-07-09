@@ -13,8 +13,10 @@ import { Footer } from "@/components/Footer";
 import { services } from "@/data/services";
 import AirplanePath from "@/components/AirplanePath";
 import { JsonLd } from "@/components/JsonLd";
+import { useTranslation } from "@/i18n/hooks/useTranslation";
 
 export default function Home() {
+  const { t } = useTranslation();
   const visa = services.find((s) => s.id === "visa")!;
   const housing = services.find((s) => s.id === "housing")!;
   const jobs = services.find((s) => s.id === "jobs")!;
@@ -22,7 +24,11 @@ export default function Home() {
   return (
     <div className="bg-cream-50">
       <JsonLd />
+      <a href="#main-content" className="skip-link">
+        {t("common.skipToContent")}
+      </a>
       <Navbar />
+      <main id="main-content">
       <Hero />
 
       <div className="relative">
@@ -45,6 +51,7 @@ export default function Home() {
       </ServiceSection>
       <LifeSupportSection />
       <ReviewsSection />
+      </main>
 
       <ScrollOrchestrator />
       <Footer />

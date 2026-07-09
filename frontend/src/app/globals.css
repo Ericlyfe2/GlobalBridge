@@ -460,3 +460,21 @@ html.lenis { height: auto; }
 .lenis.lenis-stopped { overflow: hidden; }
 
 :focus-visible { outline: 2px solid var(--color-clay-500); outline-offset: 3px; }
+
+/* Skip-to-content link: off-screen until keyboard-focused. The :focus rule has
+   higher specificity than the base class, so it reliably wins the cascade. */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  border-radius: 0.5rem;
+  background: #059669;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+  transition: top 0.2s ease;
+}
+.skip-link:focus { top: 1rem; outline: 2px solid #fff; outline-offset: 2px; }
