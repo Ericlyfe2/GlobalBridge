@@ -4,6 +4,7 @@ import "./globals.css";
 import { LocaleProvider } from "@/i18n/provider";
 import { ToastProvider } from "@/components/Toast";
 import { AuthSync } from "@/components/AuthSync";
+import { ReducedMotionGuard } from "@/components/ReducedMotionGuard";
 import { HreflangMeta } from "@/components/HreflangMeta";
 import { SUPPORTED_LANGUAGES, type Lang } from "@/i18n/config";
 import SmoothScroll from "@/components/SmoothScroll";
@@ -109,6 +110,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <LocaleProvider initialLang={lang}>
           <ToastProvider>
             <AuthSync />
+            <ReducedMotionGuard />
             <SmoothScroll>
               {children}
             </SmoothScroll>
