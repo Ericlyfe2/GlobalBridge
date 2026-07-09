@@ -8,16 +8,19 @@ export function Footer() {
 
   return (
     <footer className="mt-24 bg-neutral-950">
-      {/* Image banner with blurred backdrop + bold wordmark */}
+      {/* Video banner with blurred backdrop + bold wordmark */}
       <div className="relative isolate overflow-hidden">
-        <div
-          className="absolute inset-0 scale-110 bg-cover bg-center blur-sm"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1473773508845-188df298d2d1?q=80&w=2000&auto=format&fit=crop')",
-          }}
-          aria-hidden="true"
-        />
+        <video
+          aria-hidden
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="none"
+          className="animate-ken-burns absolute inset-0 h-full w-full scale-110 object-cover blur-sm"
+        >
+          <source src="/video/bridge-streak.mp4" type="video/mp4" />
+        </video>
         <div className="absolute inset-0 bg-neutral-950/60" aria-hidden="true" />
 
         <div className="relative px-6 pt-20 pb-16 lg:px-12 lg:pt-28 lg:pb-24">

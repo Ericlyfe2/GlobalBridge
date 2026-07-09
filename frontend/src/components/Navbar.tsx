@@ -25,7 +25,22 @@ export function Navbar() {
   const guestLinks = guestLinksFn(t);
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md bg-cream-50/80 border-b border-cream-200">
+    <header className="sticky top-0 z-50 isolate overflow-hidden backdrop-blur-md bg-cream-50/80 border-b border-cream-200">
+      {/* Background video — aerial Bangkok at sunset */}
+      <video
+        aria-hidden
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        className="animate-ken-burns pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover"
+      >
+        <source src="/video/bangkok.mp4" type="video/mp4" />
+      </video>
+      {/* Theme-aware scrim keeps the nav legible over the video */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-cream-50/75" />
+
       <nav className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link href="/">
           <Logo />
