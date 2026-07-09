@@ -123,6 +123,7 @@ export function UserMenu() {
             {profile.role === "admin" && (
               <Link
                 href="/admin"
+                role="menuitem"
                 className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-500/10 transition"
               >
                 <AlertOctagon size={15} /> Admin console
@@ -134,6 +135,7 @@ export function UserMenu() {
             <Link
               href="/auth?mode=signin"
               onClick={signOut}
+              role="menuitem"
               className="flex items-center gap-2 px-4 py-2 text-sm text-ink-700 hover:bg-cream-100 transition"
             >
               <LogOut size={15} /> Sign out
@@ -149,6 +151,7 @@ function MenuItem({ href, icon, label }: { href: string; icon: React.ReactNode; 
   return (
     <Link
       href={href}
+      role="menuitem"
       className="flex items-center gap-2 px-4 py-2 text-sm text-ink-700 hover:bg-cream-100 transition"
     >
       {icon} {label}
