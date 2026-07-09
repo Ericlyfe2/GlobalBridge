@@ -35,12 +35,15 @@ const nextConfig: NextConfig = {
   },
   // Remove unused EXPORT details from client bundle
   outputFileTracingIncludes: {},
+  // TypeScript errors now fail the build — the codebase typechecks clean, so this
+  // restores type-safety as a CI gate instead of masking regressions.
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
+  // ESLint is not yet configured in this project, so linting stays disabled during
+  // builds until an eslint config is added (tracked separately).
   eslint: {
     ignoreDuringBuilds: true,
-  
   },
 };
 
