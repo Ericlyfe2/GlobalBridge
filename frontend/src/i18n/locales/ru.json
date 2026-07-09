@@ -64,17 +64,20 @@
     "minutes": {
       "one": "{count} минута",
       "few": "{count} минуты",
-      "many": "{count} минут"
+      "many": "{count} минут",
+      "other": "{count} минут"
     },
     "hours": {
       "one": "{count} час",
       "few": "{count} часа",
-      "many": "{count} часов"
+      "many": "{count} часов",
+      "other": "{count} часов"
     },
     "days": {
       "one": "{count} день",
       "few": "{count} дня",
-      "many": "{count} дней"
+      "many": "{count} дней",
+      "other": "{count} дней"
     },
     "justNow": "Только что",
     "ago": "{time} назад",

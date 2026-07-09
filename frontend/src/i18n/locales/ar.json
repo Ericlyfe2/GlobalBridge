@@ -66,21 +66,24 @@
       "one": "{count} دقيقة",
       "two": "{count} دقيقتان",
       "few": "{count} دقائق",
-      "many": "{count} دقيقة"
+      "many": "{count} دقيقة",
+      "other": "{count} دقيقة"
     },
     "hours": {
       "zero": "0 ساعات",
       "one": "{count} ساعة",
       "two": "{count} ساعتان",
       "few": "{count} ساعات",
-      "many": "{count} ساعة"
+      "many": "{count} ساعة",
+      "other": "{count} ساعة"
     },
     "days": {
       "zero": "0 أيام",
       "one": "{count} يوم",
       "two": "{count} يومان",
       "few": "{count} أيام",
-      "many": "{count} يوم"
+      "many": "{count} يوم",
+      "other": "{count} يوم"
     },
     "justNow": "الآن للتو",
     "ago": "منذ {time}",
