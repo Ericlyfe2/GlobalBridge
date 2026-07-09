@@ -25,6 +25,8 @@ export default function AdminOverview() {
   const [err, setErr] = useState<string | null>(null);
   const [health, setHealth] = useState<HealthProbe[] | null>(null);
   const [healthErr, setHealthErr] = useState(false);
+  const [signups, setSignups] = useState<{ date: string; count: number }[] | null>(null);
+  const [signupsErr, setSignupsErr] = useState(false);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -64,6 +66,23 @@ export default function AdminOverview() {
       active = false;
       clearInterval(id);
     };
+  }, []);
+
+  // Real daily-signups trend for the last 30 days.
+  useEffect(() => {
+    const ctrl = new AbortController();
+    (async () => {
+      try {
+        const res = await authFetch("/api/users/summary/signups?days=30", { signal: ctrl.signal }, 60000);
+        const data = await res.json();
+        if (!res.ok) throw new Error("signups failed");
+        setSignups(data.series as { date: string; count: number }[]);
+      } catch (e) {
+        if ((e as Error).name === "AbortError") return;
+        setSignupsErr(true);
+      }
+    })();
+    return () => ctrl.abort();
   }, []);
 
   const statCards = stats ? [
@@ -163,6 +182,16 @@ export default function AdminOverview() {
         </div>
       )}
 
+      <div className="card">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-lg font-semibold text-ink-900">Signups — last 30 days</h2>
+          <TrendingUp size={16} className="text-leaf-600" />
+        </div>
+        {signupsErr && <p className="text-sm text-red-600">Couldn&apos;t load the signups trend.</p>}
+        {!signups && !signupsErr && <div className="h-40 rounded-lg bg-cream-100 animate-pulse" />}
+        {signups && <SignupsChart data={signups} />}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="card lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
@@ -246,6 +275,57 @@ export default function AdminOverview() {
           <p className="text-xs text-ink-500">Powered by Claude · Available on /assistant</p>
         </div>
         <Link href="/admin/ai" className="btn-ghost text-sm border border-cream-300">Configure</Link>
+      </div>
+    </div>
+  );
+}
+
+/** Lightweight, dependency-free, accessible SVG bar chart of daily signups. */
+function SignupsChart({ data }: { data: { date: string; count: number }[] }) {
+  const max = Math.max(1, ...data.map((d) => d.count));
+  const total = data.reduce((sum, d) => sum + d.count, 0);
+  const W = 720;
+  const H = 160;
+  const pad = { top: 8, bottom: 20, x: 4 };
+  const chartH = H - pad.top - pad.bottom;
+  const slot = (W - pad.x * 2) / data.length;
+  const barW = Math.max(2, slot * 0.62);
+
+  return (
+    <div>
+      <p className="mb-3 text-sm text-ink-600">
+        <span className="font-semibold text-ink-900">{total.toLocaleString()}</span> new signups in the last{" "}
+        {data.length} days
+      </p>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="w-full h-40"
+        role="img"
+        aria-label={`Daily signups for the last ${data.length} days. Total ${total}. Peak ${max} in a day.`}
+        preserveAspectRatio="none"
+      >
+        {data.map((d, i) => {
+          const h = (d.count / max) * chartH;
+          const x = pad.x + i * slot + (slot - barW) / 2;
+          const y = pad.top + (chartH - h);
+          return (
+            <rect
+              key={d.date}
+              x={x}
+              y={y}
+              width={barW}
+              height={Math.max(h, d.count > 0 ? 2 : 0)}
+              rx={1.5}
+              className="fill-leaf-500"
+            >
+              <title>{`${d.date}: ${d.count} signup${d.count === 1 ? "" : "s"}`}</title>
+            </rect>
+          );
+        })}
+      </svg>
+      <div className="mt-1 flex justify-between text-[10px] text-ink-400">
+        <span>{data[0]?.date}</span>
+        <span>{data[data.length - 1]?.date}</span>
       </div>
     </div>
   );
