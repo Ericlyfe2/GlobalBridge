@@ -128,7 +128,9 @@
     "aiConfig": "AI कॉन्फ़िग",
     "home": "होम",
     "signIn": "साइन इन करें",
-    "getStarted": "शुरू करें"
+    "getStarted": "शुरू करें",
+    "openMenu": "मेन्यू खोलें",
+    "closeMenu": "मेन्यू बंद करें"
   },
   "tools": {
     "countryCompare": {

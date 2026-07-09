@@ -125,7 +125,9 @@
     "aiConfig": "AI 설정",
     "home": "홈",
     "signIn": "로그인",
-    "getStarted": "시작하기"
+    "getStarted": "시작하기",
+    "openMenu": "메뉴 열기",
+    "closeMenu": "메뉴 닫기"
   },
   "tools": {
     "countryCompare": {

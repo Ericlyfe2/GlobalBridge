@@ -125,7 +125,9 @@
     "aiConfig": "AI設定",
     "home": "ホーム",
     "signIn": "ログイン",
-    "getStarted": "始める"
+    "getStarted": "始める",
+    "openMenu": "メニューを開く",
+    "closeMenu": "メニューを閉じる"
   },
   "tools": {
     "countryCompare": {

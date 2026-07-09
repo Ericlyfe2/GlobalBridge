@@ -128,7 +128,9 @@
     "aiConfig": "KI-Konfiguration",
     "home": "Startseite",
     "signIn": "Anmelden",
-    "getStarted": "Loslegen"
+    "getStarted": "Loslegen",
+    "openMenu": "Menü öffnen",
+    "closeMenu": "Menü schließen"
   },
   "tools": {
     "countryCompare": {

@@ -140,7 +140,9 @@
     "aiConfig": "إعدادات الذكاء الاصطناعي",
     "home": "الرئيسية",
     "signIn": "تسجيل الدخول",
-    "getStarted": "ابدأ الآن"
+    "getStarted": "ابدأ الآن",
+    "openMenu": "افتح القائمة",
+    "closeMenu": "أغلق القائمة"
   },
   "tools": {
     "countryCompare": {
