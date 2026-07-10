@@ -486,7 +486,17 @@
     "passwordSpecial": "Special character",
     "passwordWeak": "Weak password",
     "passwordMedium": "Medium password",
-    "passwordStrong": "Strong password"
+    "passwordStrong": "Strong password",
+    "verifyTitle": "Check your email",
+    "verifySentTo": "We sent a verification link to",
+    "verifyBody": "Open the link to confirm your address, then come back here and continue. Accounts stay locked until the email is verified.",
+    "verifyContinue": "I have verified — continue",
+    "verifyNotYet": "That address is not verified yet. Open the link in your inbox first (check spam too).",
+    "verifyResend": "Resend link",
+    "verifyResent": "Verification link sent again — check your inbox.",
+    "verifyResendWait": "You can resend again in {seconds}s.",
+    "verifyNoPending": "No pending account found on this device.",
+    "verifyBackToSignIn": "Back to sign in"
   },
   "dashboard": {
     "welcome": "Welcome back, {name}",

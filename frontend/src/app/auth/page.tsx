@@ -7,7 +7,7 @@ import {
   ArrowRight, Mail, Lock, User, Globe, Eye, EyeOff, Loader2, Check, X,
   GraduationCap, Compass, Briefcase, ShieldCheck, Quote, BadgeCheck, Lock as LockIcon,
 } from "lucide-react";
-import { login, register, PASSWORD_POLICY } from "@/lib/auth";
+import { login, register, EmailNotVerifiedError, PASSWORD_POLICY } from "@/lib/auth";
 import { roleHome } from "@/lib/roles";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -36,16 +36,20 @@ function AuthContent() {
     setError("");
     setLoading(true);
     try {
-      let userRole = role;
       if (mode === "signup") {
         await register({ email, password, full_name: fullName, role, country_of_origin: origin });
-      } else {
-        await login(email, password);
-        userRole = signinRole || "student";
+        // Account created but locked until the email link is clicked.
+        router.push("/verify-email");
+        return;
       }
-      router.push(roleHome(userRole));
+      await login(email, password);
+      router.push(roleHome(signinRole || "student"));
       router.refresh();
     } catch (err) {
+      if (err instanceof EmailNotVerifiedError) {
+        router.push("/verify-email");
+        return;
+      }
       setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setLoading(false);
