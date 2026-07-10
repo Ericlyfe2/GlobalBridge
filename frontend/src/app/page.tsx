@@ -9,6 +9,8 @@ import JobsCard from "@/components/JobsCard";
 import MentorshipSection from "@/components/MentorshipSection";
 import LifeSupportSection from "@/components/LifeSupportSection";
 import ReviewsSection from "@/components/ReviewsSection";
+import HowItWorks from "@/components/HowItWorks";
+import OpportunitiesPreview from "@/components/OpportunitiesPreview";
 import { Footer } from "@/components/Footer";
 import { services } from "@/data/services";
 import AirplanePath from "@/components/AirplanePath";
@@ -42,10 +44,12 @@ export default function Home() {
 
       <ServiceSection service={housing} disableMaskAnimation={true} />
       </div>
+      <HowItWorks />
       <MentorshipSection />
       <ServiceSection service={jobs}>
         <JobsCard />
       </ServiceSection>
+      <OpportunitiesPreview />
       <LifeSupportSection />
       <ReviewsSection />
       </main>
