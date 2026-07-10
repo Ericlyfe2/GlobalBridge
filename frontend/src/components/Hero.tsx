@@ -107,6 +107,22 @@ const AUTOPLAY_DELAY = 4200;
 export default function Hero() {
   const { t } = useTranslation();
 
+  // ── Responsive globe size ─────────────────────────────────────────────────
+  // The canvas globe takes a fixed pixel size, so derive it from the viewport
+  // (its inline width/height would otherwise override any responsive CSS).
+  const [globeSize, setGlobeSize] = useState(600);
+  useEffect(() => {
+    const compute = () => {
+      const w = window.innerWidth;
+      setGlobeSize(
+        w < 400 ? 300 : w < 640 ? 360 : w < 768 ? 440 : w < 1024 ? 500 : w < 1280 ? 580 : 640,
+      );
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, []);
+
   // ── Carousel state ────────────────────────────────────────────────────────
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const activeIndex = useRef(0);
@@ -240,12 +256,12 @@ export default function Hero() {
           so the color blooms and bottom fade blend it into the scene. Only the
           canvas is interactive (drag to rotate); the wrapper ignores pointer events. */}
       <div
-        className="absolute inset-y-0 right-0 z-[5] hidden lg:flex items-center justify-center w-1/2 xl:w-[55%] pointer-events-none"
+        className="absolute inset-0 z-[5] flex items-center justify-center lg:justify-end lg:pr-[4%] pointer-events-none"
         aria-hidden="true"
       >
         <Globe
-          size={620}
-          className="pointer-events-auto opacity-95"
+          size={globeSize}
+          className="pointer-events-auto opacity-40 md:opacity-60 lg:opacity-95"
           markers={GLOBE_MARKERS}
           connections={GLOBE_CONNECTIONS}
           dotColor="rgba(45, 212, 191, ALPHA)"
