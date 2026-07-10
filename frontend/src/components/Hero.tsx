@@ -1,8 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import gsap from "gsap";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
+import { GLOBE_MARKERS, GLOBE_CONNECTIONS } from "@/data/globeNetwork";
+
+// Canvas globe is client-only (uses requestAnimationFrame / devicePixelRatio) —
+// load it lazily so it never runs during SSR and is code-split from the hero.
+const Globe = dynamic(
+  () => import("@/components/ui/interactive-globe").then((m) => m.Component),
+  { ssr: false },
+);
 
 // ── Carousel card definitions ────────────────────────────────────────────────
 interface CarouselCard {
@@ -226,6 +235,25 @@ export default function Hero() {
         ))}
       </div>*/}
 
+      {/* ── Interactive globe (right side, desktop) ──
+          Sits above the video (z-0) but below the gradient/grain overlays (z-10)
+          so the color blooms and bottom fade blend it into the scene. Only the
+          canvas is interactive (drag to rotate); the wrapper ignores pointer events. */}
+      <div
+        className="absolute inset-y-0 right-0 z-[5] hidden lg:flex items-center justify-center w-1/2 xl:w-[55%] pointer-events-none"
+        aria-hidden="true"
+      >
+        <Globe
+          size={620}
+          className="pointer-events-auto opacity-95"
+          markers={GLOBE_MARKERS}
+          connections={GLOBE_CONNECTIONS}
+          dotColor="rgba(45, 212, 191, ALPHA)"
+          arcColor="rgba(56, 189, 248, 0.45)"
+          markerColor="rgba(94, 234, 212, 1)"
+        />
+      </div>
+
       {/* ── Gradients for text legibility & aesthetic ── */}
       {/* Desktop/Base legibility: Dark behind text on the left, clear on the right for the carousel */}
       <div
@@ -278,9 +306,9 @@ export default function Hero() {
       {/* ── Text overlay ── */}
       <div
         id="hero-text"
-        className="relative z-20 h-full w-full max-w-[1400px] mx-auto px-6 md:px-10 flex flex-col justify-center pb-32 md:pb-40"
+        className="relative z-20 h-full w-full max-w-[1400px] mx-auto px-6 md:px-10 flex flex-col justify-center pb-32 md:pb-40 pointer-events-none"
       >
-        <div className="max-w-xl">
+        <div className="max-w-xl pointer-events-auto">
           <span className="facet-label block mb-6 text-cream-50/90 drop-shadow-md">
             {t("landing.hero.label")}
           </span>
