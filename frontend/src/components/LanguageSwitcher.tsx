@@ -59,14 +59,17 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "ful
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-label="Change language"
-          className="p-2 rounded-md text-ink-700 hover:bg-cream-200 transition flex items-center gap-1"
+          aria-haspopup="menu"
+          aria-expanded={open}
+          className="flex items-center gap-1.5 rounded-lg border border-cream-300 bg-[var(--color-surface)] px-2.5 py-1.5 text-ink-700 shadow-sm hover:bg-cream-100 transition"
         >
           {translating ? (
-            <Loader2 size={18} className="animate-spin" />
+            <Loader2 size={16} className="animate-spin" />
           ) : (
             <>
               <span className={`fi fi-${current.flag} shrink-0`} aria-hidden="true" />
-              <span className="text-xs font-medium hidden sm:inline ml-1">{current.code.toUpperCase()}</span>
+              <span className="text-xs font-medium">{current.code.toUpperCase()}</span>
+              <ChevronDown size={14} className={`text-ink-500 transition ${open ? "rotate-180" : ""}`} />
             </>
           )}
         </button>
