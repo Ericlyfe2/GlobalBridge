@@ -369,7 +369,28 @@
       "label": "Proof, not promises",
       "title": "Real people. Real moves.",
       "subtitle": "Thousands of immigrants trust GlobalBridge every year — here's what they say.",
-      "cta": "Start your journey"
+      "cta": "Start your journey",
+      "r6": {
+        "quote": "The checklist flagged a document I did not even know Canada required. That one line saved my whole application."
+      },
+      "r7": {
+        "quote": "I filtered for companies that sponsor and stopped guessing. Three interviews in two weeks, all visa-ready."
+      },
+      "r8": {
+        "quote": "My landlord was verified before I ever paid a cent. In Amsterdam, that peace of mind is everything."
+      },
+      "r9": {
+        "quote": "My mentor had walked the exact Lagos-to-UK path five years earlier. He answered questions I did not know to ask."
+      },
+      "r10": {
+        "quote": "The cost calculator matched my real Lisbon budget almost to the euro. Nothing caught me off guard."
+      },
+      "r11": {
+        "quote": "It rebuilt my timeline the day the rules changed. I would have missed a deadline without it."
+      },
+      "r12": {
+        "quote": "The resume builder reworked my CV for the US market and the callbacks started immediately."
+      }
     }
   },
   "auth": {

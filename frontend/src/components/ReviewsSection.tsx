@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef } from "react";
 import { reviews } from "@/data/reviews";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
@@ -175,12 +176,12 @@ export default function ReviewsSection() {
 
       {/* CTA */}
       <div className="relative z-10 mt-12 md:mt-16 text-center">
-        <a
-          href="#visa"
+        <Link
+          href="/auth?mode=signup"
           className="inline-flex items-center gap-2 rounded-full bg-clay-500 text-white px-7 py-3.5 font-mono text-xs tracking-widest uppercase hover:bg-clay-600 transition-colors shadow-lg"
         >
           {t("landing.reviews.cta")}
-        </a>
+        </Link>
       </div>
     </section>
   );
