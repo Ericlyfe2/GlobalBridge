@@ -75,6 +75,7 @@ export function Navbar() {
         </div>
 
         <div className="md:hidden flex items-center gap-1">
+          <LanguageSwitcher />
           <ThemeToggle />
           <button
             className="p-2 rounded-md hover:bg-cream-200"
@@ -101,9 +102,6 @@ export function Navbar() {
               {l.label}
             </Link>
           ))}
-          <div className="flex items-center gap-2 pt-2 pb-2">
-            <LanguageSwitcher />
-          </div>
           <div className="pt-2 border-t border-cream-200 flex flex-col gap-2">
             {authed ? (
               <Link href="/" className="btn-ghost text-sm">{t("nav.home")}</Link>
