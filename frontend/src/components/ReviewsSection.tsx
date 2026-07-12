@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef } from "react";
 import { reviews } from "@/data/reviews";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
@@ -91,7 +92,7 @@ export default function ReviewsSection() {
   const renderCard = (r: typeof reviews[number], i: number) => (
     <div
       key={`${r.id}-${i}`}
-      className="group shrink-0 w-[300px] md:w-[360px] p-5 rounded-2xl bg-white dark:bg-ink-800 border border-cream-200 dark:border-cream-300/10 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-default"
+      className="group shrink-0 w-[300px] md:w-[360px] p-5 rounded-2xl bg-white dark:bg-cream-100 border border-cream-200 dark:border-cream-300/10 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-default"
     >
       <div className="flex items-center gap-3 mb-4">
         <div className="w-12 h-12 shrink-0 relative">
@@ -175,12 +176,12 @@ export default function ReviewsSection() {
 
       {/* CTA */}
       <div className="relative z-10 mt-12 md:mt-16 text-center">
-        <a
-          href="#visa"
+        <Link
+          href="/auth?mode=signup"
           className="inline-flex items-center gap-2 rounded-full bg-clay-500 text-white px-7 py-3.5 font-mono text-xs tracking-widest uppercase hover:bg-clay-600 transition-colors shadow-lg"
         >
           {t("landing.reviews.cta")}
-        </a>
+        </Link>
       </div>
     </section>
   );

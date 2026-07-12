@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Globe, Heart, Shield, Sparkles, Users, ArrowRight, Award } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: "About",
+  description:
+    "GlobalBridge helps international students and immigrants study, work, and settle abroad — with AI visa guidance, verified housing, mentorship, and jobs.",
+  alternates: { canonical: "/about" },
+};
 
 const values = [
   { icon: Heart,     title: "Empathy first",         body: "We were international students once. Every feature is built from real frustration, not whiteboard guesses." },

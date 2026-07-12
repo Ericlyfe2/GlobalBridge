@@ -54,6 +54,7 @@
     "privacy": "隐私",
     "terms": "条款",
     "home": "首页",
+    "skipToContent": "跳转到内容",
     "menu": "菜单",
     "more": "更多",
     "less": "更少",
@@ -120,10 +121,13 @@
     "verifications": "验证",
     "listings": "列表",
     "reports": "举报",
+    "auditLog": "审计日志",
     "aiConfig": "AI 配置",
     "home": "首页",
     "signIn": "登录",
-    "getStarted": "开始使用"
+    "getStarted": "开始使用",
+    "openMenu": "打开菜单",
+    "closeMenu": "关闭菜单"
   },
   "tools": {
     "countryCompare": {

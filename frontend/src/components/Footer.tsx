@@ -40,7 +40,7 @@ export function Footer() {
               <p className="mt-4 max-w-xs text-sm text-neutral-400">
                 {t("footer.description")}
               </p>
-              <p className="mt-6 text-xs text-neutral-500">{t("footer.copyright")}</p>
+              <p className="mt-6 text-xs text-neutral-500">{t("footer.copyright", { year: new Date().getFullYear() })}</p>
             </div>
 
             <FooterCol

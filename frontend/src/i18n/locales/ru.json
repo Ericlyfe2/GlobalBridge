@@ -54,6 +54,7 @@
     "privacy": "Конфиденциальность",
     "terms": "Условия",
     "home": "Главная",
+    "skipToContent": "Перейти к содержимому",
     "menu": "Меню",
     "more": "Больше",
     "less": "Меньше",
@@ -64,17 +65,20 @@
     "minutes": {
       "one": "{count} минута",
       "few": "{count} минуты",
-      "many": "{count} минут"
+      "many": "{count} минут",
+      "other": "{count} минут"
     },
     "hours": {
       "one": "{count} час",
       "few": "{count} часа",
-      "many": "{count} часов"
+      "many": "{count} часов",
+      "other": "{count} часов"
     },
     "days": {
       "one": "{count} день",
       "few": "{count} дня",
-      "many": "{count} дней"
+      "many": "{count} дней",
+      "other": "{count} дней"
     },
     "justNow": "Только что",
     "ago": "{time} назад",
@@ -126,10 +130,13 @@
     "verifications": "Верификации",
     "listings": "Объявления",
     "reports": "Отчёты",
+    "auditLog": "Журнал аудита",
     "aiConfig": "Настройки ИИ",
     "home": "Главная",
     "signIn": "Войти",
-    "getStarted": "Начать"
+    "getStarted": "Начать",
+    "openMenu": "Открыть меню",
+    "closeMenu": "Закрыть меню"
   },
   "tools": {
     "countryCompare": {
@@ -233,141 +240,141 @@
     "ctaSubtitle": "Присоединяйтесь к тысячам студентов, которые используют GlobalBridge для уверенной навигации в международном образовании.",
     "ctaButton": "Создать бесплатный аккаунт",
     "ctaAssistantButton": "Поговорить с ИИ-ассистентом",
-    "statStudents": "Students guided",
-    "statVisaSuccess": "Visa success rate",
+    "statStudents": "Сопровождено студентов",
+    "statVisaSuccess": "Доля успешных виз",
     "hero": {
-      "label": "[RU] Study abroad, held together",
-      "title": "[RU] Your move,<br />held together.",
-      "subtitle": "Visa guidance, verified housing, mentorship, jobs, and life support — one platform, before, during, and after you arrive.",
-      "startFree": "[RU] Start free",
-      "meetNetwork": "[RU] Meet the network",
-      "scroll": "[RU] Scroll",
+      "label": "Учёба за рубежом — рядом на каждом шагу",
+      "title": "Ваш переезд —<br />рядом на каждом шагу.",
+      "subtitle": "Помощь с визой, проверенное жильё, наставничество, работа и поддержка в быту — одна платформа до, во время и после переезда.",
+      "startFree": "Начать бесплатно",
+      "meetNetwork": "Познакомиться с сообществом",
+      "scroll": "Прокрутите",
       "cards": {
         "tokyo": {
-          "title": "[RU] Tokyo",
-          "tag": "Japan — Asia Pacific"
+          "title": "Токио",
+          "tag": "Япония — Азиатско-Тихоокеанский регион"
         },
         "berlin": {
-          "title": "[RU] Berlin",
-          "tag": "Germany — Europe"
+          "title": "Берлин",
+          "tag": "Германия — Европа"
         },
         "toronto": {
-          "title": "[RU] Toronto",
-          "tag": "Canada — North America"
+          "title": "Торонто",
+          "tag": "Канада — Северная Америка"
         },
         "dubai": {
-          "title": "[RU] Dubai",
-          "tag": "UAE — Middle East"
+          "title": "Дубай",
+          "tag": "ОАЭ — Ближний Восток"
         },
         "london": {
-          "title": "[RU] London",
-          "tag": "United Kingdom — Europe"
+          "title": "Лондон",
+          "tag": "Великобритания — Европа"
         }
       }
     },
     "visa": {
-      "title": "[RU] AI Visa Assistant",
-      "dek": "[RU] Any visa. Any country. Zero guesswork.",
-      "detail": "Conversational guidance that adapts to your destination, your passport, and your timeline — with a step-by-step document checklist that updates itself as embassies change the rules.",
-      "bullet1": "[RU] Country-specific checklist, generated in minutes",
-      "bullet2": "[RU] Plain-language answers to embassy questions",
-      "bullet3": "[RU] Deadline tracking with reminders that actually fire",
+      "title": "ИИ-помощник по визам",
+      "dek": "Любая виза. Любая страна. Никаких догадок.",
+      "detail": "Диалоговая помощь, которая подстраивается под вашу страну назначения, паспорт и сроки, — с пошаговым списком документов, который обновляется, когда посольства меняют правила.",
+      "bullet1": "Чек-лист для конкретной страны за пару минут",
+      "bullet2": "Понятные ответы на вопросы посольства",
+      "bullet3": "Отслеживание сроков с напоминаниями, которые действительно приходят",
       "checklist": {
-        "step1": "[RU] University Acceptance Letter",
-        "step2": "[RU] Proof of Financial Support",
-        "step3": "[RU] Passport Validity Check",
-        "step4": "[RU] Biometrics Appointment"
+        "step1": "Письмо о зачислении из университета",
+        "step2": "Подтверждение финансовых средств",
+        "step3": "Проверка срока действия паспорта",
+        "step4": "Запись на сдачу биометрии"
       }
     },
     "housing": {
-      "title": "[RU] Verified Housing",
-      "dek": "[RU] A key waiting for you, not a listing that vanishes.",
-      "detail": "[RU] Every landlord is identity-checked before their listing goes live. Match with roommates who share your move-in date, and book your place before you board.",
-      "bullet1": "[RU] Identity-verified landlords only",
-      "bullet2": "[RU] Roommate matching by city, dates, and habits",
-      "bullet3": "Book and pay before you land — no showings needed"
+      "title": "Проверенное жильё",
+      "dek": "Ключ, который ждёт вас, а не объявление, которое исчезает.",
+      "detail": "Личность каждого арендодателя проверяется до публикации объявления. Найдите соседей с той же датой заезда и забронируйте жильё ещё до вылета.",
+      "bullet1": "Только арендодатели с проверенной личностью",
+      "bullet2": "Подбор соседей по городу, датам и привычкам",
+      "bullet3": "Бронируйте и оплачивайте до прилёта — без показов"
     },
     "jobs": {
-      "title": "[RU] Jobs & Internships",
-      "dek": "[RU] Filtered for the one thing that matters: sponsorship.",
-      "detail": "[RU] Search roles that actually sponsor your visa type, track a company's sponsorship history before you apply, and let the AI resume builder tune your CV per market.",
-      "bullet1": "[RU] Filter by visa-sponsor status, not guesswork",
-      "bullet2": "[RU] AI resume builder tuned to local hiring norms",
-      "bullet3": "[RU] Sponsorship-history tracker per employer",
-      "sponsorRoles": "[RU] Sponsor Roles",
-      "interviewLift": "[RU] Interview Lift",
-      "visaSponsorBadge": "[RU] VISA-SPONSOR"
+      "title": "Работа и стажировки",
+      "dek": "Отфильтровано по главному: спонсорству визы.",
+      "detail": "Ищите вакансии, которые действительно спонсируют вашу визу, изучайте историю спонсорства компании до отклика и позвольте ИИ-конструктору резюме адаптировать ваше CV под каждый рынок.",
+      "bullet1": "Фильтр по статусу спонсорства визы, а не наугад",
+      "bullet2": "ИИ-конструктор резюме под местные нормы найма",
+      "bullet3": "История спонсорства по каждому работодателю",
+      "sponsorRoles": "Вакансии со спонсорством",
+      "interviewLift": "Рост числа собеседований",
+      "visaSponsorBadge": "СПОНСОР ВИЗЫ"
     },
     "mentorship": {
-      "title": "[RU] Mentorship Network",
-      "dek": "[RU] People who already lived it, one message away.",
-      "detail": "[RU] Connect with people who've spent years in your destination city. Join cultural hubs and events built around where you're headed, not where you're from."
+      "title": "Сеть наставников",
+      "dek": "Те, кто уже прошёл этот путь, — в одном сообщении от вас.",
+      "detail": "Общайтесь с теми, кто провёл годы в вашем городе назначения. Присоединяйтесь к культурным сообществам и событиям, построенным вокруг того, куда вы едете, а не откуда вы родом."
     },
     "lifeSupport": {
-      "title": "[RU] Life Support Toolkit",
-      "dek": "[RU] Everything after the flight lands.",
-      "detail": "Cost calculators, healthcare guides, banking setup, and an emergency SOS — all in one place, so the small logistics never become the hard part.",
-      "tool1": "[RU] Cost calculator",
-      "tool1Note": "[RU] Budget by city, down to groceries",
-      "tool2": "[RU] Healthcare guide",
-      "tool2Note": "[RU] Insurance & clinics, explained",
-      "tool3": "[RU] Banking setup",
-      "tool3Note": "[RU] Open an account before you land",
-      "tool4": "[RU] Emergency SOS",
-      "tool4Note": "[RU] One tap, always on"
+      "title": "Набор для жизни на месте",
+      "dek": "Всё, что начинается после приземления.",
+      "detail": "Калькуляторы расходов, гиды по здравоохранению, открытие счёта и экстренный SOS — всё в одном месте, чтобы мелкие хлопоты никогда не становились главной проблемой.",
+      "tool1": "Калькулятор расходов",
+      "tool1Note": "Бюджет по городу, вплоть до продуктов",
+      "tool2": "Гид по здравоохранению",
+      "tool2Note": "Страховка и клиники — простыми словами",
+      "tool3": "Открытие счёта",
+      "tool3Note": "Откройте счёт ещё до приезда",
+      "tool4": "Экстренный SOS",
+      "tool4Note": "Одно касание, всегда на связи"
     },
     "closing": {
-      "title": "[RU] Every piece, one bridge."
+      "title": "Каждая деталь — один мост."
     },
     "reviews": {
       "r1": {
-        "serviceTitle": "[RU] AI Visa Assistant",
-        "quote": "It told me exactly which biometrics appointment to book first — I would have missed the window otherwise."
+        "serviceTitle": "ИИ-помощник по визам",
+        "quote": "Сервис точно подсказал, на какую сдачу биометрии записаться первой, — иначе я бы упустил сроки."
       },
       "r2": {
-        "serviceTitle": "[RU] Verified Housing",
-        "quote": "[RU] I signed my lease from home. No video call landlord ever went quiet on me."
+        "serviceTitle": "Проверенное жильё",
+        "quote": "Я подписал договор аренды, не выходя из дома. Ни один арендодатель после видеозвонка не пропал."
       },
       "r3": {
-        "serviceTitle": "[RU] Mentorship Network",
-        "quote": "[RU] My mentor met me at arrivals. That's not something a brochure tells you to expect."
+        "serviceTitle": "Сеть наставников",
+        "quote": "Мой наставник встретил меня в зоне прилёта. Об этом не пишут ни в одной брошюре."
       },
       "r4": {
-        "serviceTitle": "[RU] Jobs & Internships",
-        "quote": "[RU] Every listing I applied to already sponsored my visa type. I stopped wasting weeks on dead ends."
+        "serviceTitle": "Работа и стажировки",
+        "quote": "Каждая вакансия, куда я откликался, уже спонсировала мой тип визы. Я перестал терять недели впустую."
       },
       "r5": {
-        "serviceTitle": "[RU] Life Support Toolkit",
-        "quote": "[RU] The bank setup guide alone saved me a week of standing in the wrong lines."
+        "serviceTitle": "Набор для жизни на месте",
+        "quote": "Один только гид по открытию счёта сэкономил мне неделю в неправильных очередях."
       },
-      "label": "[RU] Proof, not promises",
-      "title": "[RU] Real people. Real moves.",
-      "subtitle": "Thousands of immigrants trust GlobalBridge every year — here's what they say.",
-      "cta": "[RU] Start your journey"
+      "label": "Факты, а не обещания",
+      "title": "Реальные люди. Реальные переезды.",
+      "subtitle": "Тысячи иммигрантов ежегодно доверяют GlobalBridge — вот что они говорят.",
+      "cta": "Начните свой путь"
     },
     "footer": {
-      "subtitle": "[RU] Your move, held together.",
-      "sitemap": "[RU] Sitemap",
-      "company": "[RU] Company",
-      "status": "[RU] Status",
-      "time": "[RU] Time",
-      "allSystemsLive": "[RU] All systems live",
-      "bridgesBuilt": "[RU] bridges built ↑",
-      "backToTop": "[RU] Back to top",
+      "subtitle": "Ваш переезд, рядом на каждом шагу.",
+      "sitemap": "Карта сайта",
+      "company": "Компания",
+      "status": "Статус",
+      "time": "Время",
+      "allSystemsLive": "Все системы работают",
+      "bridgesBuilt": "мостов построено ↑",
+      "backToTop": "Наверх",
       "copyright": "© 2026 Global Bridge",
-      "about": "[RU] About",
-      "careers": "[RU] Careers",
-      "press": "[RU] Press",
-      "contact": "[RU] Contact",
-      "trustSafety": "[RU] Trust & Safety",
-      "getChecklist": "[RU] Get the checklist",
-      "checklistSent": "[RU] Checklist on its way",
+      "about": "О нас",
+      "careers": "Карьера",
+      "press": "Пресса",
+      "contact": "Контакты",
+      "trustSafety": "Доверие и безопасность",
+      "getChecklist": "Получить чек-лист",
+      "checklistSent": "Чек-лист уже в пути",
       "cities": {
-        "toronto": "[RU] Toronto",
-        "london": "[RU] London",
-        "berlin": "[RU] Berlin",
-        "sydney": "[RU] Sydney",
-        "dublin": "[RU] Dublin"
+        "toronto": "Торонто",
+        "london": "Лондон",
+        "berlin": "Берлин",
+        "sydney": "Сидней",
+        "dublin": "Дублин"
       }
     }
   },

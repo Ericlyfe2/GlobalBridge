@@ -54,6 +54,7 @@
     "privacy": "Datenschutz",
     "terms": "AGB",
     "home": "Startseite",
+    "skipToContent": "Zum Inhalt springen",
     "menu": "Menü",
     "more": "Mehr",
     "less": "Weniger",
@@ -123,10 +124,13 @@
     "verifications": "Verifizierungen",
     "listings": "Anzeigen",
     "reports": "Meldungen",
+    "auditLog": "Prüfprotokoll",
     "aiConfig": "KI-Konfiguration",
     "home": "Startseite",
     "signIn": "Anmelden",
-    "getStarted": "Loslegen"
+    "getStarted": "Loslegen",
+    "openMenu": "Menü öffnen",
+    "closeMenu": "Menü schließen"
   },
   "tools": {
     "countryCompare": {
@@ -230,141 +234,141 @@
     "ctaSubtitle": "Schließe dich tausenden Studierenden an, die GlobalBridge nutzen, um ihr internationales Studium selbstbewusst zu meistern.",
     "ctaButton": "Kostenloses Konto erstellen",
     "ctaAssistantButton": "Mit KI-Assistent sprechen",
-    "statStudents": "Students guided",
-    "statVisaSuccess": "Visa success rate",
+    "statStudents": "Begleitete Studierende",
+    "statVisaSuccess": "Visum-Erfolgsquote",
     "hero": {
-      "label": "[DE] Study abroad, held together",
-      "title": "[DE] Your move,<br />held together.",
-      "subtitle": "Visa guidance, verified housing, mentorship, jobs, and life support — one platform, before, during, and after you arrive.",
-      "startFree": "[DE] Start free",
-      "meetNetwork": "[DE] Meet the network",
-      "scroll": "[DE] Scroll",
+      "label": "Studieren im Ausland, gut begleitet",
+      "title": "Dein Umzug,<br />gut begleitet.",
+      "subtitle": "Visumberatung, geprüfte Unterkünfte, Mentoring, Jobs und Alltagshilfe – eine Plattform, vor, während und nach deiner Ankunft.",
+      "startFree": "Kostenlos starten",
+      "meetNetwork": "Das Netzwerk entdecken",
+      "scroll": "Scrollen",
       "cards": {
         "tokyo": {
-          "title": "[DE] Tokyo",
-          "tag": "Japan — Asia Pacific"
+          "title": "Tokio",
+          "tag": "Japan – Asien-Pazifik"
         },
         "berlin": {
-          "title": "[DE] Berlin",
-          "tag": "Germany — Europe"
+          "title": "Berlin",
+          "tag": "Deutschland – Europa"
         },
         "toronto": {
-          "title": "[DE] Toronto",
-          "tag": "Canada — North America"
+          "title": "Toronto",
+          "tag": "Kanada – Nordamerika"
         },
         "dubai": {
-          "title": "[DE] Dubai",
-          "tag": "UAE — Middle East"
+          "title": "Dubai",
+          "tag": "VAE – Naher Osten"
         },
         "london": {
-          "title": "[DE] London",
-          "tag": "United Kingdom — Europe"
+          "title": "London",
+          "tag": "Vereinigtes Königreich – Europa"
         }
       }
     },
     "visa": {
-      "title": "[DE] AI Visa Assistant",
-      "dek": "[DE] Any visa. Any country. Zero guesswork.",
-      "detail": "Conversational guidance that adapts to your destination, your passport, and your timeline — with a step-by-step document checklist that updates itself as embassies change the rules.",
-      "bullet1": "[DE] Country-specific checklist, generated in minutes",
-      "bullet2": "[DE] Plain-language answers to embassy questions",
-      "bullet3": "[DE] Deadline tracking with reminders that actually fire",
+      "title": "KI-Visum-Assistent",
+      "dek": "Jedes Visum. Jedes Land. Kein Rätselraten.",
+      "detail": "Dialogbasierte Beratung, die sich an dein Zielland, deinen Pass und deinen Zeitplan anpasst – mit einer Schritt-für-Schritt-Dokumenten-Checkliste, die sich aktualisiert, sobald Botschaften die Regeln ändern.",
+      "bullet1": "Länderspezifische Checkliste, in Minuten erstellt",
+      "bullet2": "Verständliche Antworten auf Fragen der Botschaft",
+      "bullet3": "Fristen-Tracking mit Erinnerungen, die wirklich kommen",
       "checklist": {
-        "step1": "[DE] University Acceptance Letter",
-        "step2": "[DE] Proof of Financial Support",
-        "step3": "[DE] Passport Validity Check",
-        "step4": "[DE] Biometrics Appointment"
+        "step1": "Zulassungsbescheid der Universität",
+        "step2": "Finanzierungsnachweis",
+        "step3": "Prüfung der Passgültigkeit",
+        "step4": "Biometrie-Termin"
       }
     },
     "housing": {
-      "title": "[DE] Verified Housing",
-      "dek": "[DE] A key waiting for you, not a listing that vanishes.",
-      "detail": "[DE] Every landlord is identity-checked before their listing goes live. Match with roommates who share your move-in date, and book your place before you board.",
-      "bullet1": "[DE] Identity-verified landlords only",
-      "bullet2": "[DE] Roommate matching by city, dates, and habits",
-      "bullet3": "Book and pay before you land — no showings needed"
+      "title": "Geprüfte Unterkünfte",
+      "dek": "Ein Schlüssel, der auf dich wartet – kein Inserat, das verschwindet.",
+      "detail": "Jeder Vermieter wird identitätsgeprüft, bevor sein Inserat online geht. Finde Mitbewohner mit demselben Einzugsdatum und buche deine Unterkunft, bevor du ins Flugzeug steigst.",
+      "bullet1": "Nur identitätsgeprüfte Vermieter",
+      "bullet2": "Mitbewohner-Matching nach Stadt, Terminen und Gewohnheiten",
+      "bullet3": "Buchen und bezahlen, bevor du landest – keine Besichtigungen nötig"
     },
     "jobs": {
-      "title": "[DE] Jobs & Internships",
-      "dek": "[DE] Filtered for the one thing that matters: sponsorship.",
-      "detail": "[DE] Search roles that actually sponsor your visa type, track a company's sponsorship history before you apply, and let the AI resume builder tune your CV per market.",
-      "bullet1": "[DE] Filter by visa-sponsor status, not guesswork",
-      "bullet2": "[DE] AI resume builder tuned to local hiring norms",
-      "bullet3": "[DE] Sponsorship-history tracker per employer",
-      "sponsorRoles": "[DE] Sponsor Roles",
-      "interviewLift": "[DE] Interview Lift",
-      "visaSponsorBadge": "[DE] VISA-SPONSOR"
+      "title": "Jobs & Praktika",
+      "dek": "Gefiltert nach dem, worauf es ankommt: Visa-Sponsoring.",
+      "detail": "Finde Stellen, die dein Visum tatsächlich sponsern, prüfe die Sponsoring-Historie eines Unternehmens vor der Bewerbung und lass den KI-Lebenslauf-Builder deinen CV für jeden Markt anpassen.",
+      "bullet1": "Nach Visa-Sponsoring-Status filtern, kein Rätselraten",
+      "bullet2": "KI-Lebenslauf-Builder, abgestimmt auf lokale Einstellungsnormen",
+      "bullet3": "Sponsoring-Historie pro Arbeitgeber",
+      "sponsorRoles": "Sponsoring-Stellen",
+      "interviewLift": "Interview-Boost",
+      "visaSponsorBadge": "VISA-SPONSOR"
     },
     "mentorship": {
-      "title": "[DE] Mentorship Network",
-      "dek": "[DE] People who already lived it, one message away.",
-      "detail": "[DE] Connect with people who've spent years in your destination city. Join cultural hubs and events built around where you're headed, not where you're from."
+      "title": "Mentoren-Netzwerk",
+      "dek": "Menschen, die es bereits erlebt haben – nur eine Nachricht entfernt.",
+      "detail": "Vernetze dich mit Menschen, die Jahre in deiner Zielstadt verbracht haben. Nimm an kulturellen Treffpunkten und Events teil, die sich um dein Ziel drehen – nicht um deine Herkunft."
     },
     "lifeSupport": {
-      "title": "[DE] Life Support Toolkit",
-      "dek": "[DE] Everything after the flight lands.",
-      "detail": "Cost calculators, healthcare guides, banking setup, and an emergency SOS — all in one place, so the small logistics never become the hard part.",
-      "tool1": "[DE] Cost calculator",
-      "tool1Note": "[DE] Budget by city, down to groceries",
-      "tool2": "[DE] Healthcare guide",
-      "tool2Note": "[DE] Insurance & clinics, explained",
-      "tool3": "[DE] Banking setup",
-      "tool3Note": "[DE] Open an account before you land",
-      "tool4": "[DE] Emergency SOS",
-      "tool4Note": "[DE] One tap, always on"
+      "title": "Alltags-Toolkit",
+      "dek": "Alles, was nach der Landung kommt.",
+      "detail": "Kostenrechner, Gesundheitsratgeber, Konto-Einrichtung und ein Notfall-SOS – alles an einem Ort, damit die kleinen Dinge nie zum großen Problem werden.",
+      "tool1": "Kostenrechner",
+      "tool1Note": "Budget nach Stadt, bis hin zu Lebensmitteln",
+      "tool2": "Gesundheitsratgeber",
+      "tool2Note": "Versicherung & Kliniken, erklärt",
+      "tool3": "Konto-Einrichtung",
+      "tool3Note": "Eröffne ein Konto, bevor du landest",
+      "tool4": "Notfall-SOS",
+      "tool4Note": "Ein Tippen, immer verfügbar"
     },
     "closing": {
-      "title": "[DE] Every piece, one bridge."
+      "title": "Jedes Teil, eine Brücke."
     },
     "reviews": {
       "r1": {
-        "serviceTitle": "[DE] AI Visa Assistant",
-        "quote": "It told me exactly which biometrics appointment to book first — I would have missed the window otherwise."
+        "serviceTitle": "KI-Visum-Assistent",
+        "quote": "Es sagte mir genau, welchen Biometrie-Termin ich zuerst buchen musste – sonst hätte ich die Frist verpasst."
       },
       "r2": {
-        "serviceTitle": "[DE] Verified Housing",
-        "quote": "[DE] I signed my lease from home. No video call landlord ever went quiet on me."
+        "serviceTitle": "Geprüfte Unterkünfte",
+        "quote": "Ich habe meinen Mietvertrag von zu Hause aus unterschrieben. Kein Vermieter ist nach einem Videoanruf je verstummt."
       },
       "r3": {
-        "serviceTitle": "[DE] Mentorship Network",
-        "quote": "[DE] My mentor met me at arrivals. That's not something a brochure tells you to expect."
+        "serviceTitle": "Mentoren-Netzwerk",
+        "quote": "Mein Mentor hat mich am Flughafen abgeholt. Das verspricht dir keine Broschüre."
       },
       "r4": {
-        "serviceTitle": "[DE] Jobs & Internships",
-        "quote": "[DE] Every listing I applied to already sponsored my visa type. I stopped wasting weeks on dead ends."
+        "serviceTitle": "Jobs & Praktika",
+        "quote": "Jede Stelle, auf die ich mich beworben habe, sponserte bereits mein Visum. Ich habe keine Wochen mehr mit Sackgassen verschwendet."
       },
       "r5": {
-        "serviceTitle": "[DE] Life Support Toolkit",
-        "quote": "[DE] The bank setup guide alone saved me a week of standing in the wrong lines."
+        "serviceTitle": "Alltags-Toolkit",
+        "quote": "Allein der Konto-Ratgeber hat mir eine Woche in den falschen Schlangen erspart."
       },
-      "label": "[DE] Proof, not promises",
-      "title": "[DE] Real people. Real moves.",
-      "subtitle": "Thousands of immigrants trust GlobalBridge every year — here's what they say.",
-      "cta": "[DE] Start your journey"
+      "label": "Beweise, keine Versprechen",
+      "title": "Echte Menschen. Echte Umzüge.",
+      "subtitle": "Tausende Einwanderer vertrauen GlobalBridge jedes Jahr – das sagen sie.",
+      "cta": "Starte deine Reise"
     },
     "footer": {
-      "subtitle": "[DE] Your move, held together.",
-      "sitemap": "[DE] Sitemap",
-      "company": "[DE] Company",
-      "status": "[DE] Status",
-      "time": "[DE] Time",
-      "allSystemsLive": "[DE] All systems live",
-      "bridgesBuilt": "[DE] bridges built ↑",
-      "backToTop": "[DE] Back to top",
+      "subtitle": "Dein Umzug, gut begleitet.",
+      "sitemap": "Sitemap",
+      "company": "Unternehmen",
+      "status": "Status",
+      "time": "Zeit",
+      "allSystemsLive": "Alle Systeme aktiv",
+      "bridgesBuilt": "Brücken gebaut ↑",
+      "backToTop": "Nach oben",
       "copyright": "© 2026 Global Bridge",
-      "about": "[DE] About",
-      "careers": "[DE] Careers",
-      "press": "[DE] Press",
-      "contact": "[DE] Contact",
-      "trustSafety": "[DE] Trust & Safety",
-      "getChecklist": "[DE] Get the checklist",
-      "checklistSent": "[DE] Checklist on its way",
+      "about": "Über uns",
+      "careers": "Karriere",
+      "press": "Presse",
+      "contact": "Kontakt",
+      "trustSafety": "Vertrauen & Sicherheit",
+      "getChecklist": "Checkliste erhalten",
+      "checklistSent": "Checkliste ist unterwegs",
       "cities": {
-        "toronto": "[DE] Toronto",
-        "london": "[DE] London",
-        "berlin": "[DE] Berlin",
-        "sydney": "[DE] Sydney",
-        "dublin": "[DE] Dublin"
+        "toronto": "Toronto",
+        "london": "London",
+        "berlin": "Berlin",
+        "sydney": "Sydney",
+        "dublin": "Dublin"
       }
     }
   },

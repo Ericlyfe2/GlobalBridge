@@ -7,7 +7,7 @@ import {
   ArrowRight, Mail, Lock, User, Globe, Eye, EyeOff, Loader2, Check, X,
   GraduationCap, Compass, Briefcase, ShieldCheck, Quote, BadgeCheck, Lock as LockIcon,
 } from "lucide-react";
-import { login, register, PASSWORD_POLICY } from "@/lib/auth";
+import { login, register, EmailNotVerifiedError, PASSWORD_POLICY } from "@/lib/auth";
 import { roleHome } from "@/lib/roles";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -36,16 +36,20 @@ function AuthContent() {
     setError("");
     setLoading(true);
     try {
-      let userRole = role;
       if (mode === "signup") {
         await register({ email, password, full_name: fullName, role, country_of_origin: origin });
-      } else {
-        await login(email, password);
-        userRole = signinRole || "student";
+        // Account created but locked until the email link is clicked.
+        router.push("/verify-email");
+        return;
       }
-      router.push(roleHome(userRole));
+      await login(email, password);
+      router.push(roleHome(signinRole || "student"));
       router.refresh();
     } catch (err) {
+      if (err instanceof EmailNotVerifiedError) {
+        router.push("/verify-email");
+        return;
+      }
       setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setLoading(false);
@@ -145,7 +149,7 @@ function AuthContent() {
           <ThemeToggle />
         </header>
 
-        <div className="flex flex-1 items-center justify-center px-6 py-8 lg:px-10">
+        <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-8 lg:px-10">
           <div className="w-full max-w-md">
             <div className="mb-8">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
@@ -305,9 +309,15 @@ function AuthContent() {
 
             {isSignup && (
               <p className="mt-6 text-center text-xs leading-relaxed text-ink-400 dark:text-gray-500">
-                {t("auth.agreeToTerms")}{" "}
-                <Link href="/terms" className="underline hover:text-ink-600">{t("auth.terms")}</Link> {t("common.and")}{" "}
-                <Link href="/privacy" className="underline hover:text-ink-600">{t("auth.privacyPolicy")}</Link>.
+                {t("auth.agreeToTerms").split(/(\{terms\}|\{privacy\})/g).map((part, i) => {
+                  if (part === "{terms}") {
+                    return <Link key={i} href="/terms" className="underline hover:text-ink-600">{t("auth.terms")}</Link>;
+                  }
+                  if (part === "{privacy}") {
+                    return <Link key={i} href="/privacy" className="underline hover:text-ink-600">{t("auth.privacyPolicy")}</Link>;
+                  }
+                  return <span key={i}>{part}</span>;
+                })}.
               </p>
             )}
           </div>

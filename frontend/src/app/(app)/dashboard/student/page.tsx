@@ -32,9 +32,9 @@ export default function StudentDashboard() {
 
   const QUICK_ACTIONS = [
     { href: "/opportunities", icon: Award, label: t("dashboard.browseOpportunities") },
-    { href: "/tools/uni-success", icon: GraduationCap, label: t("dashboard.browseOpportunities") },
+    { href: "/tools/uni-success", icon: GraduationCap, label: "University Success" },
     { href: "/housing", icon: Home, label: t("dashboard.findHousing") },
-    { href: "/community/mentors", icon: Users, label: t("community.findMentors") },
+    { href: "/community", icon: Users, label: t("community.findMentors") },
     { href: "/assistant", icon: Bot, label: t("nav.aiAssistant") },
     { href: "/jobs/resume-builder", icon: FileText, label: "Resume Builder" },
   ];
