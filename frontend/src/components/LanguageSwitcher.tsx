@@ -1,27 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Languages, Check, Loader2, Search, Globe, ChevronDown } from "lucide-react";
+import { Check, Loader2, Globe, ChevronDown } from "lucide-react";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
 
 export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "full" }) {
   const { lang, setLang, translating, availableLanguages } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
-      if (!ref.current?.contains(e.target as Node)) {
-        setOpen(false);
-        setSearch("");
-      }
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        setOpen(false);
-        setSearch("");
-      }
+      if (e.key === "Escape") setOpen(false);
     }
     document.addEventListener("mousedown", onDoc);
     document.addEventListener("keydown", onKey);
@@ -33,19 +26,9 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "ful
 
   const current = availableLanguages.find((l) => l.code === lang) ?? availableLanguages[0];
 
-  const filtered = search.trim()
-    ? availableLanguages.filter(
-        (l) =>
-          l.native.toLowerCase().includes(search.toLowerCase()) ||
-          l.label.toLowerCase().includes(search.toLowerCase()) ||
-          l.code.includes(search.toLowerCase())
-      )
-    : availableLanguages;
-
   function handleSelect(code: typeof lang) {
     setLang(code);
     setOpen(false);
-    setSearch("");
   }
 
   return (
@@ -74,15 +57,15 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "ful
           aria-haspopup="menu"
           aria-expanded={open}
           title={`${current.native} — change language`}
-          className="flex items-center gap-1 rounded-md border border-cream-300 px-2 py-1.5 text-ink-700 transition hover:border-clay-300 hover:bg-cream-200"
+          className="flex items-center gap-1.5 rounded-lg border border-cream-300 bg-[var(--color-surface)] px-2.5 py-1.5 text-ink-700 shadow-sm transition hover:border-clay-300 hover:bg-cream-100"
         >
           {translating ? (
             <Loader2 size={16} className="animate-spin" />
           ) : (
             <>
               <span className={`fi fi-${current.flag} shrink-0`} aria-hidden="true" />
-              <span className="ml-0.5 text-xs font-medium">{current.code.toUpperCase()}</span>
-              <ChevronDown size={13} className={`text-ink-500 transition ${open ? "rotate-180" : ""}`} />
+              <span className="text-xs font-medium">{current.code.toUpperCase()}</span>
+              <ChevronDown size={14} className={`text-ink-500 transition ${open ? "rotate-180" : ""}`} />
             </>
           )}
         </button>
@@ -95,49 +78,37 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "ful
             variant === "full" ? "left-0 right-0 mt-1" : "right-0 mt-2 w-64"
           }`}
         >
-          <div className="px-3 pt-2 pb-1 flex items-center gap-2 border-b border-cream-200 mx-2 mb-1">
-            <Search size={14} className="text-ink-500 shrink-0" />
-            <input
-              type="text"
-              placeholder="Search languages..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-transparent text-sm text-ink-900 outline-none placeholder:text-ink-400 py-1.5"
-              autoFocus
-            />
+          <div className="px-3 pt-2 pb-1.5 text-[11px] font-medium uppercase tracking-wide text-ink-500 border-b border-cream-200 mb-1">
+            Select language
           </div>
 
-          <div className="max-h-64 overflow-y-auto">
-            {filtered.length === 0 ? (
-              <p className="px-3 py-4 text-xs text-ink-500 text-center">No languages found</p>
-            ) : (
-              filtered.map((l) => {
-                const isActive = lang === l.code;
-                return (
-                  <button
-                    key={l.code}
-                    role="menuitem"
-                    aria-current={isActive ? "true" : undefined}
-                    onClick={() => handleSelect(l.code)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition ${
-                      isActive
-                        ? "bg-clay-500/10 text-clay-600 font-medium"
-                        : "text-ink-700 hover:bg-cream-100"
-                    }`}
-                  >
-                    <span className={`fi fi-${l.flag} shrink-0`} aria-hidden="true" />
-                    <span className="flex-1 text-left">
-                      <span>{l.native}</span>
-                      <span className="text-ink-500 text-xs ml-1.5">{l.label}</span>
-                    </span>
-                    {isActive && <Check size={14} className="text-clay-500 shrink-0" />}
-                    {translating && lang === l.code && (
-                      <Loader2 size={14} className="animate-spin text-clay-500 shrink-0" />
-                    )}
-                  </button>
-                );
-              })
-            )}
+          <div className="max-h-72 overflow-y-auto">
+            {availableLanguages.map((l) => {
+              const isActive = lang === l.code;
+              return (
+                <button
+                  key={l.code}
+                  role="menuitem"
+                  aria-current={isActive ? "true" : undefined}
+                  onClick={() => handleSelect(l.code)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm transition ${
+                    isActive
+                      ? "bg-clay-500/10 text-clay-600 font-medium"
+                      : "text-ink-700 hover:bg-cream-100"
+                  }`}
+                >
+                  <span className={`fi fi-${l.flag} shrink-0`} aria-hidden="true" />
+                  <span className="flex-1 text-left">
+                    <span>{l.native}</span>
+                    <span className="text-ink-500 text-xs ml-1.5">{l.label}</span>
+                  </span>
+                  {isActive && <Check size={14} className="text-clay-500 shrink-0" />}
+                  {translating && lang === l.code && (
+                    <Loader2 size={14} className="animate-spin text-clay-500 shrink-0" />
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           <div className="px-3 py-2 text-[10px] text-ink-500 border-t border-cream-200 mt-1 flex items-center justify-between">
