@@ -74,6 +74,9 @@ export function setSession(token: string, user: SessionUser) {
     const initials =
       user.full_name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "?";
     localStorage.setItem("user-initials", initials);
+    localStorage.setItem("user-role", user.role);
+    localStorage.setItem("user-name", user.full_name);
+    localStorage.setItem("user-email", user.email);
   } catch {}
 }
 
@@ -88,10 +91,13 @@ export function subscribeIdTokenChanges() {
   if (typeof window === "undefined") return () => {};
   return onIdTokenChanged(auth, async (user) => {
     try {
-      if (user) {
+      if (user && user.emailVerified) {
         const token = await user.getIdToken();
         localStorage.setItem(TOKEN_KEY, token);
       } else {
+        // No user, or the email is unverified: never persist an app session.
+        // This locks out accounts created with unreachable/gibberish addresses
+        // until the owner clicks the verification link.
         clearSession();
       }
     } catch {}
@@ -122,6 +128,14 @@ export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}
   if (token && !headers.has("Authorization")) headers.set("Authorization", `Bearer ${token}`);
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   return timedFetch(input, { ...init, headers }, timeoutMs);
+}
+
+/** Thrown by login() when the account exists but the email is not yet verified. */
+export class EmailNotVerifiedError extends Error {
+  constructor() {
+    super("Please verify your email address to continue.");
+    this.name = "EmailNotVerifiedError";
+  }
 }
 
 function friendlyError(err: unknown): Error {
@@ -165,9 +179,16 @@ async function syncProfile(uid: string, token: string, fallback: { email: string
 export async function login(email: string, password: string) {
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
+    if (!cred.user.emailVerified) {
+      // Keep the Firebase session (so /verify-email can resend + poll),
+      // but never establish an app session for an unverified address.
+      try { await sendEmailVerification(cred.user); } catch {}
+      throw new EmailNotVerifiedError();
+    }
     const token = await cred.user.getIdToken();
     await syncProfile(cred.user.uid, token, { email: cred.user.email ?? email, full_name: cred.user.displayName ?? email });
   } catch (err) {
+    if (err instanceof EmailNotVerifiedError) throw err;
     throw friendlyError(err);
   }
 }
@@ -196,15 +217,8 @@ export async function register(payload: {
       throw new Error(data.error || "Failed to create profile");
     }
 
-    // Refresh token so the new role custom claim is present, then store session.
-    const fresh = await cred.user.getIdToken(true);
-    setSession(fresh, {
-      id: cred.user.uid,
-      email: payload.email,
-      full_name: payload.full_name,
-      role: payload.role,
-    });
-
+    // Send the verification link. No app session is established until the
+    // address is verified — see subscribeIdTokenChanges/login gating.
     try { await sendEmailVerification(cred.user); } catch {}
   } catch (err) {
     throw friendlyError(err);
@@ -222,4 +236,39 @@ export async function resetPassword(email: string) {
   } catch (err) {
     throw friendlyError(err);
   }
+}
+
+/** Email of the signed-in-but-unverified Firebase user (for /verify-email). */
+export function getPendingVerificationEmail(): string | null {
+  return auth.currentUser?.email ?? null;
+}
+
+/** Re-send the verification link to the signed-in Firebase user. */
+export async function resendVerificationEmail() {
+  const user = auth.currentUser;
+  if (!user) throw new Error("No pending account — please sign in again.");
+  try {
+    await sendEmailVerification(user);
+  } catch (err) {
+    throw friendlyError(err);
+  }
+}
+
+/**
+ * Called from /verify-email after the user clicks the link in their inbox.
+ * Reloads the Firebase user; if now verified, completes the login (profile
+ * sync + app session) and returns the session user. Returns null if the
+ * address is still unverified.
+ */
+export async function completeVerification(): Promise<SessionUser | null> {
+  const user = auth.currentUser;
+  if (!user) return null;
+  await user.reload();
+  if (!user.emailVerified) return null;
+  const token = await user.getIdToken(true);
+  await syncProfile(user.uid, token, {
+    email: user.email ?? "",
+    full_name: user.displayName ?? user.email ?? "User",
+  });
+  return getUser();
 }

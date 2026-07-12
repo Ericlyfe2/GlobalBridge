@@ -17,8 +17,18 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "ful
         setSearch("");
       }
     }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setOpen(false);
+        setSearch("");
+      }
+    }
     document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   const current = availableLanguages.find((l) => l.code === lang) ?? availableLanguages[0];
@@ -45,6 +55,8 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "ful
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-label="Change language"
+          aria-haspopup="menu"
+          aria-expanded={open}
           className="input w-full flex items-center justify-between gap-2 text-left cursor-pointer"
         >
           <span className="flex items-center gap-2 min-w-0">
@@ -59,14 +71,18 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "ful
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-label="Change language"
-          className="p-2 rounded-md text-ink-700 hover:bg-cream-200 transition flex items-center gap-1"
+          aria-haspopup="menu"
+          aria-expanded={open}
+          title={`${current.native} — change language`}
+          className="flex items-center gap-1 rounded-md border border-cream-300 px-2 py-1.5 text-ink-700 transition hover:border-clay-300 hover:bg-cream-200"
         >
           {translating ? (
-            <Loader2 size={18} className="animate-spin" />
+            <Loader2 size={16} className="animate-spin" />
           ) : (
             <>
               <span className={`fi fi-${current.flag} shrink-0`} aria-hidden="true" />
-              <span className="text-xs font-medium hidden sm:inline ml-1">{current.code.toUpperCase()}</span>
+              <span className="ml-0.5 text-xs font-medium">{current.code.toUpperCase()}</span>
+              <ChevronDown size={13} className={`text-ink-500 transition ${open ? "rotate-180" : ""}`} />
             </>
           )}
         </button>
@@ -100,6 +116,8 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "ful
                 return (
                   <button
                     key={l.code}
+                    role="menuitem"
+                    aria-current={isActive ? "true" : undefined}
                     onClick={() => handleSelect(l.code)}
                     className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition ${
                       isActive

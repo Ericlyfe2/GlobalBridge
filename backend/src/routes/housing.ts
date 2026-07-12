@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
+import { recordAudit } from "../lib/audit";
 
 export const housingRouter = Router();
 
@@ -94,6 +95,13 @@ housingRouter.patch("/:id/status", requireAuth, requireRole("admin"), async (req
       [status, req.params.id]
     );
     if (!listing) return res.status(404).json({ error: "Listing not found" });
+    await recordAudit({
+      adminId: req.user!.sub,
+      action: "listing.status",
+      targetType: "listing",
+      targetId: String(req.params.id),
+      metadata: { status },
+    });
     res.json({ listing });
   } catch (err) {
     next(err);

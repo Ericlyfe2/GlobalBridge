@@ -54,6 +54,7 @@
     "privacy": "Privacidad",
     "terms": "Términos",
     "home": "Inicio",
+    "skipToContent": "Saltar al contenido",
     "menu": "Menú",
     "more": "Más",
     "less": "Menos",
@@ -123,10 +124,13 @@
     "verifications": "Verificaciones",
     "listings": "Publicaciones",
     "reports": "Reportes",
+    "auditLog": "Registro de auditoría",
     "aiConfig": "Configuración de IA",
     "home": "Inicio",
     "signIn": "Iniciar sesión",
-    "getStarted": "Comenzar"
+    "getStarted": "Comenzar",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú"
   },
   "tools": {
     "countryCompare": {

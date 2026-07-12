@@ -3,6 +3,7 @@ import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
 import { sanitizeAllStrings } from "../lib/sanitize";
+import { recordAudit } from "../lib/audit";
 
 export const moderationRouter = Router();
 
@@ -53,6 +54,13 @@ moderationRouter.patch("/reports/:id", requireAuth, requireRole("admin"), async 
       `UPDATE reports SET status = $1, resolved_by = $2, resolved_at = NOW() WHERE id = $3`,
       [status, req.user!.sub, req.params.id]
     );
+    await recordAudit({
+      adminId: req.user!.sub,
+      action: "report.resolve",
+      targetType: "report",
+      targetId: String(req.params.id),
+      metadata: { status },
+    });
     res.json({ ok: true });
   } catch (err) {
     next(err);

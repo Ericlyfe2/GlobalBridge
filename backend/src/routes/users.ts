@@ -2,6 +2,8 @@ import { Router } from "express";
 import { query, queryOne } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
 import { sanitizeObject } from "../lib/sanitize";
+import { buildDailySeries, clampDays } from "../lib/analytics";
+import { recordAudit } from "../lib/audit";
 
 export const usersRouter = Router();
 
@@ -297,6 +299,24 @@ usersRouter.get("/summary/all", requireAuth, requireRole("admin"), async (_req, 
   }
 });
 
+// Admin: daily signups over the last N days (zero-filled). Must be before /:id.
+usersRouter.get("/summary/signups", requireAuth, requireRole("admin"), async (req, res, next) => {
+  try {
+    const days = clampDays(req.query.days);
+    const rows = await query<{ day: string; count: number }>(
+      `SELECT date_trunc('day', created_at)::date AS day, COUNT(*)::int AS count
+         FROM users
+        WHERE created_at >= CURRENT_DATE - (($1::int - 1) * INTERVAL '1 day')
+        GROUP BY 1
+        ORDER BY 1`,
+      [days],
+    );
+    res.json({ days, series: buildDailySeries(rows, days) });
+  } catch (err) {
+    next(err);
+  }
+});
+
 usersRouter.get("/:id", async (req, res, next) => {
   try {
     const user = await queryOne(
@@ -342,6 +362,7 @@ usersRouter.patch("/me", requireAuth, async (req, res, next) => {
 usersRouter.post("/:id/verify", requireAuth, requireRole("admin"), async (req, res, next) => {
   try {
     await query(`UPDATE users SET verification_status = 'verified' WHERE id = $1`, [req.params.id]);
+    await recordAudit({ adminId: req.user!.sub, action: "user.verify", targetType: "user", targetId: String(req.params.id) });
     res.json({ ok: true });
   } catch (err) {
     next(err);
@@ -356,6 +377,13 @@ usersRouter.patch("/:id/status", requireAuth, requireRole("admin"), async (req, 
       return res.status(400).json({ error: "Invalid status. Use: pending, verified, rejected" });
     }
     await query(`UPDATE users SET verification_status = $1 WHERE id = $2`, [status, req.params.id]);
+    await recordAudit({
+      adminId: req.user!.sub,
+      action: "user.status",
+      targetType: "user",
+      targetId: String(req.params.id),
+      metadata: { status },
+    });
     res.json({ ok: true });
   } catch (err) {
     next(err);

@@ -7,9 +7,26 @@ import {
 import Link from "next/link";
 import { authFetch } from "@/lib/auth";
 
+type HealthProbe = {
+  name: string;
+  status: "up" | "down" | "not_configured";
+  latencyMs: number | null;
+  detail?: string;
+};
+
+const HEALTH_LABELS: Record<string, string> = {
+  postgres: "PostgreSQL",
+  redis: "Redis cache",
+  ai: "AI service",
+};
+
 export default function AdminOverview() {
   const [stats, setStats] = useState<Record<string, number> | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [health, setHealth] = useState<HealthProbe[] | null>(null);
+  const [healthErr, setHealthErr] = useState(false);
+  const [signups, setSignups] = useState<{ date: string; count: number }[] | null>(null);
+  const [signupsErr, setSignupsErr] = useState(false);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -22,6 +39,47 @@ export default function AdminOverview() {
       } catch (e) {
         if ((e as Error).name === "AbortError") return;
         setErr(e instanceof Error ? e.message : "Network error");
+      }
+    })();
+    return () => ctrl.abort();
+  }, []);
+
+  // Real system-health probe — refreshed every 30s. Reflects actual service state.
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const res = await authFetch("/api/admin/health", {}, 15000);
+        const data = await res.json();
+        if (!res.ok) throw new Error("health check failed");
+        if (active) {
+          setHealth(data.services as HealthProbe[]);
+          setHealthErr(false);
+        }
+      } catch {
+        if (active) setHealthErr(true);
+      }
+    };
+    load();
+    const id = setInterval(load, 30000);
+    return () => {
+      active = false;
+      clearInterval(id);
+    };
+  }, []);
+
+  // Real daily-signups trend for the last 30 days.
+  useEffect(() => {
+    const ctrl = new AbortController();
+    (async () => {
+      try {
+        const res = await authFetch("/api/users/summary/signups?days=30", { signal: ctrl.signal }, 60000);
+        const data = await res.json();
+        if (!res.ok) throw new Error("signups failed");
+        setSignups(data.series as { date: string; count: number }[]);
+      } catch (e) {
+        if ((e as Error).name === "AbortError") return;
+        setSignupsErr(true);
       }
     })();
     return () => ctrl.abort();
@@ -124,6 +182,16 @@ export default function AdminOverview() {
         </div>
       )}
 
+      <div className="card">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-lg font-semibold text-ink-900">Signups — last 30 days</h2>
+          <TrendingUp size={16} className="text-leaf-600" />
+        </div>
+        {signupsErr && <p className="text-sm text-red-600">Couldn&apos;t load the signups trend.</p>}
+        {!signups && !signupsErr && <div className="h-40 rounded-lg bg-cream-100 animate-pulse" />}
+        {signups && <SignupsChart data={signups} />}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="card lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
@@ -149,24 +217,52 @@ export default function AdminOverview() {
         <div className="card">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display text-lg font-semibold text-ink-900">System status</h2>
-            <Activity size={14} className="text-ink-500" />
+            <Activity size={14} className={healthErr ? "text-red-500" : "text-ink-500"} />
           </div>
-          <ul className="space-y-3">
-            {[
-              { label: "PostgreSQL", status: "Connected", ok: true },
-              { label: "Redis cache", status: "Connected", ok: true },
-              { label: "AI service", status: "Online", ok: true },
-              { label: "Translation", status: "Online", ok: true },
-            ].map((s) => (
-              <li key={s.label} className="flex items-center justify-between text-sm">
-                <span className="text-ink-700">{s.label}</span>
-                <span className={`flex items-center gap-1 text-xs font-medium ${s.ok ? "text-leaf-600" : "text-red-600"}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${s.ok ? "bg-leaf-500" : "bg-red-500"}`} />
-                  {s.status}
-                </span>
-              </li>
-            ))}
-          </ul>
+
+          {healthErr && (
+            <p className="text-xs text-red-600 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+              Unable to reach the API health endpoint.
+            </p>
+          )}
+
+          {!health && !healthErr && (
+            <ul className="space-y-3">
+              {[0, 1, 2].map((i) => (
+                <li key={i} className="flex items-center justify-between">
+                  <span className="h-3 w-24 rounded bg-cream-200 animate-pulse" />
+                  <span className="h-3 w-16 rounded bg-cream-200 animate-pulse" />
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {health && (
+            <ul className="space-y-3">
+              {health.map((s) => {
+                const label = HEALTH_LABELS[s.name] ?? s.name;
+                const cfg =
+                  s.status === "up"
+                    ? { text: "Online", dot: "bg-leaf-500", tone: "text-leaf-600" }
+                    : s.status === "not_configured"
+                    ? { text: "Not configured", dot: "bg-ink-300", tone: "text-ink-500" }
+                    : { text: "Down", dot: "bg-red-500", tone: "text-red-600" };
+                return (
+                  <li key={s.name} className="flex items-center justify-between text-sm">
+                    <span className="text-ink-700">{label}</span>
+                    <span className={`flex items-center gap-1.5 text-xs font-medium ${cfg.tone}`}>
+                      {s.status === "up" && s.latencyMs != null && (
+                        <span className="text-ink-400 tabular-nums">{s.latencyMs}ms</span>
+                      )}
+                      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                      {cfg.text}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       </div>
 
@@ -179,6 +275,57 @@ export default function AdminOverview() {
           <p className="text-xs text-ink-500">Powered by Claude · Available on /assistant</p>
         </div>
         <Link href="/admin/ai" className="btn-ghost text-sm border border-cream-300">Configure</Link>
+      </div>
+    </div>
+  );
+}
+
+/** Lightweight, dependency-free, accessible SVG bar chart of daily signups. */
+function SignupsChart({ data }: { data: { date: string; count: number }[] }) {
+  const max = Math.max(1, ...data.map((d) => d.count));
+  const total = data.reduce((sum, d) => sum + d.count, 0);
+  const W = 720;
+  const H = 160;
+  const pad = { top: 8, bottom: 20, x: 4 };
+  const chartH = H - pad.top - pad.bottom;
+  const slot = (W - pad.x * 2) / data.length;
+  const barW = Math.max(2, slot * 0.62);
+
+  return (
+    <div>
+      <p className="mb-3 text-sm text-ink-600">
+        <span className="font-semibold text-ink-900">{total.toLocaleString()}</span> new signups in the last{" "}
+        {data.length} days
+      </p>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="w-full h-40"
+        role="img"
+        aria-label={`Daily signups for the last ${data.length} days. Total ${total}. Peak ${max} in a day.`}
+        preserveAspectRatio="none"
+      >
+        {data.map((d, i) => {
+          const h = (d.count / max) * chartH;
+          const x = pad.x + i * slot + (slot - barW) / 2;
+          const y = pad.top + (chartH - h);
+          return (
+            <rect
+              key={d.date}
+              x={x}
+              y={y}
+              width={barW}
+              height={Math.max(h, d.count > 0 ? 2 : 0)}
+              rx={1.5}
+              className="fill-leaf-500"
+            >
+              <title>{`${d.date}: ${d.count} signup${d.count === 1 ? "" : "s"}`}</title>
+            </rect>
+          );
+        })}
+      </svg>
+      <div className="mt-1 flex justify-between text-[10px] text-ink-400">
+        <span>{data[0]?.date}</span>
+        <span>{data[data.length - 1]?.date}</span>
       </div>
     </div>
   );
