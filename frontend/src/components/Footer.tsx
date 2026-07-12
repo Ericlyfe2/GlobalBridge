@@ -8,19 +8,16 @@ export function Footer() {
 
   return (
     <footer className="mt-24 bg-neutral-950">
-      {/* Video banner with blurred backdrop + bold wordmark */}
+      {/* Image banner with blurred backdrop + bold wordmark */}
       <div className="relative isolate overflow-hidden">
-        <video
-          aria-hidden
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="none"
-          className="animate-ken-burns absolute inset-0 h-full w-full scale-110 object-cover blur-sm"
-        >
-          <source src="/video/bridge-streak.mp4" type="video/mp4" />
-        </video>
+        <div
+          className="absolute inset-0 scale-110 bg-cover bg-center blur-sm"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1473773508845-188df298d2d1?q=80&w=2000&auto=format&fit=crop')",
+          }}
+          aria-hidden="true"
+        />
         <div className="absolute inset-0 bg-neutral-950/60" aria-hidden="true" />
 
         <div className="relative px-6 pt-20 pb-16 lg:px-12 lg:pt-28 lg:pb-24">
@@ -33,29 +30,7 @@ export function Footer() {
       </div>
 
       {/* Link columns */}
-      <div className="relative isolate overflow-hidden border-t border-white/10">
-        {/* Background video — plane in flight */}
-        <video
-          aria-hidden
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="none"
-          className="animate-ken-burns pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover"
-        >
-          <source src="/video/plane.mp4" type="video/mp4" />
-        </video>
-        {/* Dark scrim keeps the links legible over the video */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 bg-neutral-950/85"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-neutral-950 via-neutral-950/70 to-neutral-950/80"
-        />
-
+      <div className="border-t border-white/10">
         <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
           <div className="grid grid-cols-2 gap-8 md:grid-cols-6">
             <div className="col-span-2">
@@ -65,7 +40,7 @@ export function Footer() {
               <p className="mt-4 max-w-xs text-sm text-neutral-400">
                 {t("footer.description")}
               </p>
-              <p className="mt-6 text-xs text-neutral-500">{t("footer.copyright")}</p>
+              <p className="mt-6 text-xs text-neutral-500">{t("footer.copyright", { year: new Date().getFullYear() })}</p>
             </div>
 
             <FooterCol

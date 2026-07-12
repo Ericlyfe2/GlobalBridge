@@ -78,40 +78,11 @@ function AuthContent() {
   return (
     <div className="min-h-screen grid md:grid-cols-2 bg-white dark:bg-gray-950">
       {/* ── Left: brand / trust panel ───────────────────────────── */}
-      <aside className="relative hidden md:flex flex-col justify-between overflow-hidden bg-[#06121F] text-white p-8 lg:p-12">
-        {/* Background video — people in an airport */}
-        <video
-          aria-hidden
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          poster="/airplane-emerald.svg"
-          className="animate-ken-burns pointer-events-none absolute inset-0 h-full w-full object-cover"
-        >
-          <source src="/video/airport.mp4" type="video/mp4" />
-        </video>
-
-        {/* Cinematic tint so the video never fights the text */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#0B1F3A]/90 via-[#0A2540]/80 to-[#06121F]/95"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_30%_35%,transparent_0%,rgba(4,12,22,0.55)_100%)]"
-        />
-
-        {/* Drifting aurora blobs */}
-        <div aria-hidden className="pointer-events-none absolute -top-32 -right-24 h-96 w-96 animate-aurora rounded-full bg-emerald-500/25 blur-3xl" />
-        <div aria-hidden className="pointer-events-none absolute top-1/3 -left-24 h-80 w-80 animate-aurora-rev rounded-full bg-sky-500/20 blur-3xl" />
-        <div aria-hidden className="pointer-events-none absolute -bottom-28 left-1/3 h-72 w-72 animate-float-orb rounded-full bg-indigo-500/20 blur-3xl" />
-
+      <aside className="relative hidden md:flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0B1F3A] via-[#0A2540] to-[#06121F] text-white p-8 lg:p-12">
         {/* world-map dot motif */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.14]"
+          className="pointer-events-none absolute inset-0 opacity-[0.18]"
           style={{
             backgroundImage:
               "radial-gradient(circle, rgba(255,255,255,0.7) 1px, transparent 1.4px)",
@@ -119,105 +90,55 @@ function AuthContent() {
             maskImage: "radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)",
           }}
         />
+        <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full bg-emerald-500/20 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl" />
 
-        {/* Diagonal light sweep */}
-        <div aria-hidden className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 animate-light-sweep bg-gradient-to-r from-transparent via-white/12 to-transparent" />
-
-        {/* Planes crossing the sky */}
-        <ArrowRight aria-hidden className="animate-fly pointer-events-none absolute top-24 text-emerald-300/70" size={26} style={{ animationDelay: "0s" }} />
-        <ArrowRight aria-hidden className="animate-fly pointer-events-none absolute top-1/2 text-white/40" size={18} style={{ animationDelay: "6s", animationDuration: "19s" }} />
-        <ArrowRight aria-hidden className="animate-fly pointer-events-none absolute top-2/3 text-emerald-200/50" size={22} style={{ animationDelay: "11s", animationDuration: "17s" }} />
-
-        {/* Rising particles */}
-        {[
-          { left: "12%", delay: "0s", dur: "9s", size: "6px" },
-          { left: "28%", delay: "2.5s", dur: "11s", size: "4px" },
-          { left: "46%", delay: "5s", dur: "8s", size: "7px" },
-          { left: "63%", delay: "1.5s", dur: "12s", size: "5px" },
-          { left: "80%", delay: "3.5s", dur: "10s", size: "4px" },
-          { left: "91%", delay: "6s", dur: "9.5s", size: "6px" },
-        ].map((p, i) => (
-          <span
-            key={i}
-            aria-hidden
-            className="animate-rise pointer-events-none absolute bottom-0 rounded-full bg-emerald-300/70 shadow-[0_0_10px_2px_rgba(52,211,153,0.6)]"
-            style={{ left: p.left, width: p.size, height: p.size, animationDelay: p.delay, animationDuration: p.dur }}
-          />
-        ))}
-
-        <div className="animate-hero-reveal relative z-10" style={{ animationDelay: "0.05s" }}>
+        <div className="relative z-10">
           <Link href="/" className="inline-flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/40">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-500 text-white shadow-lg">
               <Globe size={20} />
             </span>
-            <span className="text-xl font-semibold tracking-tight drop-shadow">GlobalBridge</span>
+            <span className="text-xl font-semibold tracking-tight">GlobalBridge</span>
           </Link>
         </div>
 
         <div className="relative z-10 max-w-md">
-          <h2 className="animate-hero-reveal animate-text-shimmer text-3xl font-bold leading-tight drop-shadow-lg" style={{ animationDelay: "0.15s, 0s" }}>
+          <h2 className="text-3xl font-bold leading-tight">
             {t("auth.heroTitle")}
           </h2>
-          <p className="animate-hero-reveal mt-4 text-white/80 leading-relaxed drop-shadow" style={{ animationDelay: "0.28s" }}>
+          <p className="mt-4 text-white/70 leading-relaxed">
             {t("auth.heroDescription")}
           </p>
 
           <dl className="mt-10 grid grid-cols-3 gap-4">
-            {stats.map((s, i) => (
-              <div
-                key={s.label}
-                className="animate-hero-reveal animate-card-breathe rounded-xl border border-white/15 bg-white/10 px-3 py-4 backdrop-blur-md transition-transform duration-300 hover:-translate-y-1 hover:border-emerald-400/50"
-                style={{ animationDelay: `${0.4 + i * 0.12}s, ${i * 0.6}s` }}
-              >
-                <dt className="text-2xl font-bold text-emerald-300 drop-shadow">{s.value}</dt>
-                <dd className="mt-1 text-xs text-white/70">{s.label}</dd>
+            {stats.map((s) => (
+              <div key={s.label} className="rounded-xl border border-white/10 bg-white/5 px-3 py-4 backdrop-blur-sm">
+                <dt className="text-2xl font-bold text-emerald-400">{s.value}</dt>
+                <dd className="mt-1 text-xs text-white/60">{s.label}</dd>
               </div>
             ))}
           </dl>
 
-          <figure className="animate-hero-reveal mt-8 rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-md" style={{ animationDelay: "0.8s" }}>
-            <Quote size={18} className="text-emerald-300" />
-            <blockquote className="mt-2 text-sm text-white/90 leading-relaxed">
+          <figure className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+            <Quote size={18} className="text-emerald-400" />
+            <blockquote className="mt-2 text-sm text-white/85 leading-relaxed">
               &ldquo;{t("auth.testimonial")}&rdquo;
             </blockquote>
-            <figcaption className="mt-3 text-xs text-white/70">
+            <figcaption className="mt-3 text-xs text-white/60">
               {t("auth.testimonialAuthor")}
             </figcaption>
           </figure>
         </div>
 
-        <div className="animate-hero-reveal relative z-10 flex items-center gap-5 text-xs text-white/70" style={{ animationDelay: "0.95s" }}>
-          <span className="inline-flex items-center gap-1.5"><ShieldCheck size={14} className="text-emerald-300" /> {t("auth.bankGradeSecurity")}</span>
-          <span className="inline-flex items-center gap-1.5"><BadgeCheck size={14} className="text-emerald-300" /> {t("auth.verifiedListings")}</span>
+        <div className="relative z-10 flex items-center gap-5 text-xs text-white/55">
+          <span className="inline-flex items-center gap-1.5"><ShieldCheck size={14} className="text-emerald-400" /> {t("auth.bankGradeSecurity")}</span>
+          <span className="inline-flex items-center gap-1.5"><BadgeCheck size={14} className="text-emerald-400" /> {t("auth.verifiedListings")}</span>
         </div>
       </aside>
 
       {/* ── Right: form ─────────────────────────────────────────── */}
-      <main className="relative flex flex-col overflow-hidden">
-        {/* Background video — escalator timelapse */}
-        <video
-          aria-hidden
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          className="animate-ken-burns pointer-events-none absolute inset-0 h-full w-full object-cover"
-        >
-          <source src="/video/escalator.mp4" type="video/mp4" />
-        </video>
-
-        {/* Theme-aware scrim keeps the form fully legible over the video */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-white/85 backdrop-blur-[2px] dark:bg-gray-950/88"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_55%_at_50%_45%,rgba(255,255,255,0.65)_0%,transparent_70%)] dark:bg-[radial-gradient(ellipse_60%_55%_at_50%_45%,rgba(2,6,23,0.6)_0%,transparent_70%)]"
-        />
-
-        <header className="relative z-10 flex items-center justify-between px-6 py-5 md:px-10">
+      <main className="flex flex-col">
+        <header className="flex items-center justify-between px-6 py-5 md:px-10">
           <Link href="/" className="md:hidden"><Logo /></Link>
           <span className="hidden md:block text-sm text-ink-500 dark:text-gray-400">
             {isSignup ? t("auth.alreadyHaveAccount") : t("auth.newToPlatform")}{" "}
