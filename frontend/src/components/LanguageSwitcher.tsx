@@ -38,6 +38,8 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "ful
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-label="Change language"
+          aria-haspopup="menu"
+          aria-expanded={open}
           className="input w-full flex items-center justify-between gap-2 text-left cursor-pointer"
         >
           <span className="flex items-center gap-2 min-w-0">
@@ -54,7 +56,8 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "ful
           aria-label="Change language"
           aria-haspopup="menu"
           aria-expanded={open}
-          className="flex items-center gap-1.5 rounded-lg border border-cream-300 bg-[var(--color-surface)] px-2.5 py-1.5 text-ink-700 shadow-sm hover:bg-cream-100 transition"
+          title={`${current.native} — change language`}
+          className="flex items-center gap-1.5 rounded-lg border border-cream-300 bg-[var(--color-surface)] px-2.5 py-1.5 text-ink-700 shadow-sm transition hover:border-clay-300 hover:bg-cream-100"
         >
           {translating ? (
             <Loader2 size={16} className="animate-spin" />
@@ -86,6 +89,7 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "ful
                 <button
                   key={l.code}
                   role="menuitem"
+                  aria-current={isActive ? "true" : undefined}
                   onClick={() => handleSelect(l.code)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm transition ${
                     isActive

@@ -9,14 +9,15 @@ import JobsCard from "@/components/JobsCard";
 import MentorshipSection from "@/components/MentorshipSection";
 import LifeSupportSection from "@/components/LifeSupportSection";
 import ReviewsSection from "@/components/ReviewsSection";
+import HowItWorks from "@/components/HowItWorks";
+import OpportunitiesPreview from "@/components/OpportunitiesPreview";
 import { Footer } from "@/components/Footer";
 import { services } from "@/data/services";
 import AirplanePath from "@/components/AirplanePath";
 import { JsonLd } from "@/components/JsonLd";
-import { useTranslation } from "@/i18n/hooks/useTranslation";
+import { SkipLink } from "@/components/SkipLink";
 
 export default function Home() {
-  const { t } = useTranslation();
   const visa = services.find((s) => s.id === "visa")!;
   const housing = services.find((s) => s.id === "housing")!;
   const jobs = services.find((s) => s.id === "jobs")!;
@@ -24,9 +25,7 @@ export default function Home() {
   return (
     <div className="bg-cream-50">
       <JsonLd />
-      <a href="#main-content" className="skip-link">
-        {t("common.skipToContent")}
-      </a>
+      <SkipLink />
       <Navbar />
       <main id="main-content">
       <Hero />
@@ -45,10 +44,12 @@ export default function Home() {
 
       <ServiceSection service={housing} disableMaskAnimation={true} />
       </div>
+      <HowItWorks />
       <MentorshipSection />
       <ServiceSection service={jobs}>
         <JobsCard />
       </ServiceSection>
+      <OpportunitiesPreview />
       <LifeSupportSection />
       <ReviewsSection />
       </main>

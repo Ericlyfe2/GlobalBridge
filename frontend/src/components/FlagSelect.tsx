@@ -66,7 +66,7 @@ export function FlagSelect({
           {options.map((o) => {
             const isSel = o.value === value;
             return (
-              <li key={o.value}>
+              <li key={o.value} role="option" aria-selected={isSel}>
                 <button
                   type="button"
                   onClick={() => { onChange(o.value); setOpen(false); }}

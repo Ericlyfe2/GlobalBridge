@@ -128,7 +128,9 @@
     "aiConfig": "AI Config",
     "home": "Home",
     "signIn": "Sign in",
-    "getStarted": "Get started"
+    "getStarted": "Get started",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "tools": {
     "countryCompare": {
@@ -149,7 +151,7 @@
   },
   "footer": {
     "description": "Trusted companion for international students and immigrants — before, during, and after their journey.",
-    "copyright": "© 2025 GlobalBridge · Group 8 FYP",
+    "copyright": "© {year} GlobalBridge · Group 8 FYP",
     "platform": "Platform",
     "community": "Community",
     "resources": "Resources",
@@ -367,7 +369,54 @@
       "label": "Proof, not promises",
       "title": "Real people. Real moves.",
       "subtitle": "Thousands of immigrants trust GlobalBridge every year — here's what they say.",
-      "cta": "Start your journey"
+      "cta": "Start your journey",
+      "r6": {
+        "quote": "The checklist flagged a document I did not even know Canada required. That one line saved my whole application."
+      },
+      "r7": {
+        "quote": "I filtered for companies that sponsor and stopped guessing. Three interviews in two weeks, all visa-ready."
+      },
+      "r8": {
+        "quote": "My landlord was verified before I ever paid a cent. In Amsterdam, that peace of mind is everything."
+      },
+      "r9": {
+        "quote": "My mentor had walked the exact Lagos-to-UK path five years earlier. He answered questions I did not know to ask."
+      },
+      "r10": {
+        "quote": "The cost calculator matched my real Lisbon budget almost to the euro. Nothing caught me off guard."
+      },
+      "r11": {
+        "quote": "It rebuilt my timeline the day the rules changed. I would have missed a deadline without it."
+      },
+      "r12": {
+        "quote": "The resume builder reworked my CV for the US market and the callbacks started immediately."
+      }
+    },
+    "how": {
+      "label": "How it works",
+      "title": "Four steps, one clear path.",
+      "subtitle": "No guesswork, no dead ends — here is exactly how GlobalBridge takes you from “where do I start?” to “I landed.”",
+      "step1Title": "Tell us your goal",
+      "step1Body": "Studying, working, or settling abroad? Share where you are headed and we build everything around it.",
+      "step2Title": "Get your AI plan",
+      "step2Body": "A step-by-step visa checklist, timeline, and document list tailored to your destination and passport.",
+      "step3Title": "Line up the essentials",
+      "step3Body": "Verified housing, sponsor-friendly jobs, and mentors who have already made the same move.",
+      "step4Title": "Land with support",
+      "step4Body": "Banking, healthcare, cost-of-living, and emergency help ready the moment you arrive.",
+      "cta": "Start free"
+    },
+    "opps": {
+      "label": "Live opportunities",
+      "title": "Real openings, updated weekly.",
+      "subtitle": "A peek at scholarships, sponsor-friendly jobs, and verified housing on the platform right now. Create a free account to see the full list and apply.",
+      "scholarship": "Scholarship",
+      "job": "Job",
+      "housing": "Housing",
+      "viewAll": "See all opportunities",
+      "deadline": "Deadline",
+      "sponsor": "Visa sponsor",
+      "verified": "Verified"
     }
   },
   "auth": {
@@ -392,9 +441,6 @@
     "resetPassword": "Reset password",
     "resetPasswordInstructions": "Enter your email and we'll send you a reset link.",
     "sendResetLink": "Send reset link",
-    "verifyEmail": "Verify your email",
-    "verifyEmailInstructions": "We've sent a verification link to your email. Please check your inbox.",
-    "resendVerification": "Resend verification email",
     "dontHaveAccount": "Don't have an account?",
     "alreadyHaveAccount": "Already have an account?",
     "signUpLink": "Sign up",
@@ -408,10 +454,7 @@
     "passwordMismatch": "Passwords do not match",
     "requiredField": "This field is required",
     "signInSuccess": "Welcome back! Redirecting...",
-    "signUpSuccess": "Account created! Please verify your email.",
     "resetSent": "Reset link sent! Check your email.",
-    "emailVerified": "Email verified successfully!",
-    "verificationResent": "Verification email resent.",
     "signOutConfirm": "Are you sure you want to sign out?",
     "heroTitle": "Your trusted bridge to studying, working, and settling abroad.",
     "heroDescription": "AI-guided visa support, verified housing, mentorship, and career opportunities — all in one secure platform built for international students and immigrants.",

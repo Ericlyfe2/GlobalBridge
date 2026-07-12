@@ -22,28 +22,99 @@ const unis: Uni[] = [
   {
     id: "uoft", name: "University of Toronto", country: "Canada", flag: "ca",
     programs: [
-      { id: "cs",      name: "MSc Computer Science",   visaApprovalPct: 89, housingWaitWeeks: [4, 9],  gradEmploymentPct: 94, satisfactionPct: 87, intlPct: 41, tuitionUsd: 42_000, submissions: 312 },
-      { id: "fin",     name: "MBA / MFin",             visaApprovalPct: 86, housingWaitWeeks: [3, 8],  gradEmploymentPct: 91, satisfactionPct: 82, intlPct: 38, tuitionUsd: 56_000, submissions: 184 },
+      { id: "cs",      name: "MSc Computer Science",     visaApprovalPct: 89, housingWaitWeeks: [4, 9],  gradEmploymentPct: 94, satisfactionPct: 87, intlPct: 41, tuitionUsd: 42_000, submissions: 312 },
+      { id: "fin",     name: "MBA / MFin",               visaApprovalPct: 86, housingWaitWeeks: [3, 8],  gradEmploymentPct: 91, satisfactionPct: 82, intlPct: 38, tuitionUsd: 56_000, submissions: 184 },
+      { id: "nurs",    name: "BScN Nursing",             visaApprovalPct: 91, housingWaitWeeks: [4, 10], gradEmploymentPct: 96, satisfactionPct: 88, intlPct: 27, tuitionUsd: 38_000, submissions: 143 },
     ],
   },
   {
     id: "imp", name: "Imperial College London", country: "United Kingdom", flag: "gb",
     programs: [
-      { id: "ds",      name: "MSc Data Science",       visaApprovalPct: 93, housingWaitWeeks: [3, 7],  gradEmploymentPct: 95, satisfactionPct: 89, intlPct: 64, tuitionUsd: 45_000, submissions: 421 },
-      { id: "robot",   name: "MSc Robotics",           visaApprovalPct: 91, housingWaitWeeks: [4, 8],  gradEmploymentPct: 92, satisfactionPct: 86, intlPct: 58, tuitionUsd: 41_000, submissions: 207 },
+      { id: "ds",      name: "MSc Data Science",         visaApprovalPct: 93, housingWaitWeeks: [3, 7],  gradEmploymentPct: 95, satisfactionPct: 89, intlPct: 64, tuitionUsd: 45_000, submissions: 421 },
+      { id: "ph",      name: "MSc Public Health",        visaApprovalPct: 94, housingWaitWeeks: [3, 8],  gradEmploymentPct: 90, satisfactionPct: 86, intlPct: 55, tuitionUsd: 39_000, submissions: 176 },
+    ],
+  },
+  {
+    id: "oxf", name: "University of Oxford", country: "United Kingdom", flag: "gb",
+    programs: [
+      { id: "bcl",     name: "BCL / MJur (Law)",         visaApprovalPct: 95, housingWaitWeeks: [2, 6],  gradEmploymentPct: 96, satisfactionPct: 90, intlPct: 68, tuitionUsd: 48_000, submissions: 198 },
+      { id: "gh",      name: "MSc Global Health",        visaApprovalPct: 94, housingWaitWeeks: [2, 7],  gradEmploymentPct: 89, satisfactionPct: 88, intlPct: 62, tuitionUsd: 44_000, submissions: 121 },
     ],
   },
   {
     id: "tum", name: "TU Munich", country: "Germany", flag: "de",
     programs: [
-      { id: "infm",    name: "MSc Informatics",        visaApprovalPct: 96, housingWaitWeeks: [6, 14], gradEmploymentPct: 89, satisfactionPct: 84, intlPct: 47, tuitionUsd: 0,      submissions: 256 },
-      { id: "mech",    name: "MSc Mechanical Eng.",    visaApprovalPct: 96, housingWaitWeeks: [6, 14], gradEmploymentPct: 91, satisfactionPct: 85, intlPct: 39, tuitionUsd: 0,      submissions: 168 },
+      { id: "infm",    name: "MSc Informatics",          visaApprovalPct: 96, housingWaitWeeks: [6, 14], gradEmploymentPct: 89, satisfactionPct: 84, intlPct: 47, tuitionUsd: 0,      submissions: 256 },
+      { id: "mech",    name: "MSc Mechanical Eng.",      visaApprovalPct: 96, housingWaitWeeks: [6, 14], gradEmploymentPct: 91, satisfactionPct: 85, intlPct: 39, tuitionUsd: 0,      submissions: 168 },
     ],
   },
   {
     id: "cmu", name: "Carnegie Mellon", country: "United States", flag: "us",
     programs: [
-      { id: "scs",     name: "MS in Computer Science", visaApprovalPct: 87, housingWaitWeeks: [2, 6],  gradEmploymentPct: 97, satisfactionPct: 91, intlPct: 61, tuitionUsd: 65_000, submissions: 387 },
+      { id: "scs",     name: "MS in Computer Science",   visaApprovalPct: 87, housingWaitWeeks: [2, 6],  gradEmploymentPct: 97, satisfactionPct: 91, intlPct: 61, tuitionUsd: 65_000, submissions: 387 },
+    ],
+  },
+  {
+    id: "harv", name: "Harvard University", country: "United States", flag: "us",
+    programs: [
+      { id: "mph",     name: "MPH Public Health",        visaApprovalPct: 88, housingWaitWeeks: [3, 7],  gradEmploymentPct: 95, satisfactionPct: 90, intlPct: 57, tuitionUsd: 68_000, submissions: 244 },
+      { id: "llm",     name: "LLM (Law)",                visaApprovalPct: 87, housingWaitWeeks: [3, 7],  gradEmploymentPct: 94, satisfactionPct: 89, intlPct: 71, tuitionUsd: 75_000, submissions: 156 },
+    ],
+  },
+  {
+    id: "melb", name: "University of Melbourne", country: "Australia", flag: "au",
+    programs: [
+      { id: "md",      name: "Doctor of Medicine (MD)",  visaApprovalPct: 92, housingWaitWeeks: [4, 9],  gradEmploymentPct: 98, satisfactionPct: 87, intlPct: 33, tuitionUsd: 62_000, submissions: 132 },
+      { id: "teach",   name: "Master of Teaching",       visaApprovalPct: 93, housingWaitWeeks: [4, 10], gradEmploymentPct: 92, satisfactionPct: 85, intlPct: 29, tuitionUsd: 28_000, submissions: 97 },
+    ],
+  },
+  {
+    id: "ubc", name: "University of British Columbia", country: "Canada", flag: "ca",
+    programs: [
+      { id: "civl",    name: "MASc Civil Engineering",   visaApprovalPct: 90, housingWaitWeeks: [5, 11], gradEmploymentPct: 93, satisfactionPct: 84, intlPct: 44, tuitionUsd: 31_000, submissions: 118 },
+      { id: "msn",     name: "MSN Nursing",              visaApprovalPct: 92, housingWaitWeeks: [5, 12], gradEmploymentPct: 97, satisfactionPct: 89, intlPct: 24, tuitionUsd: 27_000, submissions: 84 },
+    ],
+  },
+  {
+    id: "nus", name: "National University of Singapore", country: "Singapore", flag: "sg",
+    programs: [
+      { id: "ba",      name: "MSc Business Analytics",   visaApprovalPct: 97, housingWaitWeeks: [2, 5],  gradEmploymentPct: 96, satisfactionPct: 88, intlPct: 66, tuitionUsd: 40_000, submissions: 231 },
+      { id: "llm",     name: "LLM (Law)",                visaApprovalPct: 97, housingWaitWeeks: [2, 5],  gradEmploymentPct: 91, satisfactionPct: 85, intlPct: 59, tuitionUsd: 33_000, submissions: 88 },
+    ],
+  },
+  {
+    id: "uva", name: "University of Amsterdam", country: "Netherlands", flag: "nl",
+    programs: [
+      { id: "psy",     name: "MSc Psychology",           visaApprovalPct: 95, housingWaitWeeks: [8, 16], gradEmploymentPct: 87, satisfactionPct: 86, intlPct: 52, tuitionUsd: 18_000, submissions: 164 },
+      { id: "comm",    name: "MA Communication Science", visaApprovalPct: 95, housingWaitWeeks: [8, 16], gradEmploymentPct: 85, satisfactionPct: 84, intlPct: 49, tuitionUsd: 17_000, submissions: 102 },
+    ],
+  },
+  {
+    id: "sorb", name: "Sorbonne University", country: "France", flag: "fr",
+    programs: [
+      { id: "lit",     name: "MA Literature & Arts",     visaApprovalPct: 93, housingWaitWeeks: [6, 12], gradEmploymentPct: 81, satisfactionPct: 87, intlPct: 41, tuitionUsd: 4_000,  submissions: 76 },
+      { id: "bio",     name: "MSc Life Sciences",        visaApprovalPct: 93, housingWaitWeeks: [6, 12], gradEmploymentPct: 86, satisfactionPct: 83, intlPct: 37, tuitionUsd: 5_000,  submissions: 91 },
+    ],
+  },
+  {
+    id: "utok", name: "University of Tokyo", country: "Japan", flag: "jp",
+    programs: [
+      { id: "mpp",     name: "Master of Public Policy",  visaApprovalPct: 96, housingWaitWeeks: [3, 8],  gradEmploymentPct: 90, satisfactionPct: 84, intlPct: 45, tuitionUsd: 6_000,  submissions: 69 },
+      { id: "meng",    name: "MEng Engineering",         visaApprovalPct: 96, housingWaitWeeks: [3, 8],  gradEmploymentPct: 93, satisfactionPct: 85, intlPct: 40, tuitionUsd: 6_000,  submissions: 147 },
+    ],
+  },
+  {
+    id: "ethz", name: "ETH Zurich", country: "Switzerland", flag: "ch",
+    programs: [
+      { id: "arch",    name: "MSc Architecture",         visaApprovalPct: 94, housingWaitWeeks: [5, 12], gradEmploymentPct: 92, satisfactionPct: 88, intlPct: 43, tuitionUsd: 1_600,  submissions: 83 },
+      { id: "env",     name: "MSc Environmental Sci.",   visaApprovalPct: 94, housingWaitWeeks: [5, 12], gradEmploymentPct: 89, satisfactionPct: 87, intlPct: 46, tuitionUsd: 1_600,  submissions: 95 },
+    ],
+  },
+  {
+    id: "uct", name: "University of Cape Town", country: "South Africa", flag: "za",
+    programs: [
+      { id: "mph",     name: "MPH Public Health",        visaApprovalPct: 90, housingWaitWeeks: [3, 8],  gradEmploymentPct: 84, satisfactionPct: 86, intlPct: 31, tuitionUsd: 9_000,  submissions: 58 },
+      { id: "mcom",    name: "MCom Finance",             visaApprovalPct: 90, housingWaitWeeks: [3, 8],  gradEmploymentPct: 87, satisfactionPct: 83, intlPct: 28, tuitionUsd: 8_000,  submissions: 64 },
     ],
   },
 ];

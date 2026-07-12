@@ -9,7 +9,7 @@ type Role = "student" | "mentor" | "employer" | "admin";
 type User = {
   id: string; email: string; full_name: string; role: Role;
   verification_status: string; country_of_residence: string | null;
-  created_at: string; trust_score: number; email_verified: boolean;
+  created_at: string; trust_score: number;
   is_verified_mentor: boolean;
 };
 

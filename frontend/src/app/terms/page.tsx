@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description:
+    "The terms governing your use of GlobalBridge — the platform for international students and immigrants studying, working, and settling abroad.",
+  alternates: { canonical: "/terms" },
+};
 
 const sections = [
   { id: "what-we-are", title: "What GlobalBridge is" },

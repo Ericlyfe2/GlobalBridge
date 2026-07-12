@@ -27,7 +27,6 @@ CREATE TABLE IF NOT EXISTS users (
     country_of_residence VARCHAR(100),
     bio TEXT,
     trust_score INT DEFAULT 0,
-    email_verified BOOLEAN DEFAULT FALSE,
     two_factor_enabled BOOLEAN DEFAULT FALSE,
     preferred_language VARCHAR(10) DEFAULT 'en',
     token_version INT NOT NULL DEFAULT 0,
@@ -39,6 +38,9 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INT NOT NULL DEFAULT 0;
 -- Identity bridge migration (idempotent for existing databases):
 ALTER TABLE users ADD COLUMN IF NOT EXISTS firebase_uid TEXT UNIQUE;
 ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;
+-- Email verification feature removed: Firebase Auth's own emailVerified flag
+-- is no longer gated on for app sessions.
+ALTER TABLE users DROP COLUMN IF EXISTS email_verified;
 
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_users_firebase_uid ON users(firebase_uid);

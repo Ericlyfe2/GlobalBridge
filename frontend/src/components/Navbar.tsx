@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X, LayoutDashboard } from "lucide-react";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
@@ -24,23 +24,18 @@ export function Navbar() {
 
   const guestLinks = guestLinksFn(t);
 
-  return (
-    <header className="sticky top-0 z-50 isolate overflow-hidden backdrop-blur-md bg-cream-50/80 border-b border-cream-200">
-      {/* Background video — aerial Bangkok at sunset */}
-      <video
-        aria-hidden
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-        className="animate-ken-burns pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover"
-      >
-        <source src="/video/bangkok.mp4" type="video/mp4" />
-      </video>
-      {/* Theme-aware scrim keeps the nav legible over the video */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-cream-50/75" />
+  // Close the mobile menu on Escape for keyboard users.
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
 
+  return (
+    <header className="sticky top-0 z-50 backdrop-blur-md bg-cream-50/80 border-b border-cream-200">
       <nav className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link href="/">
           <Logo />
@@ -80,7 +75,9 @@ export function Navbar() {
           <button
             className="p-2 rounded-md hover:bg-cream-200"
             onClick={() => setOpen(!open)}
-            aria-label="Toggle menu"
+            aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")}
+            aria-expanded={open}
+            aria-controls="mobile-nav"
           >
             {open ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -88,7 +85,7 @@ export function Navbar() {
       </nav>
 
       {open && (
-        <div className="md:hidden border-t border-cream-200 px-6 py-4 space-y-2 bg-cream-50">
+        <div id="mobile-nav" className="md:hidden border-t border-cream-200 px-6 py-4 space-y-2 bg-cream-50">
           {(authed ? [
             { href: "/dashboard", label: t("nav.dashboard"), id: "dashboard" },
             ...guestLinks,

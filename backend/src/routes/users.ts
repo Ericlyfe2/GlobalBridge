@@ -240,7 +240,7 @@ usersRouter.get("/", requireAuth, requireRole("admin"), async (req, res, next) =
 
     const users = await query(
       `SELECT u.id, u.email, u.full_name, u.role, u.verification_status,
-              u.country_of_residence, u.created_at, u.trust_score, u.email_verified,
+              u.country_of_residence, u.created_at, u.trust_score,
               COALESCE(mp.verified_at IS NOT NULL, FALSE) AS is_verified_mentor
        FROM users u
        LEFT JOIN mentor_profiles mp ON mp.user_id = u.id

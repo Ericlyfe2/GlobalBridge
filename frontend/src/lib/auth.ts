@@ -7,7 +7,6 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  sendEmailVerification,
   sendPasswordResetEmail,
   updateProfile,
   onIdTokenChanged,
@@ -199,16 +198,7 @@ export async function register(payload: {
       throw new Error(data.error || "Failed to create profile");
     }
 
-    // Refresh token so the new role custom claim is present, then store session.
-    const fresh = await cred.user.getIdToken(true);
-    setSession(fresh, {
-      id: cred.user.uid,
-      email: payload.email,
-      full_name: payload.full_name,
-      role: payload.role,
-    });
-
-    try { await sendEmailVerification(cred.user); } catch {}
+    await syncProfile(cred.user.uid, token, { email: payload.email, full_name: payload.full_name });
   } catch (err) {
     throw friendlyError(err);
   }

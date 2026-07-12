@@ -128,7 +128,9 @@
     "aiConfig": "AI कॉन्फ़िग",
     "home": "होम",
     "signIn": "साइन इन करें",
-    "getStarted": "शुरू करें"
+    "getStarted": "शुरू करें",
+    "openMenu": "मेन्यू खोलें",
+    "closeMenu": "मेन्यू बंद करें"
   },
   "tools": {
     "countryCompare": {
@@ -149,7 +151,7 @@
   },
   "footer": {
     "description": "अंतर्राष्ट्रीय छात्रों और प्रवासियों के लिए विश्वसनीय साथी — उनकी यात्रा से पहले, उसके दौरान और बाद में।",
-    "copyright": "© 2025 GlobalBridge · ग्रुप 8 FYP",
+    "copyright": "© {year} GlobalBridge · ग्रुप 8 FYP",
     "platform": "प्लेटफ़ॉर्म",
     "community": "समुदाय",
     "resources": "संसाधन",
@@ -232,141 +234,141 @@
     "ctaSubtitle": "हजारों छात्रों से जुड़ें जो आत्मविश्वास के साथ अपनी अंतर्राष्ट्रीय शिक्षा को नेविगेट करने के लिए GlobalBridge का उपयोग कर रहे हैं।",
     "ctaButton": "मुफ़्त खाता बनाएं",
     "ctaAssistantButton": "AI सहायक से बात करें",
-    "statStudents": "Students guided",
-    "statVisaSuccess": "Visa success rate",
+    "statStudents": "मार्गदर्शित छात्र",
+    "statVisaSuccess": "वीज़ा सफलता दर",
     "hero": {
-      "label": "[HI] Study abroad, held together",
-      "title": "[HI] Your move,<br />held together.",
-      "subtitle": "Visa guidance, verified housing, mentorship, jobs, and life support — one platform, before, during, and after you arrive.",
-      "startFree": "[HI] Start free",
-      "meetNetwork": "[HI] Meet the network",
-      "scroll": "[HI] Scroll",
+      "label": "विदेश में पढ़ाई, हर कदम पर साथ",
+      "title": "आपका सफ़र,<br />हर कदम पर साथ।",
+      "subtitle": "वीज़ा मार्गदर्शन, सत्यापित आवास, मेंटरशिप, नौकरियाँ और जीवन सहायता — एक ही मंच, आपके पहुँचने से पहले, दौरान और बाद में।",
+      "startFree": "मुफ़्त शुरू करें",
+      "meetNetwork": "नेटवर्क से मिलें",
+      "scroll": "स्क्रॉल करें",
       "cards": {
         "tokyo": {
-          "title": "[HI] Tokyo",
-          "tag": "Japan — Asia Pacific"
+          "title": "टोक्यो",
+          "tag": "जापान — एशिया प्रशांत"
         },
         "berlin": {
-          "title": "[HI] Berlin",
-          "tag": "Germany — Europe"
+          "title": "बर्लिन",
+          "tag": "जर्मनी — यूरोप"
         },
         "toronto": {
-          "title": "[HI] Toronto",
-          "tag": "Canada — North America"
+          "title": "टोरंटो",
+          "tag": "कनाडा — उत्तरी अमेरिका"
         },
         "dubai": {
-          "title": "[HI] Dubai",
-          "tag": "UAE — Middle East"
+          "title": "दुबई",
+          "tag": "यूएई — मध्य पूर्व"
         },
         "london": {
-          "title": "[HI] London",
-          "tag": "United Kingdom — Europe"
+          "title": "लंदन",
+          "tag": "यूनाइटेड किंगडम — यूरोप"
         }
       }
     },
     "visa": {
-      "title": "[HI] AI Visa Assistant",
-      "dek": "[HI] Any visa. Any country. Zero guesswork.",
-      "detail": "Conversational guidance that adapts to your destination, your passport, and your timeline — with a step-by-step document checklist that updates itself as embassies change the rules.",
-      "bullet1": "[HI] Country-specific checklist, generated in minutes",
-      "bullet2": "[HI] Plain-language answers to embassy questions",
-      "bullet3": "[HI] Deadline tracking with reminders that actually fire",
+      "title": "AI वीज़ा सहायक",
+      "dek": "कोई भी वीज़ा। कोई भी देश। कोई अनुमान नहीं।",
+      "detail": "बातचीत आधारित मार्गदर्शन जो आपके गंतव्य, पासपोर्ट और समयरेखा के अनुसार ढलता है — एक चरण-दर-चरण दस्तावेज़ चेकलिस्ट के साथ जो दूतावासों द्वारा नियम बदलने पर स्वयं अपडेट होती है।",
+      "bullet1": "देश-विशिष्ट चेकलिस्ट, मिनटों में तैयार",
+      "bullet2": "दूतावास के सवालों के आसान भाषा में जवाब",
+      "bullet3": "समयसीमा ट्रैकिंग, ऐसे रिमाइंडर जो वाकई आते हैं",
       "checklist": {
-        "step1": "[HI] University Acceptance Letter",
-        "step2": "[HI] Proof of Financial Support",
-        "step3": "[HI] Passport Validity Check",
-        "step4": "[HI] Biometrics Appointment"
+        "step1": "विश्वविद्यालय स्वीकृति पत्र",
+        "step2": "वित्तीय सहायता का प्रमाण",
+        "step3": "पासपोर्ट वैधता जाँच",
+        "step4": "बायोमेट्रिक्स अपॉइंटमेंट"
       }
     },
     "housing": {
-      "title": "[HI] Verified Housing",
-      "dek": "[HI] A key waiting for you, not a listing that vanishes.",
-      "detail": "[HI] Every landlord is identity-checked before their listing goes live. Match with roommates who share your move-in date, and book your place before you board.",
-      "bullet1": "[HI] Identity-verified landlords only",
-      "bullet2": "[HI] Roommate matching by city, dates, and habits",
-      "bullet3": "Book and pay before you land — no showings needed"
+      "title": "सत्यापित आवास",
+      "dek": "एक चाबी जो आपका इंतज़ार करती है, न कि गायब होने वाला विज्ञापन।",
+      "detail": "हर मकान मालिक की पहचान विज्ञापन प्रकाशित होने से पहले जाँची जाती है। अपने मूव-इन तारीख वाले रूममेट से मिलान करें, और उड़ान से पहले अपनी जगह बुक करें।",
+      "bullet1": "केवल पहचान-सत्यापित मकान मालिक",
+      "bullet2": "शहर, तारीख और आदतों के आधार पर रूममेट मिलान",
+      "bullet3": "पहुँचने से पहले बुक करें और भुगतान करें — कोई विज़िट ज़रूरी नहीं"
     },
     "jobs": {
-      "title": "[HI] Jobs & Internships",
-      "dek": "[HI] Filtered for the one thing that matters: sponsorship.",
-      "detail": "[HI] Search roles that actually sponsor your visa type, track a company's sponsorship history before you apply, and let the AI resume builder tune your CV per market.",
-      "bullet1": "[HI] Filter by visa-sponsor status, not guesswork",
-      "bullet2": "[HI] AI resume builder tuned to local hiring norms",
-      "bullet3": "[HI] Sponsorship-history tracker per employer",
-      "sponsorRoles": "[HI] Sponsor Roles",
-      "interviewLift": "[HI] Interview Lift",
-      "visaSponsorBadge": "[HI] VISA-SPONSOR"
+      "title": "नौकरियाँ और इंटर्नशिप",
+      "dek": "सबसे ज़रूरी चीज़ के लिए छाँटी गईं: स्पॉन्सरशिप।",
+      "detail": "ऐसी भूमिकाएँ खोजें जो वाकई आपके वीज़ा प्रकार को स्पॉन्सर करती हैं, आवेदन से पहले कंपनी का स्पॉन्सरशिप इतिहास देखें, और AI रिज़्यूमे बिल्डर को हर बाज़ार के अनुसार आपका CV ढालने दें।",
+      "bullet1": "अनुमान नहीं, वीज़ा-स्पॉन्सर स्थिति से छाँटें",
+      "bullet2": "स्थानीय भर्ती मानकों के अनुरूप AI रिज़्यूमे बिल्डर",
+      "bullet3": "हर नियोक्ता का स्पॉन्सरशिप इतिहास ट्रैकर",
+      "sponsorRoles": "स्पॉन्सर भूमिकाएँ",
+      "interviewLift": "इंटरव्यू बढ़त",
+      "visaSponsorBadge": "वीज़ा-स्पॉन्सर"
     },
     "mentorship": {
-      "title": "[HI] Mentorship Network",
-      "dek": "[HI] People who already lived it, one message away.",
-      "detail": "[HI] Connect with people who've spent years in your destination city. Join cultural hubs and events built around where you're headed, not where you're from."
+      "title": "मेंटरशिप नेटवर्क",
+      "dek": "जो लोग यह पहले जी चुके हैं, बस एक संदेश दूर।",
+      "detail": "उन लोगों से जुड़ें जिन्होंने आपके गंतव्य शहर में वर्षों बिताए हैं। वहाँ के इर्द-गिर्द बने सांस्कृतिक केंद्रों और आयोजनों में शामिल हों जहाँ आप जा रहे हैं, न कि जहाँ से आप हैं।"
     },
     "lifeSupport": {
-      "title": "[HI] Life Support Toolkit",
-      "dek": "[HI] Everything after the flight lands.",
-      "detail": "Cost calculators, healthcare guides, banking setup, and an emergency SOS — all in one place, so the small logistics never become the hard part.",
-      "tool1": "[HI] Cost calculator",
-      "tool1Note": "[HI] Budget by city, down to groceries",
-      "tool2": "[HI] Healthcare guide",
-      "tool2Note": "[HI] Insurance & clinics, explained",
-      "tool3": "[HI] Banking setup",
-      "tool3Note": "[HI] Open an account before you land",
-      "tool4": "[HI] Emergency SOS",
-      "tool4Note": "[HI] One tap, always on"
+      "title": "जीवन सहायता किट",
+      "dek": "उड़ान उतरने के बाद की हर चीज़।",
+      "detail": "लागत कैलकुलेटर, स्वास्थ्य गाइड, बैंक खाता सेटअप और आपातकालीन SOS — सब एक ही जगह, ताकि छोटी-छोटी बातें कभी सबसे मुश्किल हिस्सा न बनें।",
+      "tool1": "लागत कैलकुलेटर",
+      "tool1Note": "शहर के हिसाब से बजट, किराने तक",
+      "tool2": "स्वास्थ्य गाइड",
+      "tool2Note": "बीमा और क्लीनिक, समझाए गए",
+      "tool3": "बैंक खाता सेटअप",
+      "tool3Note": "पहुँचने से पहले खाता खोलें",
+      "tool4": "आपातकालीन SOS",
+      "tool4Note": "एक टैप, हमेशा चालू"
     },
     "closing": {
-      "title": "[HI] Every piece, one bridge."
+      "title": "हर हिस्सा, एक पुल।"
     },
     "reviews": {
       "r1": {
-        "serviceTitle": "[HI] AI Visa Assistant",
-        "quote": "It told me exactly which biometrics appointment to book first — I would have missed the window otherwise."
+        "serviceTitle": "AI वीज़ा सहायक",
+        "quote": "इसने मुझे ठीक-ठीक बताया कि पहले कौन-सा बायोमेट्रिक्स अपॉइंटमेंट बुक करना है — वरना मैं समयसीमा चूक जाता।"
       },
       "r2": {
-        "serviceTitle": "[HI] Verified Housing",
-        "quote": "[HI] I signed my lease from home. No video call landlord ever went quiet on me."
+        "serviceTitle": "सत्यापित आवास",
+        "quote": "मैंने अपना किराया अनुबंध घर से ही साइन किया। वीडियो कॉल वाला कोई मकान मालिक बाद में गायब नहीं हुआ।"
       },
       "r3": {
-        "serviceTitle": "[HI] Mentorship Network",
-        "quote": "[HI] My mentor met me at arrivals. That's not something a brochure tells you to expect."
+        "serviceTitle": "मेंटरशिप नेटवर्क",
+        "quote": "मेरे मेंटर ने मुझे अराइवल पर रिसीव किया। यह ऐसी बात है जो कोई ब्रोशर आपको नहीं बताता।"
       },
       "r4": {
-        "serviceTitle": "[HI] Jobs & Internships",
-        "quote": "[HI] Every listing I applied to already sponsored my visa type. I stopped wasting weeks on dead ends."
+        "serviceTitle": "नौकरियाँ और इंटर्नशिप",
+        "quote": "जिस भी लिस्टिंग पर मैंने आवेदन किया, वह पहले से मेरे वीज़ा प्रकार को स्पॉन्सर करती थी। मैंने बंद रास्तों पर हफ़्ते बर्बाद करना बंद कर दिया।"
       },
       "r5": {
-        "serviceTitle": "[HI] Life Support Toolkit",
-        "quote": "[HI] The bank setup guide alone saved me a week of standing in the wrong lines."
+        "serviceTitle": "जीवन सहायता किट",
+        "quote": "अकेले बैंक सेटअप गाइड ने मुझे गलत कतारों में खड़े रहने का एक हफ़्ता बचा दिया।"
       },
-      "label": "[HI] Proof, not promises",
-      "title": "[HI] Real people. Real moves.",
-      "subtitle": "Thousands of immigrants trust GlobalBridge every year — here's what they say.",
-      "cta": "[HI] Start your journey"
+      "label": "वादे नहीं, प्रमाण",
+      "title": "असली लोग। असली सफ़र।",
+      "subtitle": "हर साल हज़ारों प्रवासी GlobalBridge पर भरोसा करते हैं — देखिए वे क्या कहते हैं।",
+      "cta": "अपना सफ़र शुरू करें"
     },
     "footer": {
-      "subtitle": "[HI] Your move, held together.",
-      "sitemap": "[HI] Sitemap",
-      "company": "[HI] Company",
-      "status": "[HI] Status",
-      "time": "[HI] Time",
-      "allSystemsLive": "[HI] All systems live",
-      "bridgesBuilt": "[HI] bridges built ↑",
-      "backToTop": "[HI] Back to top",
+      "subtitle": "आपका सफ़र, हर कदम पर साथ।",
+      "sitemap": "साइटमैप",
+      "company": "कंपनी",
+      "status": "स्थिति",
+      "time": "समय",
+      "allSystemsLive": "सभी सिस्टम सक्रिय",
+      "bridgesBuilt": "पुल बनाए गए ↑",
+      "backToTop": "ऊपर जाएँ",
       "copyright": "© 2026 Global Bridge",
-      "about": "[HI] About",
-      "careers": "[HI] Careers",
-      "press": "[HI] Press",
-      "contact": "[HI] Contact",
-      "trustSafety": "[HI] Trust & Safety",
-      "getChecklist": "[HI] Get the checklist",
-      "checklistSent": "[HI] Checklist on its way",
+      "about": "हमारे बारे में",
+      "careers": "करियर",
+      "press": "प्रेस",
+      "contact": "संपर्क",
+      "trustSafety": "विश्वास और सुरक्षा",
+      "getChecklist": "चेकलिस्ट पाएँ",
+      "checklistSent": "चेकलिस्ट रास्ते में",
       "cities": {
-        "toronto": "[HI] Toronto",
-        "london": "[HI] London",
-        "berlin": "[HI] Berlin",
-        "sydney": "[HI] Sydney",
-        "dublin": "[HI] Dublin"
+        "toronto": "टोरंटो",
+        "london": "लंदन",
+        "berlin": "बर्लिन",
+        "sydney": "सिडनी",
+        "dublin": "डबलिन"
       }
     }
   },
@@ -392,9 +394,6 @@
     "resetPassword": "पासवर्ड रीसेट करें",
     "resetPasswordInstructions": "अपना ईमेल दर्ज करें और हम आपको एक रीसेट लिंक भेजेंगे।",
     "sendResetLink": "रीसेट लिंक भेजें",
-    "verifyEmail": "अपना ईमेल सत्यापित करें",
-    "verifyEmailInstructions": "हमने आपके ईमेल पर एक सत्यापन लिंक भेजा है। कृपया अपना इनबॉक्स जांचें।",
-    "resendVerification": "सत्यापन ईमेल पुनः भेजें",
     "dontHaveAccount": "खाता नहीं है?",
     "alreadyHaveAccount": "पहले से खाता है?",
     "signUpLink": "साइन अप करें",
@@ -408,10 +407,7 @@
     "passwordMismatch": "पासवर्ड मेल नहीं खाते",
     "requiredField": "यह फ़ील्ड आवश्यक है",
     "signInSuccess": "वापसी पर स्वागत है! पुनर्निर्देशित किया जा रहा है...",
-    "signUpSuccess": "खाता बन गया! कृपया अपना ईमेल सत्यापित करें।",
     "resetSent": "रीसेट लिंक भेज दिया गया! अपना ईमेल जांचें।",
-    "emailVerified": "ईमेल सफलतापूर्वक सत्यापित हो गया!",
-    "verificationResent": "सत्यापन ईमेल पुनः भेज दिया गया।",
     "signOutConfirm": "क्या आप वाकई साइन आउट करना चाहते हैं?",
     "heroTitle": "Your trusted bridge to studying, working, and settling abroad.",
     "heroDescription": "AI-guided visa support, verified housing, mentorship, and career opportunities — all in one secure platform built for international students and immigrants.",

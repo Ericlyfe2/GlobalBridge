@@ -52,7 +52,7 @@ export default function AirplanePath() {
       ratiosRef.current = points.map(p => Math.max(0, p.y / wrapperHeight));
 
       const startPoint = { x: wrapperWidth / 2, y: 0 };
-      const endPoint = { x: wrapperWidth / 2, y: wrapperHeight };
+      const endPoint = { x: wrapperWidth / 2, y: wrapperHeight + 300 };
 
       const allPoints = [startPoint, ...points, endPoint];
 
@@ -96,13 +96,22 @@ export default function AirplanePath() {
     // totalLength used only to keep the reference alive; no draw animation needed
     path.getTotalLength();
 
-    const ctx = gsap.context(() => {
+    const mm = gsap.matchMedia(containerRef);
+
+    mm.add({
+      isDesktop: "(min-width: 768px)",
+      isMobile: "(max-width: 767px)"
+    }, (context) => {
+      const { isDesktop } = context.conditions as { isDesktop: boolean };
+
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: wrapper,
           start: "top top",
           end: "bottom bottom",
           scrub: 1,
+          onEnter: () => gsap.to(airplaneRef.current, { autoAlpha: 1, duration: 0.3 }),
+          onLeaveBack: () => gsap.to(airplaneRef.current, { autoAlpha: 0, duration: 0.3 }),
           onUpdate: (self) => {
             const prog = self.progress;
             masksRef.current.forEach((mask, i) => {
@@ -120,23 +129,27 @@ export default function AirplanePath() {
         },
       });
 
-      // Airplane motion along the SVG path
-      tl.to(
-        airplaneRef.current!,
-        {
-          motionPath: {
-            path: pathRef.current!,
-            align: pathRef.current!,
-            alignOrigin: [0.5, 0.5],
-            autoRotate: true,
+      if (isDesktop) {
+        // Airplane motion along the SVG path
+        tl.to(
+          airplaneRef.current!,
+          {
+            motionPath: {
+              path: pathRef.current!,
+              align: pathRef.current!,
+              alignOrigin: [0.5, 0.5],
+              autoRotate: true,
+            },
+            ease: "none",
           },
-          ease: "none",
-        },
-        0
-      );
-    }, containerRef);
+          0
+        );
+      } else {
+        gsap.set(containerRef.current, { autoAlpha: 0 });
+      }
+    });
 
-    return () => ctx.revert();
+    return () => mm.revert();
   }, [pathData, dimensions]);
 
   return (
@@ -166,7 +179,7 @@ export default function AirplanePath() {
         ref={airplaneRef}
         src="/airplane-emerald.svg"
         alt="Airplane"
-        className="absolute w-24 h-24 z-50 -ml-12 -mt-12"
+        className="absolute w-24 h-24 z-50 -ml-12 -mt-12 opacity-0 invisible"
       />
     </div>
   );
