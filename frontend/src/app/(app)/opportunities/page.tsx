@@ -1,12 +1,37 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import {
-  Calendar, MapPin, TrendingUp, Filter, Search, BookmarkPlus, ShieldCheck, Loader2,
+  Calendar, MapPin, TrendingUp, Filter, Search, BookmarkPlus, ShieldCheck, Loader2, Globe2,
 } from "lucide-react";
 import { authFetch, getToken } from "@/lib/auth";
 import { useDebounce } from "@/lib/useDebounce";
+import { coordsForCountry } from "@/data/countryCoordinates";
+import type { CountryMarker } from "@/components/globe/GlobeScene";
+
+// Three.js globe is heavy and browser-only — load it lazily, client-side only.
+const GlobeCanvas = dynamic(
+  () => import("@/components/globe/GlobeScene").then((m) => m.GlobeCanvas),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full items-center justify-center text-ink-500">
+        <Loader2 size={20} className="animate-spin" />
+      </div>
+    ),
+  },
+);
+
+// Opportunity types → the globe's marker taxonomy (which drives marker color).
+const markerTypeForOpp: Record<Opp["type"], CountryMarker["type"]> = {
+  scholarship: "scholarship",
+  exchange: "university",
+  work_study: "job",
+  internship: "job",
+  job: "job",
+};
 
 type Opp = {
   id: string;
@@ -25,25 +50,25 @@ type Opp = {
 
 const typeLabels: Record<Opp["type"], string> = {
   scholarship: "Scholarship",
-  work_study:  "Work-Study",
-  exchange:    "Exchange",
-  internship:  "Internship",
-  job:         "Job",
+  work_study: "Work-Study",
+  exchange: "Exchange",
+  internship: "Internship",
+  job: "Job",
 };
 
 const typeColors: Record<Opp["type"], string> = {
   scholarship: "badge-clay",
-  work_study:  "badge-sky",
-  exchange:    "badge-verified",
-  internship:  "badge-sky",
-  job:         "badge-clay",
+  work_study: "badge-sky",
+  exchange: "badge-verified",
+  internship: "badge-sky",
+  job: "badge-clay",
 };
 
 export default function OpportunitiesPage() {
-  const [opps, setOpps]   = useState<Opp[] | null>(null);
-  const [err, setErr]     = useState<string | null>(null);
-  const [q, setQ]         = useState("");
-  const [type, setType]   = useState<string>("");
+  const [opps, setOpps] = useState<Opp[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [q, setQ] = useState("");
+  const [type, setType] = useState<string>("");
   const [country, setCountry] = useState<string>("");
   const [saved, setSaved] = useState<Set<string>>(new Set());
   const debouncedQ = useDebounce(q, 300);
@@ -78,7 +103,7 @@ export default function OpportunitiesPage() {
       authFetch("/api/content/saved", {
         method: isSaved ? "DELETE" : "POST",
         body: JSON.stringify({ item_type: "opportunity", item_id: id }),
-      }).catch(() => {});
+      }).catch(() => { });
     }
   }
 
@@ -87,7 +112,7 @@ export default function OpportunitiesPage() {
     (async () => {
       try {
         const params = new URLSearchParams();
-        if (type)    params.set("type", type);
+        if (type) params.set("type", type);
         if (country) params.set("country", country);
         if (debouncedQ) params.set("search", debouncedQ);
         const res = await fetch(`/api/opportunities?${params}`, { signal: ctrl.signal });
@@ -109,11 +134,35 @@ export default function OpportunitiesPage() {
     return `${o.currency ?? ""} ${amt}`.trim();
   }, []);
 
-  const fmtDeadline = useMemo(() => (deadline: string | null) => {
-    if (!deadline) return "Rolling";
-    const date = new Date(deadline);
-    return Number.isNaN(date.getTime()) ? "Rolling" : date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-  }, []);
+  // Aggregate the currently-filtered opportunities by country into globe markers.
+  // Each marker sits on the country's centroid; its type is the country's most
+  // common opportunity type, and its count is the number of listings there.
+  const globeMarkers = useMemo<CountryMarker[]>(() => {
+    if (!opps) return [];
+    const byCountry = new Map<string, { coords: [number, number]; types: Record<string, number>; count: number }>();
+    for (const o of opps) {
+      if (!o.country) continue;
+      const coords = coordsForCountry(o.country);
+      if (!coords) continue;
+      const key = o.country.trim().toLowerCase();
+      const entry = byCountry.get(key) ?? { coords, types: {}, count: 0 };
+      entry.types[o.type] = (entry.types[o.type] ?? 0) + 1;
+      entry.count += 1;
+      byCountry.set(key, entry);
+    }
+    return Array.from(byCountry.entries()).map(([key, e]) => {
+      const dominant = (Object.entries(e.types).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "job") as Opp["type"];
+      const name = opps.find((o) => o.country.trim().toLowerCase() === key)?.country ?? key;
+      return {
+        id: key,
+        name,
+        lat: e.coords[0],
+        lng: e.coords[1],
+        type: markerTypeForOpp[dominant] ?? "job",
+        count: e.count,
+      };
+    });
+  }, [opps]);
 
   return (
     <div className="max-w-7xl mx-auto p-6 lg:p-10 space-y-8">
@@ -157,6 +206,20 @@ export default function OpportunitiesPage() {
           <Filter size={14} /> Filters
         </button>
       </div>
+
+      {globeMarkers.length > 0 && (
+        <section className="card !p-0 overflow-hidden">
+          <div className="flex items-center justify-between gap-3 px-5 pt-5">
+            <h2 className="font-display text-lg font-semibold text-ink-900 flex items-center gap-2">
+              <Globe2 size={16} className="text-clay-500" /> Opportunities around the world
+            </h2>
+            <span className="text-xs text-ink-500">
+              {globeMarkers.length} {globeMarkers.length === 1 ? "country" : "countries"} · drag to rotate
+            </span>
+          </div>
+          <GlobeCanvas markers={globeMarkers} connections={[]} className="h-[420px] w-full" />
+        </section>
+      )}
 
       {err && (
         <div className="card border-red-300 dark:border-red-900/40 text-sm text-red-600">
