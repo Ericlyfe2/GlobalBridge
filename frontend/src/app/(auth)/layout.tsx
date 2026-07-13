@@ -24,7 +24,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="w-full max-w-md">{children}</div>
         </main>
         <footer className="px-8 py-6 text-xs text-ink-500">
-          &copy; 2025 GlobalBridge
+          &copy; {new Date().getFullYear()} GlobalBridge
         </footer>
       </div>
 

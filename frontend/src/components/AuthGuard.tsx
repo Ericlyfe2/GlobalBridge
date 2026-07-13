@@ -4,10 +4,15 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
 
-function useAuthCheck(): boolean {
-  const [authed, setAuthed] = useState(() => !!getToken());
+type AuthState = "pending" | "authed" | "anon";
+
+function useAuthCheck(): AuthState {
+  // Starts "pending" on both server and client so the first client render
+  // matches the SSR output; the real check runs client-only in the effect
+  // below (getToken() reads localStorage, which doesn't exist during SSR).
+  const [state, setState] = useState<AuthState>("pending");
   useEffect(() => {
-    function check() { setAuthed(!!getToken()); }
+    function check() { setState(getToken() ? "authed" : "anon"); }
     check();
     window.addEventListener("focus", check);
     window.addEventListener("storage", check);
@@ -16,17 +21,17 @@ function useAuthCheck(): boolean {
       window.removeEventListener("storage", check);
     };
   }, []);
-  return authed;
+  return state;
 }
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const authed = useAuthCheck();
+  const state = useAuthCheck();
 
   useEffect(() => {
-    if (!authed) router.replace("/auth?mode=signin");
-  }, [authed, router]);
+    if (state === "anon") router.replace("/auth?mode=signin");
+  }, [state, router]);
 
-  if (!authed) return null;
+  if (state !== "authed") return null;
   return <>{children}</>;
 }

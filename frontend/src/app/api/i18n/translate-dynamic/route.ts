@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
 import { getCachedTranslation, setCachedTranslation } from "@/lib/translation-cache-server";
 
@@ -38,7 +38,9 @@ export async function POST(req: Request) {
     return Response.json({ translations: cached, lang: target, cached: true });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
+  const baseURL = process.env.OPENAI_BASE_URL;
+  const modelName = process.env.OPENAI_MODEL || "gpt-4o";
   if (!apiKey) {
     return Response.json({ translations: texts, note: "translation-disabled" });
   }
@@ -49,23 +51,27 @@ export async function POST(req: Request) {
   const langName = LANG_NAMES[target] ?? target;
 
   try {
-    const client = new Anthropic({ apiKey });
+    const client = new OpenAI({ apiKey, baseURL });
     const numbered = texts.map((t, i) => `${i}: ${t}`).join("\n");
     const contextHint = context ? ` Context: this is ${context}.` : "";
 
-    const msg = await client.messages.create({
-      model: "claude-haiku-4-5",
+    const msg = await client.chat.completions.create({
+      model: modelName,
       max_tokens: 4096,
-      system:
-        `You are a professional translator specializing in international education and immigration content. ` +
-        `Translate each numbered line into ${langName}. Preserve meaning, tone, formatting, and all placeholders. ` +
-        `Do NOT translate brand names (GlobalBridge, Common App, LinkedIn), URLs, or code.` +
-        contextHint +
-        ` Return ONLY a JSON array of strings in the same order, no keys, no commentary.`,
-      messages: [{ role: "user", content: numbered }],
+      messages: [
+        {
+          role: "system",
+          content: `You are a professional translator specializing in international education and immigration content. ` +
+                   `Translate each numbered line into ${langName}. Preserve meaning, tone, formatting, and all placeholders. ` +
+                   `Do NOT translate brand names (GlobalBridge, Common App, LinkedIn), URLs, or code.` +
+                   contextHint +
+                   ` Return ONLY a JSON array of strings in the same order, no keys, no commentary.`,
+        },
+        { role: "user", content: numbered },
+      ],
     });
 
-    const raw = msg.content[0].type === "text" ? msg.content[0].text.trim() : "[]";
+    const raw = msg.choices[0]?.message?.content?.trim() || "[]";
     const jsonStr = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
     let translations: string[];
     try {

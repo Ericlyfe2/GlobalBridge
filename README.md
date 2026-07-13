@@ -85,7 +85,7 @@ User management · Listing moderation · Verification queue · Report review · 
         └───────────────────────────────▶  [ FastAPI AI  :8000 ]
                                                      │ uses
                                                      ▼
-                                          [ Anthropic Claude ]
+                                          [ OpenAI ]
                                           [ Google Translate ]
 ```
 
@@ -102,7 +102,7 @@ GlobalBridge is a **polyglot monorepo** of four cooperating services: a Next.js 
 | **Backend API** | Node.js, Express 4, TypeScript, WebSocket (`ws`), Zod validation |
 | **Security** | Helmet, CORS, CSRF protection, rate limiting, bcrypt |
 | **Database** | PostgreSQL (`pg`), Redis (`ioredis` / Upstash) |
-| **AI service** | Python, FastAPI, Anthropic Claude SDK |
+| **AI service** | Python, FastAPI, OpenAI SDK |
 | **Auth** | Firebase Authentication (Admin SDK on the backend) + JWT (WS) |
 | **i18n** | Custom i18n layer, 14 locales, Google Translate for dynamic content |
 | **Testing** | Vitest (frontend & backend) |
@@ -191,7 +191,7 @@ cd ai
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-cp .env.example .env             # set ANTHROPIC_API_KEY for AI features
+cp .env.example .env             # set OPENAI_API_KEY for AI features
 uvicorn main:app --reload --port 8000
 ```
 
@@ -224,8 +224,8 @@ See **[ENV.md](ENV.md)** for the complete reference. Key variables:
 | Service | Required | Purpose |
 |---------|----------|---------|
 | Backend | `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` | Firebase Admin auth |
-| AI | `ANTHROPIC_API_KEY` | Claude-powered features |
-| Frontend | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_FIREBASE_*`, `ANTHROPIC_API_KEY` | API base, Firebase web auth, server AI routes |
+| AI | `OPENAI_API_KEY` | OpenAI-powered features |
+| Frontend | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_FIREBASE_*`, `OPENAI_API_KEY` | API base, Firebase web auth, server AI routes |
 
 ---
 
@@ -336,4 +336,4 @@ Set the production environment variables per service (see [ENV.md](ENV.md)).
 
 ---
 
-<sub>Built with Next.js, Express, FastAPI, and Claude. © 2025 GlobalBridge · Group 8 FYP.</sub>
+<sub>Built with Next.js, Express, FastAPI, and OpenAI. © 2025 GlobalBridge · Group 8 FYP.</sub>

@@ -28,7 +28,7 @@
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `ANTHROPIC_API_KEY` | **Yes\*** | — | Anthropic API key for Claude |
+| `OPENAI_API_KEY` | **Yes\*** | — | OpenAI API key for OpenAI |
 | `GOOGLE_APPLICATION_CREDENTIALS` | No | — | Path to GCP service-account JSON |
 | `PORT` | No | `8001` | AI service port |
 
@@ -45,7 +45,7 @@
 | `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | **Yes\*** | — | Firebase project ID |
 | `NEXT_PUBLIC_FIREBASE_APP_ID` | **Yes\*** | — | Firebase app ID |
 | `NEXT_PUBLIC_SITE_URL` | No | `https://globalbridge.app` | Public site URL (SEO, sitemap) |
-| `ANTHROPIC_API_KEY` | **Yes†** | — | Anthropic API key (server-side routes) |
+| `OPENAI_API_KEY` | **Yes†** | — | OpenAI API key (server-side routes) |
 | `UPSTASH_REDIS_REST_URL` | No | — | Upstash Redis REST URL (translation cache) |
 | `UPSTASH_REDIS_REST_TOKEN` | No | — | Upstash Redis REST token |
 

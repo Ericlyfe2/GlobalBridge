@@ -33,7 +33,7 @@ async function ensureLoaded() {
 
 function notify() { listeners.forEach((fn) => fn()); }
 
-export function SaveButton({ type, id, className = "" }: { type: ItemType; id: string; className?: string }) {
+export function SaveButton({ type, id, className = "", label }: { type: ItemType; id: string; className?: string; label?: boolean }) {
   const [, force] = useState(0);
   const k = key(type, id);
 
@@ -68,6 +68,7 @@ export function SaveButton({ type, id, className = "" }: { type: ItemType; id: s
       className={`transition ${saved ? "text-clay-600" : "text-ink-500 hover:text-clay-600"} ${className}`}
     >
       <Bookmark size={16} className={saved ? "fill-clay-500" : ""} />
+      {label && (saved ? "Saved" : "Save")}
     </button>
   );
 }

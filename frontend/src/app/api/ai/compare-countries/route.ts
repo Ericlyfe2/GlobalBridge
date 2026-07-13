@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -35,10 +35,12 @@ type ComparisonResult = {
 };
 
 export async function POST(req: Request) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
+  const baseURL = process.env.OPENAI_BASE_URL;
+  const modelName = process.env.OPENAI_MODEL || "gpt-4o";
   if (!apiKey) {
     return Response.json(
-      { error: "AI comparison is not configured yet. Add ANTHROPIC_API_KEY to .env.local" },
+      { error: "AI comparison is not configured yet. Add OPENAI_API_KEY to .env.local" },
       { status: 503 },
     );
   }
@@ -61,7 +63,7 @@ export async function POST(req: Request) {
   const rl = rateLimit(`compare:${clientIp(req)}`, 15, 60_000);
   if (!rl.ok) return tooMany(rl.retryAfter);
 
-  const client = new Anthropic({ apiKey });
+  const client = new OpenAI({ apiKey, baseURL });
 
   const langInstruction =
     lang !== "en"
@@ -134,16 +136,16 @@ Rules:
 - icons must be one of: dollar, passport, briefcase, home, graduation, heart, shield, bank.${langInstruction}`;
 
   try {
-    const msg = await client.messages.create({
-      model: "claude-haiku-4-5",
+    const msg = await client.chat.completions.create({
+      model: modelName,
       max_tokens: 2048,
-      system: [{ type: "text", text: system }],
       messages: [
+        { role: "system", content: system },
         { role: "user", content: `Compare ${name1} (${country1}) vs ${name2} (${country2}) for an international student/immigrant.` },
       ],
     });
 
-    const raw = msg.content[0].type === "text" ? msg.content[0].text.trim() : "";
+    const raw = msg.choices[0]?.message?.content?.trim() || "";
     const jsonStr = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
 
     let result: ComparisonResult;
@@ -173,8 +175,8 @@ Rules:
       country2Code: country2.toLowerCase(),
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    console.error("[/api/ai/compare-countries] Claude error:", msg);
+    const msgError = err instanceof Error ? err.message : "Unknown error";
+    console.error("[/api/ai/compare-countries] OpenAI error:", msgError);
     return Response.json(
       {
         categories: [],
