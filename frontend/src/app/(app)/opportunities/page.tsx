@@ -134,6 +134,12 @@ export default function OpportunitiesPage() {
     return `${o.currency ?? ""} ${amt}`.trim();
   }, []);
 
+  const fmtDeadline = useMemo(() => (deadline: string | null) => {
+    if (!deadline) return "Rolling";
+    const date = new Date(deadline);
+    return Number.isNaN(date.getTime()) ? "Rolling" : date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  }, []);
+
   // Aggregate the currently-filtered opportunities by country into globe markers.
   // Each marker sits on the country's centroid; its type is the country's most
   // common opportunity type, and its count is the number of listings there.
