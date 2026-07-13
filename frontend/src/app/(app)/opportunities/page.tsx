@@ -109,6 +109,12 @@ export default function OpportunitiesPage() {
     return `${o.currency ?? ""} ${amt}`.trim();
   }, []);
 
+  const fmtDeadline = useMemo(() => (deadline: string | null) => {
+    if (!deadline) return "Rolling";
+    const date = new Date(deadline);
+    return Number.isNaN(date.getTime()) ? "Rolling" : date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  }, []);
+
   return (
     <div className="max-w-7xl mx-auto p-6 lg:p-10 space-y-8">
       <div>
@@ -210,7 +216,7 @@ export default function OpportunitiesPage() {
                   <MapPin size={13} className="text-ink-500" /> {o.country}
                 </div>
                 <div className="flex items-center gap-1.5 text-ink-700">
-                  <Calendar size={13} className="text-ink-500" /> {o.deadline ?? "Rolling"}
+                  <Calendar size={13} className="text-ink-500" /> {fmtDeadline(o.deadline)}
                 </div>
                 <div className="flex items-center gap-1.5 text-leaf-600 font-medium col-span-2">
                   <TrendingUp size={13} /> {fmtFunding(o)}

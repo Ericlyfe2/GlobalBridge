@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -55,7 +55,9 @@ Score a student's application essay (SoP, Personal Statement, Scholarship Essay,
 type Body = { docType: string; target: string; essay: string };
 
 export async function POST(req: Request) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
+  const baseURL = process.env.OPENAI_BASE_URL;
+  const modelName = process.env.OPENAI_MODEL || "gpt-4o";
 
   let body: Body;
   try {
@@ -75,14 +77,14 @@ export async function POST(req: Request) {
   const rl = rateLimit(`score-essay:${clientIp(req)}`, 10, 60_000);
   if (!rl.ok) return tooMany(rl.retryAfter);
 
-  const client = new Anthropic({ apiKey });
+  const client = new OpenAI({ apiKey, baseURL });
 
   try {
-    const completion = await client.messages.create({
-      model: "claude-haiku-4-5",
+    const completion = await client.chat.completions.create({
+      model: modelName,
       max_tokens: 2000,
-      system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
       messages: [
+        { role: "system", content: SYSTEM_PROMPT },
         {
           role: "user",
           content: `Document type: ${body.docType}\nTarget: ${body.target}\n\n--- ESSAY START ---\n${body.essay}\n--- ESSAY END ---\n\nReturn strict JSON per the schema.`,
@@ -90,11 +92,7 @@ export async function POST(req: Request) {
       ],
     });
 
-    const text = completion.content
-      .filter((b): b is Anthropic.TextBlock => b.type === "text")
-      .map((b) => b.text)
-      .join("")
-      .trim();
+    const text = completion.choices[0]?.message?.content?.trim() || "";
 
     const json = extractJson(text);
     if (!json) {
@@ -105,13 +103,13 @@ export async function POST(req: Request) {
     return Response.json({
       ...json,
       usage: {
-        input_tokens: completion.usage.input_tokens,
-        output_tokens: completion.usage.output_tokens,
+        input_tokens: completion.usage?.prompt_tokens ?? 0,
+        output_tokens: completion.usage?.completion_tokens ?? 0,
       },
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
-    console.error("[/api/ai/score-essay] Claude error:", msg);
+    console.error("[/api/ai/score-essay] OpenAI error:", msg);
     return Response.json(mockReview(body.essay), { status: 200 });
   }
 }

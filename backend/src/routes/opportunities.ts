@@ -33,6 +33,7 @@ opportunitiesRouter.get("/", async (req, res, next) => {
       values.push(`%${search}%`);
       i++;
     }
+    filters.push(`(deadline IS NULL OR deadline >= CURRENT_DATE)`);
 
     const where = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
     values.push(Number(limit), Number(offset));

@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -38,12 +38,14 @@ Help international students and immigrants navigate visas, study permits, work p
 - If user reports being scammed, tell them to file a report on GlobalBridge's scam alert page and link relevant authority (FTC, EFCC, Action Fraud).`;
 
 export async function POST(req: Request) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
+  const baseURL = process.env.OPENAI_BASE_URL;
+  const modelName = process.env.OPENAI_MODEL || "gpt-4o";
   if (!apiKey) {
     return Response.json(
       {
         reply:
-          "AI is not configured yet. Ask the admin to add `ANTHROPIC_API_KEY` to `frontend/.env.local` and restart the dev server.\n\nMeanwhile: you can still browse verified opportunities, check the document checklist, or read forum threads.",
+          "AI is not configured yet. Ask the admin to add `OPENAI_API_KEY` to `frontend/.env.local` and restart the dev server.\n\nMeanwhile: you can still browse verified opportunities, check the document checklist, or read forum threads.",
         sources: [],
       },
       { status: 200 },
@@ -78,7 +80,7 @@ export async function POST(req: Request) {
   const rl = rateLimit(`chat:${clientIp(req)}`, 20, 60_000);
   if (!rl.ok) return tooMany(rl.retryAfter);
 
-  const client = new Anthropic({ apiKey });
+  const client = new OpenAI({ apiKey, baseURL });
 
   const langInstruction =
     targetLang !== "en"
@@ -86,24 +88,19 @@ export async function POST(req: Request) {
       : "";
 
   try {
-    const completion = await client.messages.create({
-      model: "claude-haiku-4-5",
+    const completion = await client.chat.completions.create({
+      model: modelName,
       max_tokens: 1024,
-      system: [
+      messages: [
         {
-          type: "text",
-          text: BASE_SYSTEM + langInstruction,
-          cache_control: { type: "ephemeral" },
+          role: "system",
+          content: BASE_SYSTEM + langInstruction,
         },
+        ...cleaned,
       ],
-      messages: cleaned,
     });
 
-    const text = completion.content
-      .filter((b): b is Anthropic.TextBlock => b.type === "text")
-      .map((b) => b.text)
-      .join("\n")
-      .trim();
+    const text = completion.choices[0]?.message?.content?.trim() || "";
 
     const sources: { title: string; url: string }[] = [];
     const urlMatches = text.match(/https?:\/\/[^\s)]+/g) ?? [];
@@ -119,15 +116,15 @@ export async function POST(req: Request) {
       sources,
       lang: targetLang,
       usage: {
-        input_tokens: completion.usage.input_tokens,
-        output_tokens: completion.usage.output_tokens,
-        cache_read: completion.usage.cache_read_input_tokens ?? 0,
-        cache_created: completion.usage.cache_creation_input_tokens ?? 0,
+        input_tokens: completion.usage?.prompt_tokens ?? 0,
+        output_tokens: completion.usage?.completion_tokens ?? 0,
+        cache_read: 0,
+        cache_created: 0,
       },
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
-    console.error("[/api/ai/chat] Claude error:", msg);
+    console.error("[/api/ai/chat] OpenAI error:", msg);
     return Response.json(
       {
         reply: `I hit an error reaching the AI service: ${msg}. Try again in a moment.`,

@@ -95,10 +95,10 @@ GlobalBridge unifies everything into a single AI-powered platform:
         ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    AI MICROSERVICE                           │
-│           Python / FastAPI + Claude API                      │
+│           Python / FastAPI + OpenAI API                      │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐   │
 │  │   Chat   │ │Checklist │ │Doc Check │ │  Translator  │   │
-│  │ Assistant│ │ Generator│ │   + AI   │ │  Google/Claude│   │
+│  │ Assistant│ │ Generator│ │   + AI   │ │  Google/OpenAI│   │
 │  └──────────┘ └──────────┘ └──────────┘ └──────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -127,7 +127,7 @@ GlobalBridge unifies everything into a single AI-powered platform:
 | Lucide React | 0.460.0 | Icon library |
 | flag-icons | 7.5.0 | Country flag CSS |
 | clsx / tailwind-merge | — | Class name utilities |
-| @anthropic-ai/sdk | — | Direct Claude API integration (server routes) |
+| @OpenAI-ai/sdk | — | Direct OpenAI API integration (server routes) |
 
 ### Backend
 
@@ -152,7 +152,7 @@ GlobalBridge unifies everything into a single AI-powered platform:
 |---|---|---|
 | Python | 3.11+ | Runtime |
 | FastAPI | 0.115.5 | HTTP framework |
-| Anthropic SDK | 0.39.0 | Claude API client |
+| OpenAI SDK | 0.39.0 | OpenAI API client |
 | Google Cloud Translate | 3.18.0 | Translation provider |
 | Uvicorn | 0.32.0 | ASGI server |
 | httpx | 0.27.2 | Async HTTP client |
@@ -247,7 +247,7 @@ JWT_SECRET=your-secret-at-least-32-chars-long
 #### AI Service (`ai/.env`)
 
 ```env
-ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-ant-...
 GOOGLE_APPLICATION_CREDENTIALS=
 ```
 
@@ -493,32 +493,32 @@ The WebSocket server at `/ws` provides real-time messaging:
 | Endpoint | Method | Description |
 |---|---|---|
 | `/health` | GET | Health check |
-| `/chat` | POST | Conversational visa guidance via Claude |
+| `/chat` | POST | Conversational visa guidance via OpenAI |
 | `/checklist` | POST | Generate visa document checklist |
 | `/doc-check` | POST | Document validity analysis |
-| `/translate` | POST | Text translation (Google Translate + Claude fallback) |
+| `/translate` | POST | Text translation (Google Translate + OpenAI fallback) |
 
 ### Services
 
 #### Visa Assistant (`visa_assistant.py`)
-- Uses `claude-haiku-4-5-20251001` with prompt caching
+- Uses `OpenAI-haiku-4-5-20251001` with prompt caching
 - Strict system prompt: no fabricated visa rules, cite official sources, disclaimer
 - Extracts source URLs from responses
 - Fallback stub when no API key configured
 
 #### Checklist Generator (`checklist_generator.py`)
 - Static baselines for 4 destinations: Canada (study permit), UK (student visa), Germany (student visa), USA (F1 visa)
-- AI refinement when Anthropic key is available
+- AI refinement when OpenAI key is available
 - Fallback to generic checklist
 
 #### Document Checker (`doc_checker.py`)
 - Heuristic checks: expiry dates, passport validity < 6 months, bank statement analysis
-- AI-powered analysis via Claude for rejection triggers
+- AI-powered analysis via OpenAI for rejection triggers
 - Returns `{ valid, issues, ai_used }`
 
 #### Translator (`translator.py`)
 - Primary: Google Cloud Translation API
-- Fallback: Claude API
+- Fallback: OpenAI API
 - Last resort: Passthrough (returns original text with warning)
 - Provider tracked in response
 
@@ -643,7 +643,7 @@ The WebSocket server at `/ws` provides real-time messaging:
 
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | `/api/ai/chat` | Claude chat with language support |
+| POST | `/api/ai/chat` | OpenAI chat with language support |
 | POST | `/api/ai/translate` | Batch text translation |
 | POST | `/api/ai/doc-check` | Document checking |
 | POST | `/api/ai/score-essay` | Essay scoring |
@@ -786,7 +786,7 @@ src/i18n/
 - **3 persistence layers**: localStorage, cookie (365 days), user profile (DB)
 - **Auto-detection**: browser language → geolocation → saved preference → English fallback
 - **Full RTL support** with 22 CSS directional rules
-- **AI Assistant** sends `lang` parameter — Claude responds in user's language
+- **AI Assistant** sends `lang` parameter — OpenAI responds in user's language
 - **Dynamic translation** via `/api/i18n/translate-dynamic` with caching
 - **SSR support** via `getServerTranslations()`
 - **Locale-aware formatting**: dates, numbers, currency, relative time
@@ -1022,7 +1022,7 @@ backend/src/
 ```
 ai/
 ├── main.py              FastAPI entry point
-├── visa_assistant.py    Claude chat assistant
+├── visa_assistant.py    OpenAI chat assistant
 ├── checklist_generator.py
 ├── doc_checker.py
 └── translator.py
@@ -1069,7 +1069,7 @@ db/
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `ANTHROPIC_API_KEY` | No | — | Claude API key |
+| `OPENAI_API_KEY` | No | — | OpenAI API key |
 | `GOOGLE_APPLICATION_CREDENTIALS` | No | — | Google Translate credentials |
 | `PORT` | No | `8000` | Service port |
 

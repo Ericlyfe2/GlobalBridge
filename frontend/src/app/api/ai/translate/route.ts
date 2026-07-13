@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -28,7 +28,9 @@ export async function POST(req: Request) {
     return Response.json({ translations: texts });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
+  const baseURL = process.env.OPENAI_BASE_URL;
+  const modelName = process.env.OPENAI_MODEL || "gpt-4o";
   // Graceful fallback: echo source (so UI still works without a key)
   if (!apiKey) {
     return Response.json({ translations: texts, note: "translation-disabled" });
@@ -42,20 +44,24 @@ export async function POST(req: Request) {
   const langName = LANG_NAMES[target] ?? target;
 
   try {
-    const client = new Anthropic({ apiKey });
+    const client = new OpenAI({ apiKey, baseURL });
     // Batch: number each string, ask for a JSON array back to preserve order + count.
     const numbered = texts.map((t, i) => `${i}: ${t}`).join("\n");
-    const msg = await client.messages.create({
-      model: "claude-haiku-4-5",
+    const msg = await client.chat.completions.create({
+      model: modelName,
       max_tokens: 4096,
-      system:
-        `You are a professional UI translator. Translate each numbered line into ${langName}. ` +
-        `Preserve meaning, tone, and any placeholders. Do NOT translate brand names (GlobalBridge), ` +
-        `URLs, or code. Return ONLY a JSON array of strings in the same order, no keys, no commentary.`,
-      messages: [{ role: "user", content: numbered }],
+      messages: [
+        {
+          role: "system",
+          content: `You are a professional UI translator. Translate each numbered line into ${langName}. ` +
+                   `Preserve meaning, tone, and any placeholders. Do NOT translate brand names (GlobalBridge), ` +
+                   `URLs, or code. Return ONLY a JSON array of strings in the same order, no keys, no commentary.`,
+        },
+        { role: "user", content: numbered },
+      ],
     });
 
-    const raw = msg.content[0].type === "text" ? msg.content[0].text.trim() : "[]";
+    const raw = msg.choices[0]?.message?.content?.trim() || "[]";
     // Strip markdown fences if present
     const jsonStr = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
     let translations: string[];

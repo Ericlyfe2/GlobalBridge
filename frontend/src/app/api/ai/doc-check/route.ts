@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -66,7 +66,9 @@ type DocCheckResult = {
 };
 
 export async function POST(req: Request) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
+  const baseURL = process.env.OPENAI_BASE_URL;
+  const modelName = process.env.OPENAI_MODEL || "gpt-4o";
 
   let body: Body;
   try {
@@ -98,14 +100,14 @@ export async function POST(req: Request) {
   const rl = rateLimit(`doc-check:${clientIp(req)}`, 10, 60_000);
   if (!rl.ok) return tooMany(rl.retryAfter);
 
-  const client = new Anthropic({ apiKey });
+  const client = new OpenAI({ apiKey, baseURL });
 
   try {
-    const completion = await client.messages.create({
-      model: "claude-haiku-4-5",
+    const completion = await client.chat.completions.create({
+      model: modelName,
       max_tokens: 1500,
-      system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
       messages: [
+        { role: "system", content: SYSTEM_PROMPT },
         {
           role: "user",
           content: `Run validity checks for this document. Return strict JSON per the schema.\n\n${userPrompt}`,
@@ -113,11 +115,7 @@ export async function POST(req: Request) {
       ],
     });
 
-    const text = completion.content
-      .filter((b): b is Anthropic.TextBlock => b.type === "text")
-      .map((b) => b.text)
-      .join("")
-      .trim();
+    const text = completion.choices[0]?.message?.content?.trim() || "";
 
     const json = extractJson(text);
     if (!json) {
@@ -128,13 +126,13 @@ export async function POST(req: Request) {
     return Response.json({
       ...json,
       usage: {
-        input_tokens: completion.usage.input_tokens,
-        output_tokens: completion.usage.output_tokens,
+        input_tokens: completion.usage?.prompt_tokens ?? 0,
+        output_tokens: completion.usage?.completion_tokens ?? 0,
       },
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
-    console.error("[/api/ai/doc-check] Claude error:", msg);
+    console.error("[/api/ai/doc-check] OpenAI error:", msg);
     return Response.json(mockFallback(body.docType), { status: 200 });
   }
 }

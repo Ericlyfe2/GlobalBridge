@@ -55,7 +55,7 @@ python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 Copy-Item .env.example .env
-# Edit .env — set ANTHROPIC_API_KEY (optional)
+# Edit .env — set OPENAI_API_KEY (optional)
 uvicorn main:app --reload --port 8000
 ```
 
@@ -92,7 +92,7 @@ Frontend runs on **http://localhost:3000**.
 
 ## 6. Smoke Test
 
-1. Open http://localhost:3000 — landing page should load with warm Claude palette.
+1. Open http://localhost:3000 — landing page should load with warm OpenAI palette.
 2. Click **Get started** → register a student account.
 3. Land on dashboard.
 4. Click **AI Assistant** in sidebar → ask a visa question.
@@ -109,7 +109,7 @@ Frontend runs on **http://localhost:3000**.
                                               ↓ proxies AI
                                          [ FastAPI :8000 ]
                                               ↓ uses
-                                         [ Anthropic Claude ]
+                                         [ OpenAI ]
                                          [ Google Translate ]
 ```
 

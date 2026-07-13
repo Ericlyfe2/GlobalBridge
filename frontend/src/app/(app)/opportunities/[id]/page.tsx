@@ -5,19 +5,34 @@ import { use, useEffect, useState } from "react";
 import {
   ArrowLeft, ShieldCheck, Calendar, Globe, DollarSign, GraduationCap, ExternalLink, Bookmark, Share2, Check, AlertTriangle, Award, Loader2,
 } from "lucide-react";
+import { SaveButton } from "@/components/SaveButton";
+
+async function shareOpportunity(title: string, url: string) {
+  if (navigator.share) {
+    await navigator.share({ title, url }).catch(() => {});
+  } else {
+    await navigator.clipboard.writeText(url);
+  }
+}
 
 type OppType = "scholarship" | "exchange" | "fellowship" | "internship" | "work_study" | "job";
 
 type Opportunity = {
   id: string; title: string; type: OppType;
   provider: string; country: string; flag: string;
-  amount: string; deadline: string; level: string;
+  amount: string; deadline: string; deadlineRaw: string | null; level: string;
   verified: boolean; matchPct: number;
   description: string;
   eligibility: string[]; docs: string[];
   fields: string[]; benefits: string[];
   applyUrl: string;
 };
+
+function fmtDeadline(deadline: string | null): string {
+  if (!deadline) return "Rolling";
+  const date = new Date(deadline);
+  return Number.isNaN(date.getTime()) ? "Rolling" : date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
 
 type RawOpp = {
   id: string; type: OppType; title: string; description: string;
@@ -46,7 +61,8 @@ function mapOpp(r: RawOpp): Opportunity {
     country: r.country,
     flag: COUNTRY_FLAG[r.country] ?? "un",
     amount,
-    deadline: r.deadline ?? "Rolling",
+    deadline: fmtDeadline(r.deadline),
+    deadlineRaw: r.deadline,
     level: r.field_of_study ?? "All levels",
     verified: r.is_verified,
     matchPct: 85,
@@ -119,9 +135,9 @@ export default function OpportunityDetail({ params }: { params: Promise<{ id: st
   }
 
   // Days till deadline
-  const daysLeft = o.deadline === "Rolling"
+  const daysLeft = !o.deadlineRaw
     ? 999
-    : Math.max(0, Math.ceil((new Date(o.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+    : Math.max(0, Math.ceil((new Date(o.deadlineRaw).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
   const urgent = daysLeft <= 30;
 
   return (
@@ -152,8 +168,13 @@ export default function OpportunityDetail({ params }: { params: Promise<{ id: st
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <button className="btn-ghost border border-cream-300 text-sm"><Bookmark size={13} /> Save</button>
-            <button className="btn-ghost border border-cream-300 text-sm"><Share2 size={13} /> Share</button>
+            <SaveButton type="opportunity" id={o.id} label className="btn-ghost border border-cream-300 text-sm inline-flex items-center gap-1.5" />
+            <button
+              onClick={() => shareOpportunity(o.title, window.location.href)}
+              className="btn-ghost border border-cream-300 text-sm"
+            >
+              <Share2 size={13} /> Share
+            </button>
             <a href={o.applyUrl} target="_blank" rel="noreferrer" className="btn-accent text-sm">
               Apply <ExternalLink size={13} />
             </a>
