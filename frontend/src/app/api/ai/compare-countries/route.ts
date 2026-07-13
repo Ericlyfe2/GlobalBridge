@@ -180,7 +180,7 @@ Rules:
     return Response.json(
       {
         categories: [],
-        summary: `Comparison failed: ${msg}. Try again in a moment.`,
+        summary: `Comparison failed: ${msgError}. Try again in a moment.`,
         verdict: "",
         country1Name: name1,
         country2Name: name2,
