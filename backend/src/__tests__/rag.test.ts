@@ -133,4 +133,20 @@ describe("POST /search", () => {
     expect((sql as string).includes("LIMIT $3")).toBe(true);
     expect((sql as string).includes("LIMIT $4")).toBe(false);
   });
+
+  it("uses correct parameter indices in text fallback search without category", async () => {
+    delete process.env.OPENAI_API_KEY;
+    vi.resetModules();
+    const { ragRouter } = await import("../routes/rag");
+    query.mockResolvedValueOnce([]);
+
+    await callRoute(ragRouter, "post", "/search", { body: { query: "housing", limit: 10 } });
+
+    const [sql, params] = query.mock.calls[0];
+    // When category is not provided, params array should have exactly 2 elements: [queryText, limit]
+    expect(params).toHaveLength(2);
+    // The LIMIT clause should reference $2 (not $3) when no category is provided
+    expect((sql as string).includes("LIMIT $2")).toBe(true);
+    expect((sql as string).includes("LIMIT $3")).toBe(false);
+  });
 });
