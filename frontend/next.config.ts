@@ -19,6 +19,10 @@ const REWRITE_PATHS = API
       "/api/content/:path*",
       "/api/uploads/:path*",
       "/api/admin/:path*",
+      "/api/knowledge/:path*",
+      "/api/rag/:path*",
+      "/api/ai/conversations/:path*",
+      "/api/ai/messages",
     ].map((source) => ({ source, destination: `${API}${source}` }))
   : [];
 

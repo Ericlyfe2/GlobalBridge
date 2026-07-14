@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, FileCheck, Globe, Loader2, Bot, User, X, Download, Printer } from "lucide-react";
+import { Send, Sparkles, FileCheck, Globe, Loader2, Bot, User, X, Download, Printer, History, CheckCircle, ShieldCheck } from "lucide-react";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
+import { getToken, getUser } from "@/lib/auth";
 
-type Msg = { role: "user" | "assistant"; content: string; sources?: { title: string; url: string }[] };
+type Source = { title: string; url: string; confidence?: string };
+type Msg = { role: "user" | "assistant"; content: string; sources?: Source[] };
 
 export default function AssistantPage() {
   const { t, lang } = useTranslation();
+  const user = getUser();
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: "assistant",
@@ -17,16 +20,33 @@ export default function AssistantPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [checklistOpen, setChecklistOpen] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<{ id: string; title: string; updated_at: string }[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
+  // Load conversation history for signed-in users
+  useEffect(() => {
+    if (!user) return;
+    const token = getToken();
+    if (!token) return;
+    fetch("/api/ai/conversations", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((d) => setConversations(d.conversations || []))
+      .catch(() => {});
+  }, [user]);
+
   async function onSend(e?: React.FormEvent) {
     e?.preventDefault();
     if (!input.trim() || loading) return;
 
+    const token = getToken();
     const userMsg: Msg = { role: "user", content: input };
     setMessages((m) => [...m, userMsg]);
     setInput("");
@@ -36,9 +56,17 @@ export default function AssistantPage() {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [...messages, userMsg], lang }),
+        body: JSON.stringify({
+          messages: [...messages, userMsg],
+          lang,
+          conversation_id: conversationId,
+          token,
+        }),
       });
       const data = await res.json();
+      if (data.conversation_id && !conversationId) {
+        setConversationId(data.conversation_id);
+      }
       setMessages((m) => [...m, { role: "assistant", content: data.reply, sources: data.sources }]);
     } catch {
       setMessages((m) => [
@@ -50,12 +78,48 @@ export default function AssistantPage() {
     }
   }
 
+  function loadConversation(convId: string) {
+    const token = getToken();
+    if (!token) return;
+    fetch(`/api/ai/conversations/${convId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.messages) {
+          setMessages(data.messages.map((m: { role: string; content: string; sources?: Source[] }) => ({
+            role: m.role as "user" | "assistant",
+            content: m.content,
+            sources: m.sources,
+          })));
+          setConversationId(convId);
+          setShowHistory(false);
+        }
+      })
+      .catch(() => {});
+  }
+
   const suggestions = [
     t("assistant.suggestion1"),
     t("assistant.suggestion2"),
     t("assistant.suggestion3"),
     t("assistant.suggestion4"),
   ];
+
+  function roleSuggestions(role: string): string[] {
+    switch (role) {
+      case "student":
+        return ["What scholarships can I apply for?", "How do I find housing in Canada?", "What documents do I need for a UK student visa?"];
+      case "mentor":
+        return ["How do I become a verified mentor?", "How can I post opportunities?", "How do I book sessions with students?"];
+      case "employer":
+        return ["How do I post a job with visa sponsorship?", "How can I find international candidates?", "What are the visa sponsorship requirements?"];
+      case "admin":
+        return ["How do I moderate user reports?", "How do I manage AI configuration?", "How do I view system health?"];
+      default:
+        return [];
+    }
+  }
 
   return (
     <div className="h-full flex flex-col">
@@ -69,13 +133,43 @@ export default function AssistantPage() {
             <p className="text-xs text-leaf-600 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-leaf-500 animate-pulse" />
               {t("assistant.subtitle")}
+              {user && <span className="ml-2 text-ink-500">· {user.role}</span>}
+              {conversationId && <span className="ml-2 text-ink-400">· conversation active</span>}
             </p>
           </div>
         </div>
-        <button onClick={() => setChecklistOpen(true)} className="btn-ghost text-sm border border-cream-300">
-          <FileCheck size={14} /> {t("assistant.generateChecklist")}
-        </button>
+        <div className="flex items-center gap-2">
+          {user && conversations.length > 0 && (
+            <button onClick={() => setShowHistory(!showHistory)} className="btn-ghost text-sm border border-cream-300">
+              <History size={14} /> History
+            </button>
+          )}
+          <button onClick={() => setChecklistOpen(true)} className="btn-ghost text-sm border border-cream-300">
+            <FileCheck size={14} /> {t("assistant.generateChecklist")}
+          </button>
+        </div>
       </div>
+
+      {showHistory && (
+        <div className="border-b border-cream-200 px-6 py-3 bg-cream-50/50 max-h-48 overflow-y-auto">
+          <p className="text-xs font-medium text-ink-500 mb-2">Recent conversations</p>
+          <div className="flex flex-wrap gap-2">
+            {conversations.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => loadConversation(c.id)}
+                className={`text-xs px-3 py-1.5 rounded-full border transition ${
+                  c.id === conversationId
+                    ? "bg-clay-500 text-white border-clay-500"
+                    : "bg-white text-ink-700 border-cream-300 hover:border-clay-300"
+                }`}
+              >
+                {c.title?.slice(0, 40) || "Conversation"}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {checklistOpen && <ChecklistModal messages={messages} onClose={() => setChecklistOpen(false)} />}
 
@@ -106,6 +200,25 @@ export default function AssistantPage() {
                   </button>
                 ))}
               </div>
+              {user && (
+                <div className="mt-4">
+                  <p className="text-xs font-medium text-ink-500 mb-2 flex items-center gap-1.5">
+                    <span className="w-1 h-1 rounded-full bg-clay-500" />
+                    Role-based suggestions
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-2">
+                    {roleSuggestions(user.role).map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => setInput(s)}
+                        className="text-left px-4 py-3 rounded-lg border border-cream-200 hover:border-clay-300 hover:bg-clay-500/5 transition text-sm text-ink-700"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -139,6 +252,22 @@ export default function AssistantPage() {
   );
 }
 
+function confidenceIcon(confidence?: string) {
+  switch (confidence) {
+    case "verified": return <ShieldCheck size={10} className="text-leaf-600" />;
+    case "knowledge_base": return <CheckCircle size={10} className="text-clay-600" />;
+    default: return <Globe size={10} className="text-ink-500" />;
+  }
+}
+
+function confidenceLabel(confidence?: string) {
+  switch (confidence) {
+    case "verified": return "Verified source";
+    case "knowledge_base": return "Platform knowledge";
+    default: return "Web source";
+  }
+}
+
 function Message({ msg }: { msg: Msg }) {
   const isUser = msg.role === "user";
   return (
@@ -161,10 +290,18 @@ function Message({ msg }: { msg: Msg }) {
           {msg.content}
         </div>
         {msg.sources && msg.sources.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-2">
+          <div className="mt-2 flex flex-wrap gap-1.5">
             {msg.sources.map((s, i) => (
-              <a key={i} href={s.url} target="_blank" rel="noreferrer" className="text-xs px-2 py-1 rounded-md bg-cream-100 text-ink-700 hover:bg-cream-200">
-                📎 {s.title}
+              <a
+                key={i}
+                href={s.url}
+                target="_blank"
+                rel="noreferrer"
+                title={confidenceLabel(s.confidence)}
+                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-cream-100 text-ink-700 hover:bg-cream-200 border border-cream-200"
+              >
+                {confidenceIcon(s.confidence)}
+                {s.title}
               </a>
             ))}
           </div>
