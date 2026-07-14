@@ -2,19 +2,9 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
+import { getEmbedding } from "../lib/embeddings";
 
 export const knowledgeRouter = Router();
-
-function embedUrl(apiKey: string, baseURL: string | undefined, input: string): Promise<number[]> {
-  const url = `${baseURL || "https://api.openai.com/v1"}/embeddings`;
-  return fetch(url, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: "text-embedding-3-small", input }),
-  })
-    .then((r) => r.json() as Promise<{ data: { embedding: number[] }[] }>)
-    .then((d) => d.data[0].embedding);
-}
 
 const createSchema = z.object({
   title: z.string().min(1).max(500),
@@ -33,7 +23,7 @@ knowledgeRouter.post("/", requireAuth, requireRole("admin"), async (req, res, ne
     let embedding: number[] | null = null;
     if (apiKey) {
       const textForEmbed = `${body.title}\n${body.content}`;
-      embedding = await embedUrl(apiKey, process.env.OPENAI_BASE_URL, textForEmbed);
+      embedding = await getEmbedding(textForEmbed);
     }
     const row = await queryOne(
       `INSERT INTO knowledge_base (title, content, category, subcategory, tags, metadata, source_url, embedding, created_by)
@@ -119,7 +109,7 @@ knowledgeRouter.patch("/:id", requireAuth, requireRole("admin"), async (req, res
     let embedding: number[] | null = null;
     const apiKey = process.env.OPENAI_API_KEY;
     if (apiKey && (body.title || body.content)) {
-      embedding = await embedUrl(apiKey, process.env.OPENAI_BASE_URL, `${title}\n${content}`);
+      embedding = await getEmbedding(`${title}\n${content}`);
     }
 
     const row = await queryOne(
