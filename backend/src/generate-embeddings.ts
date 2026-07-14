@@ -1,25 +1,6 @@
 import "dotenv/config";
 import { pool } from "./db";
-
-const API_KEY = process.env.OPENAI_API_KEY;
-const BASE_URL = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
-
-async function generateEmbedding(text: string): Promise<number[]> {
-  const resp = await fetch(`${BASE_URL}/embeddings`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ model: "text-embedding-3-small", input: text }),
-  });
-  if (!resp.ok) {
-    const err = await resp.text();
-    throw new Error(`Embedding API error (${resp.status}): ${err.slice(0, 200)}`);
-  }
-  const data = (await resp.json()) as { data: { embedding: number[] }[] };
-  return data.data[0].embedding;
-}
+import { generateEmbedding } from "./lib/embeddings";
 
 function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
@@ -44,12 +25,12 @@ async function embedWithRetry(text: string, maxRetries = 5): Promise<number[]> {
 }
 
 async function main() {
-  if (!API_KEY) {
+  if (!process.env.OPENAI_API_KEY) {
     console.error("OPENAI_API_KEY is required");
     process.exit(1);
   }
 
-  console.log(`Using API: ${BASE_URL}`);
+  console.log(`Using API: ${process.env.OPENAI_BASE_URL || "https://api.openai.com/v1"}`);
   console.log("Fetching entries without embeddings...");
 
   const entries = await pool.query(
