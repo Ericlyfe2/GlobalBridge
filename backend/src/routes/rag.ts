@@ -68,7 +68,7 @@ ragRouter.post("/search", async (req, res, next) => {
          AND 1 - (embedding <=> $1::vector) >= $2
          ${catFilter}
        ORDER BY similarity DESC
-       LIMIT $4`,
+       LIMIT ${category ? "$4" : "$3"}`,
       category
         ? [vecStr, min_score, category, limit]
         : [vecStr, min_score, limit],

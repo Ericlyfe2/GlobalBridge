@@ -116,4 +116,21 @@ describe("POST /search", () => {
     const [, params] = query.mock.calls[0] as [string, unknown[]];
     expect(params[1]).toBe(0.7);
   });
+
+  it("uses correct parameter indices in vector search without category", async () => {
+    process.env.OPENAI_API_KEY = "sk-test";
+    vi.resetModules();
+    const { ragRouter } = await import("../routes/rag");
+    getEmbedding.mockResolvedValueOnce(Array(1536).fill(0.01));
+    query.mockResolvedValueOnce([]);
+
+    await callRoute(ragRouter, "post", "/search", { body: { query: "housing", limit: 10 } });
+
+    const [sql, params] = query.mock.calls[0];
+    // When category is not provided, params array should have exactly 3 elements: [vecStr, min_score, limit]
+    expect(params).toHaveLength(3);
+    // The LIMIT clause should reference $3 (not $4) when no category is provided
+    expect((sql as string).includes("LIMIT $3")).toBe(true);
+    expect((sql as string).includes("LIMIT $4")).toBe(false);
+  });
 });
