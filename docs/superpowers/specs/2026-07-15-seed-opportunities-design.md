@@ -48,12 +48,18 @@ renders (`title`, `description`, `country`, `institution`,
 `field_of_study`, `funding_amount`, `currency`, `eligibility`,
 `application_url`, `deadline`, `sponsors_visa`, `is_verified`).
 
-- Modeled on real, well-known programs: major scholarship funds
-  (Fulbright, Erasmus+, Commonwealth, DAAD, Rhodes, Chevening-style
-  government scholarships, Gates Cambridge, etc.), real employers known
-  for visa sponsorship (large tech/finance companies) for `job`,
-  `internship`, and `work_study` rows, and real university exchange
-  programs for `exchange` rows.
+- Scholarships and exchanges are modeled on real, well-known, publicly
+  documented programs (Fulbright, Erasmus+, Commonwealth, DAAD, Rhodes,
+  Chevening-style government scholarships, Gates Cambridge, etc.) —
+  genuinely real programs whose general parameters (typical funding,
+  eligibility) are public knowledge.
+- Jobs, internships, and work-study rows use generic company
+  descriptions (e.g. "Fintech · Berlin", "Health-tech · Dublin"), matching
+  the pattern already used by the 7 existing seeded rows — **not** the
+  names of specific real employers. Inventing salary, deadline, and
+  visa-sponsorship details and attributing them to a real named company
+  that never posted them would put false information on a live public
+  site; genericizing the employer avoids that.
 - Countries: a spread across the set the app already treats as
   first-class (Canada, UK, US, Germany, Australia, Ireland,
   Netherlands, Sweden, France), plus a few more for variety (Switzerland,
