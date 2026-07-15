@@ -10,7 +10,9 @@
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "seed:knowledge": "tsx src/seed-knowledge.ts",
+    "embed:knowledge": "tsx src/generate-embeddings.ts"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
