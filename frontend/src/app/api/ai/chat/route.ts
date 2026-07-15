@@ -94,7 +94,7 @@ async function fetchConversation(id: string, token: string) {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return null;
-    return await res.json() as { conversation: Record<string, unknown>; messages: { role: string; content: string }[] };
+    return await res.json() as { conversation: Record<string, unknown>; messages: { role: "user" | "assistant"; content: string }[] };
   } catch {
     return null;
   }
@@ -201,7 +201,7 @@ export async function POST(req: Request) {
   // 3. Conversation History (if conversation_id provided)
   // =====================
   let conversationId = body.conversation_id;
-  let historyMessages: { role: string; content: string }[] = [];
+  let historyMessages: { role: "user" | "assistant"; content: string }[] = [];
   if (conversationId && authToken) {
     const convData = await fetchConversation(conversationId, authToken);
     if (convData) {
@@ -231,7 +231,7 @@ export async function POST(req: Request) {
   // Combine history + current messages, remove dups
   const existingContents = new Set(historyMessages.map((m) => m.content));
   const uniqueHistory = historyMessages.filter((m) => !existingContents.has(m.content) || existingContents.delete(m.content));
-  const allMessages = [
+  const allMessages: { role: "user" | "assistant"; content: string }[] = [
     ...uniqueHistory.slice(-20), // last 20 messages for context window
     ...body.messages.map((m) => ({ role: m.role, content: m.content })),
   ];
