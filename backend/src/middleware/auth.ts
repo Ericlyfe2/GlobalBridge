@@ -8,10 +8,18 @@ export type AuthUser = {
   /** Firebase Auth UID — the identity from the verified token. */
   firebaseUid: string;
   email: string;
-  role: "student" | "mentor" | "employer" | "admin";
+  role: "super_admin" | "admin" | "student" | "mentor" | "employer";
 };
 
-const VALID_ROLES = new Set(["student", "mentor", "employer", "admin"]);
+const VALID_ROLES = new Set(["super_admin", "admin", "student", "mentor", "employer"]);
+
+export function isAdmin(role: string): boolean {
+  return role === "super_admin" || role === "admin";
+}
+
+export function isSuperAdmin(role: string): boolean {
+  return role === "super_admin";
+}
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -97,8 +105,20 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 export function requireRole(...roles: AuthUser["role"][]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) return res.status(401).json({ error: "Not authenticated" });
-    if (!roles.includes(req.user.role)) {
+    const userRole = req.user.role;
+    if (userRole === "super_admin") return next();
+    if (!roles.includes(userRole)) {
       return res.status(403).json({ error: "Insufficient permissions" });
+    }
+    next();
+  };
+}
+
+export function requireAdmin() {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) return res.status(401).json({ error: "Not authenticated" });
+    if (!isAdmin(req.user.role)) {
+      return res.status(403).json({ error: "Admin access required" });
     }
     next();
   };

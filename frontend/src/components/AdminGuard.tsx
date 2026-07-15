@@ -5,9 +5,15 @@ import { useEffect, useState } from "react";
 import { getUser } from "@/lib/auth";
 
 function useAdminCheck(): boolean {
-  const [isAdmin, setIsAdmin] = useState(() => getUser()?.role === "admin");
+  const [isAdmin, setIsAdmin] = useState(() => {
+    const u = getUser();
+    return u?.role === "admin" || u?.role === "super_admin";
+  });
   useEffect(() => {
-    function check() { setIsAdmin(getUser()?.role === "admin"); }
+    function check() {
+      const u = getUser();
+      setIsAdmin(u?.role === "admin" || u?.role === "super_admin");
+    }
     check();
     window.addEventListener("focus", check);
     window.addEventListener("storage", check);

@@ -1,12 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { roleHome, roleGuardDecision, isRole } from "@/lib/roles";
+import { roleHome, roleGuardDecision, isRole, isAdmin, adminGuardDecision } from "@/lib/roles";
 
 describe("roleHome", () => {
   it("maps each role to its dashboard", () => {
+    expect(roleHome("super_admin")).toBe("/admin");
+    expect(roleHome("admin")).toBe("/admin");
     expect(roleHome("student")).toBe("/dashboard/student");
     expect(roleHome("mentor")).toBe("/dashboard/mentor");
     expect(roleHome("employer")).toBe("/dashboard/employer");
-    expect(roleHome("admin")).toBe("/admin");
   });
 
   it("falls back to sign-in for missing or unknown roles", () => {
@@ -33,14 +34,40 @@ describe("roleGuardDecision", () => {
     expect(roleGuardDecision(undefined, ["student"])).toBe("login");
     expect(roleGuardDecision("bogus", ["student"])).toBe("login");
   });
+
+  it("super_admin bypasses any role check", () => {
+    expect(roleGuardDecision("super_admin", ["student"])).toBe("allow");
+    expect(roleGuardDecision("super_admin", [])).toBe("allow");
+  });
 });
 
 describe("isRole", () => {
-  it("recognizes valid roles only", () => {
-    expect(isRole("student")).toBe(true);
+  it("recognizes all five valid roles", () => {
+    expect(isRole("super_admin")).toBe(true);
     expect(isRole("admin")).toBe(true);
+    expect(isRole("student")).toBe(true);
+    expect(isRole("mentor")).toBe(true);
+    expect(isRole("employer")).toBe(true);
     expect(isRole("ghost")).toBe(false);
     expect(isRole(null)).toBe(false);
     expect(isRole(123)).toBe(false);
+  });
+});
+
+describe("isAdmin", () => {
+  it("returns true for admin roles", () => {
+    expect(isAdmin("super_admin")).toBe(true);
+    expect(isAdmin("admin")).toBe(true);
+    expect(isAdmin("student")).toBe(false);
+    expect(isAdmin(null)).toBe(false);
+  });
+});
+
+describe("adminGuardDecision", () => {
+  it("allows admin and super_admin", () => {
+    expect(adminGuardDecision("super_admin")).toBe("allow");
+    expect(adminGuardDecision("admin")).toBe("allow");
+    expect(adminGuardDecision("student")).toBe("unauthorized");
+    expect(adminGuardDecision(null)).toBe("login");
   });
 });

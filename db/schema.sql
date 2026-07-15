@@ -9,7 +9,8 @@ CREATE EXTENSION IF NOT EXISTS "vector";
 -- =====================
 -- USERS & AUTH
 -- =====================
-DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN CREATE TYPE user_role AS ENUM ('student', 'mentor', 'employer', 'admin'); END IF; END $$;
+DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN CREATE TYPE user_role AS ENUM ('super_admin', 'admin', 'student', 'mentor', 'employer'); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') AND NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'super_admin' AND enumtypid = (SELECT oid FROM pg_type WHERE typname = 'user_role')) THEN ALTER TYPE user_role ADD VALUE 'super_admin' BEFORE 'admin'; END IF; END $$;
 DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'verification_status') THEN CREATE TYPE verification_status AS ENUM ('pending', 'verified', 'rejected'); END IF; END $$;
 
 CREATE TABLE IF NOT EXISTS users (
@@ -480,3 +481,150 @@ CREATE INDEX IF NOT EXISTS idx_reports_resolver ON reports(resolved_by);
 CREATE INDEX IF NOT EXISTS idx_scam_alerts_reporter ON scam_alerts(reported_by);
 CREATE INDEX IF NOT EXISTS idx_forum_posts_category_id ON forum_posts(category_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_kind ON notifications(kind);
+
+-- =====================
+-- NOTIFICATIONS TABLE (if not already exists)
+-- =====================
+CREATE TABLE IF NOT EXISTS notifications (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    kind VARCHAR(50) NOT NULL DEFAULT 'info',
+    title VARCHAR(255) NOT NULL,
+    body TEXT,
+    href TEXT,
+    read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- =====================
+-- SAVED ITEMS TABLE
+-- =====================
+CREATE TABLE IF NOT EXISTS saved_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    item_type VARCHAR(50) NOT NULL,
+    item_id UUID NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id, item_type, item_id)
+);
+
+-- =====================
+-- MENTOR BOOKINGS TABLE
+-- =====================
+CREATE TABLE IF NOT EXISTS mentor_bookings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    mentor_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    student_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    slot_date DATE NOT NULL,
+    slot_time TIME NOT NULL,
+    duration_min INT DEFAULT 30,
+    goal TEXT,
+    status VARCHAR(50) DEFAULT 'pending',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- =====================
+-- USER DOCUMENTS TABLE (verification docs)
+-- =====================
+CREATE TABLE IF NOT EXISTS user_documents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL,
+    url TEXT NOT NULL,
+    file_name VARCHAR(255),
+    mime_type VARCHAR(100),
+    verified BOOLEAN DEFAULT FALSE,
+    verified_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    verified_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- =====================
+-- PERMISSIONS / RBAC TABLE
+-- =====================
+CREATE TABLE IF NOT EXISTS permissions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    role user_role NOT NULL,
+    resource VARCHAR(100) NOT NULL,
+    action VARCHAR(50) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(role, resource, action)
+);
+
+-- Seed default permissions
+INSERT INTO permissions (role, resource, action) VALUES
+    ('super_admin', '*', '*'),
+    ('admin', 'users', 'read'),
+    ('admin', 'users', 'write'),
+    ('admin', 'users', 'delete'),
+    ('admin', 'verifications', 'read'),
+    ('admin', 'verifications', 'write'),
+    ('admin', 'listings', 'read'),
+    ('admin', 'listings', 'write'),
+    ('admin', 'reports', 'read'),
+    ('admin', 'reports', 'write'),
+    ('admin', 'content', 'read'),
+    ('admin', 'content', 'write'),
+    ('admin', 'content', 'delete'),
+    ('admin', 'settings', 'read'),
+    ('admin', 'settings', 'write'),
+    ('admin', 'analytics', 'read'),
+    ('admin', 'ai', 'read'),
+    ('admin', 'ai', 'write'),
+    ('admin', 'notifications', 'write')
+ON CONFLICT DO NOTHING;
+
+-- =====================
+-- PLATFORM SETTINGS TABLE
+-- =====================
+CREATE TABLE IF NOT EXISTS platform_settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    key VARCHAR(100) UNIQUE NOT NULL,
+    value JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+INSERT INTO platform_settings (key, value) VALUES
+    ('platform_name', '"GlobalBridge"'),
+    ('maintenance_mode', 'false'),
+    ('allow_registrations', 'true'),
+    ('default_language', '"en"'),
+    ('require_email_verification', 'false'),
+    ('max_login_attempts', '5'),
+    ('session_timeout_minutes', '60'),
+    ('rate_limit_requests', '300'),
+    ('rate_limit_window_minutes', '15'),
+    ('ai_chat_enabled', 'true'),
+    ('ai_doc_check_enabled', 'true'),
+    ('ai_scam_detection_enabled', 'true'),
+    ('ai_translation_enabled', 'true'),
+    ('ai_model', '"claude-haiku-4-5"'),
+    ('ai_temperature', '0.3'),
+    ('ai_escalation_threshold', '0.6'),
+    ('ai_system_prompt', '"You are GlobalBridge''s immigration assistant. Always cite the official government source URL when you quote a rule. If you are not 100% sure, say so and escalate to a verified human mentor. Never give legal advice. Be concise — short sentences, numbered steps."'),
+    ('contact_email', '"support@globalbridge.com"'),
+    ('privacy_policy_url', '"/privacy"'),
+    ('terms_of_service_url', '"/terms"')
+ON CONFLICT DO NOTHING;
+
+-- =====================
+-- AUDIT TRAIL / ACTIVITY LOG
+-- =====================
+CREATE TABLE IF NOT EXISTS activity_log (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    action VARCHAR(100) NOT NULL,
+    resource VARCHAR(100),
+    resource_id UUID,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_activity_log_user ON activity_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_activity_log_action ON activity_log(action);
+CREATE INDEX IF NOT EXISTS idx_activity_log_created ON activity_log(created_at);
+CREATE INDEX IF NOT EXISTS idx_activity_log_resource ON activity_log(resource, resource_id);
+CREATE INDEX IF NOT EXISTS idx_user_documents_user ON user_documents(user_id);

@@ -6,9 +6,11 @@ import { queryOne } from "../db";
 
 export const authRouter = Router();
 
+const ALLOWED_SELF_ROLES = ["student", "mentor", "employer"] as const;
+
 const profileSchema = z.object({
   full_name: z.string().min(2),
-  role: z.enum(["student", "mentor", "employer"]).default("student"),
+  role: z.enum(ALLOWED_SELF_ROLES).default("student"),
   country_of_origin: z.string().min(2, "Country is required"),
 });
 
@@ -23,6 +25,10 @@ authRouter.post("/register-profile", requireAuth, async (req, res, next) => {
     const body = profileSchema.parse(req.body);
     const firebaseUid = req.user!.firebaseUid;
 
+    const safeRole = ALLOWED_SELF_ROLES.includes(body.role as typeof ALLOWED_SELF_ROLES[number])
+      ? body.role
+      : "student";
+
     const user = await queryOne(
       `INSERT INTO users (firebase_uid, email, full_name, role, country_of_origin)
        VALUES ($1, $2, $3, $4, $5)
@@ -32,10 +38,10 @@ authRouter.post("/register-profile", requireAuth, async (req, res, next) => {
          country_of_origin = EXCLUDED.country_of_origin,
          updated_at = NOW()
        RETURNING ${PROFILE_COLUMNS}`,
-      [firebaseUid, req.user!.email, body.full_name, body.role, body.country_of_origin],
+      [firebaseUid, req.user!.email, body.full_name, safeRole, body.country_of_origin],
     );
 
-    await adminAuth.setCustomUserClaims(firebaseUid, { role: body.role });
+    await adminAuth.setCustomUserClaims(firebaseUid, { role: safeRole });
     clearUserCache(firebaseUid); // role may have changed
 
     res.status(201).json({ user });

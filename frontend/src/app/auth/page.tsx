@@ -36,14 +36,16 @@ function AuthContent() {
     setError("");
     setLoading(true);
     try {
-      let userRole = role;
       if (mode === "signup") {
         await register({ email, password, full_name: fullName, role, country_of_origin: origin });
       } else {
         await login(email, password);
-        userRole = signinRole || "student";
       }
-      router.push(roleHome(userRole));
+      // After auth, get the actual role from the stored user session
+      const { getUser: getStoredUser } = await import("@/lib/auth");
+      const storedUser = getStoredUser();
+      const actualRole = storedUser?.role || (mode === "signup" ? role : signinRole) || "student";
+      router.push(roleHome(actualRole));
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"));

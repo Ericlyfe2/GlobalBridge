@@ -47,7 +47,7 @@ export type SessionUser = {
   id: string;
   email: string;
   full_name: string;
-  role: "student" | "mentor" | "employer" | "admin";
+  role: "super_admin" | "admin" | "student" | "mentor" | "employer";
 };
 
 const TOKEN_KEY = "gb-token";
@@ -176,7 +176,7 @@ export async function login(email: string, password: string) {
 
 export async function register(payload: {
   email: string; password: string; full_name: string;
-  role: SessionUser["role"]; country_of_origin?: string;
+  role: "student" | "mentor" | "employer"; country_of_origin?: string;
 }) {
   try {
     const cred = await createUserWithEmailAndPassword(auth, payload.email, payload.password);

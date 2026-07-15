@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "seed:knowledge": "tsx src/seed-knowledge.ts",
     "embed:knowledge": "tsx src/generate-embeddings.ts",
-    "seed:opportunities": "tsx src/seed-opportunities.ts"
+    "seed:opportunities": "tsx src/seed-opportunities.ts",
+    "seed:admin": "tsx src/seed-admin.ts"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

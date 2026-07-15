@@ -1,16 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard,
-  Users,
-  ShieldCheck,
-  Flag,
-  FileText,
-  Bot,
-  ScrollText,
-  AlertOctagon,
-  ArrowLeft,
+  LayoutDashboard, Users, ShieldCheck, Flag, FileText, Bot, ScrollText,
+  AlertOctagon, ArrowLeft, Bell, Settings, BarChart3, Briefcase, Building2, GraduationCap,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -25,15 +19,20 @@ import { useTranslation } from "@/i18n/hooks/useTranslation";
 const navItemsFn = (t: (key: string) => string) => [
   { href: "/admin", icon: LayoutDashboard, label: t("nav.overview") },
   { href: "/admin/users", icon: Users, label: t("nav.users") },
-  { href: "/admin/verifications", icon: ShieldCheck, label: t("nav.verifications") },
-  { href: "/admin/listings", icon: FileText, label: t("nav.listings") },
+  { href: "/admin/mentor-verifications", icon: ShieldCheck, label: "Mentor Verifications" },
+  { href: "/admin/employer-verifications", icon: Building2, label: "Employer Verifications" },
+  { href: "/admin/content", icon: FileText, label: "Content Moderation" },
   { href: "/admin/reports", icon: Flag, label: t("nav.reports") },
-  { href: "/admin/audit", icon: ScrollText, label: t("nav.auditLog") },
+  { href: "/admin/analytics", icon: BarChart3, label: "Analytics" },
+  { href: "/admin/notifications", icon: Bell, label: "Notifications" },
   { href: "/admin/ai", icon: Bot, label: t("nav.aiConfig") },
+  { href: "/admin/settings", icon: Settings, label: "Settings" },
+  { href: "/admin/audit", icon: ScrollText, label: t("nav.auditLog") },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
+  const pathname = usePathname();
 
   return (
     <AdminGuard>
@@ -51,17 +50,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </span>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItemsFn(t).map((n) => (
-            <Link
-              key={n.href}
-              href={n.href}
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-cream-200 transition"
-            >
-              <n.icon size={16} />
-              {n.label}
-            </Link>
-          ))}
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          {navItemsFn(t).map((n) => {
+            const isActive = pathname === n.href || (n.href !== "/admin" && pathname.startsWith(n.href));
+            return (
+              <Link
+                key={n.href}
+                href={n.href}
+                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition ${
+                  isActive
+                    ? "bg-clay-500/10 text-clay-700 font-medium"
+                    : "text-ink-700 hover:bg-cream-200"
+                }`}
+              >
+                <n.icon size={16} className={isActive ? "text-clay-600" : ""} />
+                {n.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="border-t border-cream-200 p-3 space-y-1">
