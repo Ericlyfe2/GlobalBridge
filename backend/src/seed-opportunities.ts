@@ -417,10 +417,10 @@ const entries: Entry[] = [
     application_url: "https://foreign.fulbrightonline.org", deadline: "2027-02-01",
   },
   {
-    type: "scholarship", title: "Endeavour Leadership Program", country: "Australia",
-    institution: "Australian Government", field_of_study: "All fields",
-    description: "Merit-based scholarship for postgraduate study, research, or a professional fellowship in Australia.",
-    funding_amount: 25000, currency: "AUD", eligibility: "Bachelor's degree, 1+ years relevant work experience",
+    type: "scholarship", title: "Research Training Program Scholarship", country: "Australia",
+    institution: "Australian Government", field_of_study: "All research fields",
+    description: "Funds tuition fees and a living stipend for a Master's by Research or PhD at an Australian university.",
+    funding_amount: 32000, currency: "AUD", eligibility: "Bachelor's with honours or equivalent research experience, offer of admission to a research degree",
     application_url: "https://www.education.gov.au", deadline: "2027-04-15",
   },
   {
