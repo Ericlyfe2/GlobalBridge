@@ -40,7 +40,7 @@ export default function AssistantPage() {
       .then((r) => r.json())
       .then((d) => setConversations(d.conversations || []))
       .catch(() => {});
-  }, [user]);
+  }, [user?.id]);
 
   async function onSend(e?: React.FormEvent) {
     e?.preventDefault();
