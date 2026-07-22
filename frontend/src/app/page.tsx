@@ -10,6 +10,7 @@ import MentorshipSection from "@/components/MentorshipSection";
 import LifeSupportSection from "@/components/LifeSupportSection";
 import ReviewsSection from "@/components/ReviewsSection";
 import HowItWorks from "@/components/HowItWorks";
+import AiSuiteShowcase from "@/components/AiSuiteShowcase";
 import OpportunitiesPreview from "@/components/OpportunitiesPreview";
 import { Footer } from "@/components/Footer";
 import { services } from "@/data/services";
@@ -45,6 +46,7 @@ export default function Home() {
       <ServiceSection service={housing} disableMaskAnimation={true} />
       </div>
       <HowItWorks />
+      <AiSuiteShowcase />
       <MentorshipSection />
       <ServiceSection service={jobs}>
         <JobsCard />
