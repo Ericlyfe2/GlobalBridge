@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import {
   Award, Home, Users, Bot, FileText, GraduationCap, Calendar, MessageSquare,
   ArrowRight, ShieldCheck, TrendingUp, Loader2, AlertCircle, Plane, BadgeCheck, ChevronRight,
+  ShieldAlert, Route, Gauge, Sparkles,
 } from "lucide-react";
 import { authFetch, getUser } from "@/lib/auth";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
@@ -110,6 +111,9 @@ export default function StudentDashboard() {
           {verified ? "Verified account" : "Verification pending"}
         </span>
       </header>
+
+      {/* New: AI Intelligence Suite */}
+      <AiSuiteBanner />
 
       {/* Profile completion + stats */}
       <div className="grid gap-4 lg:grid-cols-[1.1fr_2fr]">
@@ -324,4 +328,42 @@ function SectionCard({ title, href, className = "", children }: { title: string;
 
 function Empty({ children }: { children: React.ReactNode }) {
   return <p className="py-6 text-center text-xs text-ink-400">{children}</p>;
+}
+
+const AI_SUITE = [
+  { href: "/tools/scam-shield",  icon: ShieldAlert, title: "Scam Shield",     desc: "Paste a listing or offer — spot fraud in seconds." },
+  { href: "/tools/visa-roadmap", icon: Route,       title: "Visa Roadmap",    desc: "Your full journey mapped, step by step." },
+  { href: "/tools/readiness",    icon: Gauge,       title: "Readiness Score", desc: "See how prepared you are — and what's next." },
+];
+
+function AiSuiteBanner() {
+  return (
+    <section className="overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-5 dark:border-emerald-500/20 dark:from-emerald-500/10 dark:via-gray-900 dark:to-gray-900">
+      <div className="mb-4 flex items-center gap-2">
+        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-semibold text-white">
+          <Sparkles size={11} /> NEW
+        </span>
+        <h2 className="text-sm font-semibold text-[#0A2540] dark:text-white">AI Intelligence Suite</h2>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {AI_SUITE.map((a) => (
+          <Link
+            key={a.href} href={a.href}
+            className="group flex items-start gap-3 rounded-xl border border-cream-200 bg-white/70 p-4 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900/60"
+          >
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400">
+              <a.icon size={20} />
+            </span>
+            <div className="min-w-0">
+              <p className="flex items-center gap-1 text-sm font-semibold text-ink-900 dark:text-white">
+                {a.title}
+                <ArrowRight size={13} className="text-emerald-500 transition-transform group-hover:translate-x-0.5" />
+              </p>
+              <p className="mt-0.5 text-xs leading-snug text-ink-500 dark:text-gray-400">{a.desc}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
 }
