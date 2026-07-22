@@ -6,6 +6,7 @@ import {
   Menu, X,
   LayoutDashboard, Bot, Home, Users, Briefcase, Award, MessageSquare, Bell, LifeBuoy,
   ShieldCheck, Flag, FileText, AlertOctagon, FileCheck, Sparkles, ClipboardList,
+  ShieldAlert, Route, Gauge,
 } from "lucide-react";
 import { Logo } from "./Logo";
 
@@ -30,6 +31,9 @@ const STUDENT_NAV = [
   { href: "/messages",                   label: "Messages",          Icon: MessageSquare },
   { href: "/notifications",              label: "Notifications",     Icon: Bell },
   { href: "/toolkit",                    label: "Toolkit",           Icon: LifeBuoy },
+  { href: "/tools/scam-shield",          label: "Scam Shield",       Icon: ShieldAlert },
+  { href: "/tools/visa-roadmap",         label: "Visa Roadmap",      Icon: Route },
+  { href: "/tools/readiness",            label: "Readiness Score",   Icon: Gauge },
   { href: "/tools/doc-checker",          label: "Doc Checker",       Icon: FileCheck },
   { href: "/tools/scholarship-matcher",  label: "Scholarship Match", Icon: Sparkles },
   { href: "/tools/timeline",             label: "Timeline Planner",  Icon: ClipboardList },

@@ -20,6 +20,9 @@ import {
   ClipboardList,
   Calendar,
   ArrowRightLeft,
+  ShieldAlert,
+  Route,
+  Gauge,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -76,6 +79,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             { href: "/messages", icon: MessageSquare, label: t("nav.messages") },
             { href: "/notifications", icon: Bell, label: t("nav.notifications") },
             { href: "/toolkit", icon: LifeBuoy, label: t("nav.toolkit") },
+            { href: "/tools/scam-shield", icon: ShieldAlert, label: "Scam Shield" },
+            { href: "/tools/visa-roadmap", icon: Route, label: "Visa Roadmap" },
+            { href: "/tools/readiness", icon: Gauge, label: "Readiness Score" },
             { href: "/tools/doc-checker", icon: FileCheck, label: t("nav.docChecker") },
             { href: "/tools/scholarship-matcher", icon: Sparkles, label: t("nav.scholarshipMatch") },
             { href: "/tools/timeline", icon: ClipboardList, label: t("nav.timelinePlanner") },

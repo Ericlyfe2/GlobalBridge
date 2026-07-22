@@ -8,6 +8,7 @@ import {
   Bell, LifeBuoy, ShieldCheck, FileCheck, Calendar, Settings, AlertOctagon, Sparkles,
   PhoneCall, Landmark, Stethoscope, Flag, Quote, MessagesSquare, FileText,
   Headphones, Wand2, BarChart3, Lock, GraduationCap, DollarSign, Bus, Smartphone, Tag,
+  ShieldAlert, Route, Gauge,
 } from "lucide-react";
 
 type Item = {
@@ -39,6 +40,9 @@ const baseItems: Item[] = [
   { id: "lib",   label: "Podcast & Video Library", group: "App", href: "/library", icon: <Headphones size={14} />, hint: "Student stories, vlogs, interviews" },
   { id: "safe",  label: "Safe Space (anonymous)",  group: "App", href: "/community/safe-space", icon: <Lock size={14} />, hint: "Mental health, discrimination, legal" },
 
+  { id: "shield",  label: "AI Scam Shield",          group: "AI Tools", href: "/tools/scam-shield",          icon: <ShieldAlert size={14} />, hint: "Spot rental & job scams" },
+  { id: "vroad",   label: "AI Visa Roadmap",         group: "AI Tools", href: "/tools/visa-roadmap",         icon: <Route size={14} />,      hint: "Origin → destination timeline" },
+  { id: "rdscore", label: "Readiness Score",         group: "AI Tools", href: "/tools/readiness",            icon: <Gauge size={14} />,      hint: "Score how prepared you are" },
   { id: "doc",     label: "AI Document Checker",     group: "AI Tools", href: "/tools/doc-checker",          icon: <FileCheck size={14} />,  hint: "Validate passport, transcript" },
   { id: "match",   label: "Scholarship Matcher",     group: "AI Tools", href: "/tools/scholarship-matcher",  icon: <Sparkles size={14} />,   hint: "Profile → ranked matches" },
   { id: "tline",   label: "Timeline Planner",        group: "AI Tools", href: "/tools/timeline",             icon: <Calendar size={14} />,   hint: "Visa to arrival milestones" },
