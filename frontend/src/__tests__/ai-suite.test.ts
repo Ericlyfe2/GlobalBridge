@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { mockFallback as scamFallback } from "@/app/api/ai/scam-check/route";
-import { mockFallback as roadmapFallback } from "@/app/api/ai/visa-roadmap/route";
-import { mockFallback as readinessFallback } from "@/app/api/ai/readiness/route";
+import { mockFallback as scamFallback } from "@/app/api/ai/scam-check/logic";
+import { mockFallback as roadmapFallback } from "@/app/api/ai/visa-roadmap/logic";
+import { mockFallback as readinessFallback } from "@/app/api/ai/readiness/logic";
 
 describe("Scam Shield mockFallback", () => {
   it("flags a classic rental scam as high risk", () => {
