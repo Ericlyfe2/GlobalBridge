@@ -780,7 +780,7 @@ adminRouter.get("/notifications", requireAuth, requireAdmin(), async (_req, res,
 // ============================================================
 adminRouter.get("/ai/stats", requireAuth, requireAdmin(), async (_req, res, next) => {
   try {
-    const [usage, feedback, conversations, models, byModel, ratingDistribution, recentErrors] = await Promise.all([
+    const [usage, feedback, conversations, models, byModel, ratingDistribution, recentErrors, errorsByFeature] = await Promise.all([
       queryOne<{ total_requests: number; avg_tokens: number; avg_response_time: number; error_rate: number }>(
         `SELECT
            COUNT(*)::int AS total_requests,
@@ -806,6 +806,10 @@ adminRouter.get("/ai/stats", requireAuth, requireAdmin(), async (_req, res, next
         `SELECT id, feature, model, error, created_at FROM ai_usage_log
           WHERE error IS NOT NULL ORDER BY created_at DESC LIMIT 10`
       ),
+      query<{ feature: string; count: number }>(
+        `SELECT feature, COUNT(*)::int AS count FROM ai_usage_log
+          WHERE error IS NOT NULL GROUP BY feature ORDER BY count DESC`
+      ),
     ]);
 
     res.json({
@@ -816,6 +820,7 @@ adminRouter.get("/ai/stats", requireAuth, requireAdmin(), async (_req, res, next
       byModel: byModel ?? [],
       ratingDistribution: ratingDistribution ?? [],
       recentErrors: recentErrors ?? [],
+      errorsByFeature: errorsByFeature ?? [],
     });
   } catch (err) {
     next(err);
@@ -847,6 +852,97 @@ adminRouter.get("/ai/usage-timeline", requireAuth, requireAdmin(), async (req, r
     }
 
     res.json({ series });
+  } catch (err) {
+    next(err);
+  }
+});
+
+function pctChange(current: number, previous: number): number | null {
+  if (!previous) return current > 0 ? 100 : null;
+  return Math.round(((current - previous) / previous) * 1000) / 10;
+}
+
+function zeroFillHours(
+  rows: { bucket: string; value: number }[],
+  hours: number
+): { hour: string; value: number }[] {
+  const byHour = new Map(rows.map((r) => [new Date(r.bucket).toISOString().slice(0, 13), r.value]));
+  const now = new Date();
+  now.setMinutes(0, 0, 0);
+  const out: { hour: string; value: number }[] = [];
+  for (let i = hours - 1; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 3600_000);
+    const key = d.toISOString().slice(0, 13);
+    out.push({ hour: d.toISOString(), value: byHour.get(key) ?? 0 });
+  }
+  return out;
+}
+
+adminRouter.get("/ai/kpi-series", requireAuth, requireAdmin(), async (req, res, next) => {
+  try {
+    const hours = 24;
+
+    const [usageHourly, usagePeriods, convHourly, convPeriods, feedbackHourly, feedbackPeriods] = await Promise.all([
+      query<{ bucket: string; requests: number; avg_ms: number; err_count: number; total: number }>(
+        `SELECT date_trunc('hour', created_at) AS bucket, COUNT(*)::int AS requests,
+                COALESCE(AVG(response_time_ms), 0)::int AS avg_ms,
+                COUNT(*) FILTER (WHERE error IS NOT NULL)::int AS err_count, COUNT(*)::int AS total
+           FROM ai_usage_log WHERE created_at >= NOW() - INTERVAL '24 hours' GROUP BY 1 ORDER BY 1`
+      ),
+      query<{ period: string; requests: number; avg_ms: number; err_count: number; total: number }>(
+        `SELECT CASE WHEN created_at >= NOW() - INTERVAL '24 hours' THEN 'current' ELSE 'previous' END AS period,
+                COUNT(*)::int AS requests, COALESCE(AVG(response_time_ms), 0)::int AS avg_ms,
+                COUNT(*) FILTER (WHERE error IS NOT NULL)::int AS err_count, COUNT(*)::int AS total
+           FROM ai_usage_log WHERE created_at >= NOW() - INTERVAL '48 hours' GROUP BY 1`
+      ),
+      query<{ bucket: string; count: number }>(
+        `SELECT date_trunc('hour', created_at) AS bucket, COUNT(*)::int AS count
+           FROM ai_conversations WHERE created_at >= NOW() - INTERVAL '24 hours' GROUP BY 1 ORDER BY 1`
+      ),
+      query<{ period: string; count: number }>(
+        `SELECT CASE WHEN created_at >= NOW() - INTERVAL '24 hours' THEN 'current' ELSE 'previous' END AS period,
+                COUNT(*)::int AS count
+           FROM ai_conversations WHERE created_at >= NOW() - INTERVAL '48 hours' GROUP BY 1`
+      ),
+      query<{ bucket: string; count: number; avg_rating: number }>(
+        `SELECT date_trunc('hour', created_at) AS bucket, COUNT(*)::int AS count,
+                COALESCE(AVG(rating), 0)::numeric(3,2) AS avg_rating
+           FROM ai_feedback WHERE created_at >= NOW() - INTERVAL '24 hours' GROUP BY 1 ORDER BY 1`
+      ),
+      query<{ period: string; count: number; avg_rating: number }>(
+        `SELECT CASE WHEN created_at >= NOW() - INTERVAL '24 hours' THEN 'current' ELSE 'previous' END AS period,
+                COUNT(*)::int AS count, COALESCE(AVG(rating), 0)::numeric(3,2) AS avg_rating
+           FROM ai_feedback WHERE created_at >= NOW() - INTERVAL '48 hours' GROUP BY 1`
+      ),
+    ]);
+
+    const usageCur = usagePeriods.find((p) => p.period === "current") ?? { requests: 0, avg_ms: 0, err_count: 0, total: 0 };
+    const usagePrev = usagePeriods.find((p) => p.period === "previous") ?? { requests: 0, avg_ms: 0, err_count: 0, total: 0 };
+    const convCur = convPeriods.find((p) => p.period === "current")?.count ?? 0;
+    const convPrev = convPeriods.find((p) => p.period === "previous")?.count ?? 0;
+    const fbCur = feedbackPeriods.find((p) => p.period === "current") ?? { count: 0, avg_rating: 0 };
+    const fbPrev = feedbackPeriods.find((p) => p.period === "previous") ?? { count: 0, avg_rating: 0 };
+    const errRateCur = usageCur.total ? (usageCur.err_count / usageCur.total) * 100 : 0;
+    const errRatePrev = usagePrev.total ? (usagePrev.err_count / usagePrev.total) * 100 : 0;
+
+    res.json({
+      series: {
+        requests: zeroFillHours(usageHourly.map((r) => ({ bucket: r.bucket, value: r.requests })), hours),
+        avgResponseTime: zeroFillHours(usageHourly.map((r) => ({ bucket: r.bucket, value: r.avg_ms })), hours),
+        errorRate: zeroFillHours(usageHourly.map((r) => ({ bucket: r.bucket, value: r.total ? (r.err_count / r.total) * 100 : 0 })), hours),
+        conversations: zeroFillHours(convHourly.map((r) => ({ bucket: r.bucket, value: r.count })), hours),
+        feedbackCount: zeroFillHours(feedbackHourly.map((r) => ({ bucket: r.bucket, value: r.count })), hours),
+        avgRating: zeroFillHours(feedbackHourly.map((r) => ({ bucket: r.bucket, value: Number(r.avg_rating) })), hours),
+      },
+      trends: {
+        requests: { current: usageCur.requests, previous: usagePrev.requests, pct: pctChange(usageCur.requests, usagePrev.requests) },
+        avgResponseTime: { current: usageCur.avg_ms, previous: usagePrev.avg_ms, pct: pctChange(usageCur.avg_ms, usagePrev.avg_ms) },
+        errorRate: { current: Math.round(errRateCur * 100) / 100, previous: Math.round(errRatePrev * 100) / 100, pct: pctChange(errRateCur, errRatePrev) },
+        conversations: { current: convCur, previous: convPrev, pct: pctChange(convCur, convPrev) },
+        feedbackCount: { current: fbCur.count, previous: fbPrev.count, pct: pctChange(fbCur.count, fbPrev.count) },
+        avgRating: { current: Number(fbCur.avg_rating), previous: Number(fbPrev.avg_rating), pct: pctChange(Number(fbCur.avg_rating), Number(fbPrev.avg_rating)) },
+      },
+    });
   } catch (err) {
     next(err);
   }
