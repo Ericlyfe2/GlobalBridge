@@ -383,7 +383,7 @@ adminRouter.get("/mentor-verifications", requireAuth, requireAdmin(), async (_re
               mp.universities_attended, mp.available_for_mentoring,
               mp.verified_by, mp.verified_at,
               COALESCE(
-                (SELECT json_agg(json_build_object('id', ud.id, 'type', ud.type, 'url', ud.url, 'file_name', ud.file_name, 'verified', ud.verified))
+                (SELECT json_agg(json_build_object('id', ud.id, 'type', ud.purpose, 'url', ud.url, 'file_name', ud.original_name, 'verified', ud.status = 'verified'))
                  FROM user_documents ud WHERE ud.user_id = u.id),
                 '[]'::json
               ) AS documents
@@ -460,7 +460,7 @@ adminRouter.get("/employer-verifications", requireAuth, requireAdmin(), async (_
               ep.company_name, ep.company_website, ep.company_size, ep.industry,
               ep.sponsors_visas, ep.visa_sponsorship_countries,
               COALESCE(
-                (SELECT json_agg(json_build_object('id', ud.id, 'type', ud.type, 'url', ud.url, 'file_name', ud.file_name, 'verified', ud.verified))
+                (SELECT json_agg(json_build_object('id', ud.id, 'type', ud.purpose, 'url', ud.url, 'file_name', ud.original_name, 'verified', ud.status = 'verified'))
                  FROM user_documents ud WHERE ud.user_id = u.id),
                 '[]'::json
               ) AS documents
@@ -780,7 +780,7 @@ adminRouter.get("/notifications", requireAuth, requireAdmin(), async (_req, res,
 // ============================================================
 adminRouter.get("/ai/stats", requireAuth, requireAdmin(), async (_req, res, next) => {
   try {
-    const [usage, feedback, conversations, models] = await Promise.all([
+    const [usage, feedback, conversations, models, byModel, ratingDistribution, recentErrors] = await Promise.all([
       queryOne<{ total_requests: number; avg_tokens: number; avg_response_time: number; error_rate: number }>(
         `SELECT
            COUNT(*)::int AS total_requests,
@@ -793,8 +793,18 @@ adminRouter.get("/ai/stats", requireAuth, requireAdmin(), async (_req, res, next
         `SELECT COALESCE(AVG(rating), 0)::numeric(3,2) AS avg_rating, COUNT(*)::int AS total_feedback FROM ai_feedback`
       ),
       queryOne<{ total: number }>(`SELECT COUNT(*)::int AS total FROM ai_conversations`),
-      query(
+      query<{ feature: string; count: number }>(
         `SELECT feature, COUNT(*)::int AS count FROM ai_usage_log GROUP BY feature ORDER BY count DESC`
+      ),
+      query<{ model: string; count: number }>(
+        `SELECT COALESCE(model, 'unknown') AS model, COUNT(*)::int AS count FROM ai_usage_log GROUP BY model ORDER BY count DESC`
+      ),
+      query<{ rating: number; count: number }>(
+        `SELECT rating, COUNT(*)::int AS count FROM ai_feedback GROUP BY rating ORDER BY rating DESC`
+      ),
+      query<{ id: string; feature: string; model: string | null; error: string; created_at: string }>(
+        `SELECT id, feature, model, error, created_at FROM ai_usage_log
+          WHERE error IS NOT NULL ORDER BY created_at DESC LIMIT 10`
       ),
     ]);
 
@@ -803,7 +813,40 @@ adminRouter.get("/ai/stats", requireAuth, requireAdmin(), async (_req, res, next
       feedback: feedback ?? { avg_rating: 0, total_feedback: 0 },
       conversations: conversations?.total ?? 0,
       modelUsage: models ?? [],
+      byModel: byModel ?? [],
+      ratingDistribution: ratingDistribution ?? [],
+      recentErrors: recentErrors ?? [],
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.get("/ai/usage-timeline", requireAuth, requireAdmin(), async (req, res, next) => {
+  try {
+    const hours = Math.min(72, Math.max(1, parseInt(req.query.hours as string) || 24));
+    const rows = await query<{ bucket: string; requests: number; p95: number | null }>(
+      `SELECT date_trunc('hour', created_at) AS bucket,
+              COUNT(*)::int AS requests,
+              percentile_cont(0.95) WITHIN GROUP (ORDER BY response_time_ms)::int AS p95
+         FROM ai_usage_log
+        WHERE created_at >= NOW() - ($1 || ' hours')::interval
+        GROUP BY 1 ORDER BY 1`,
+      [hours]
+    );
+
+    const byHour = new Map(rows.map((r) => [new Date(r.bucket).toISOString().slice(0, 13), r]));
+    const series: { hour: string; requests: number; p95: number }[] = [];
+    const now = new Date();
+    now.setMinutes(0, 0, 0);
+    for (let i = hours - 1; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 3600_000);
+      const key = d.toISOString().slice(0, 13);
+      const row = byHour.get(key);
+      series.push({ hour: d.toISOString(), requests: row?.requests ?? 0, p95: row?.p95 ?? 0 });
+    }
+
+    res.json({ series });
   } catch (err) {
     next(err);
   }
@@ -908,7 +951,7 @@ adminRouter.get("/analytics/opportunities", requireAuth, requireAdmin(), async (
               COUNT(*)::int AS count, type
          FROM opportunities
         WHERE created_at >= CURRENT_DATE - (($1::int - 1) * INTERVAL '1 day')
-        GROUP BY 1, 2 ORDER BY 1`,
+        GROUP BY 1, 3 ORDER BY 1`,
       [days]
     );
     res.json({ days, series: rows });
