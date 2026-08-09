@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import {
   ShieldAlert, ShieldCheck, AlertTriangle, Loader2, Bot, Flag, Sparkles,
 } from "lucide-react";
+import { useMascot } from "@/mascot/MascotProvider";
 
 type Severity = "low" | "med" | "high";
 type ScamFlag = { phrase: string; category: string; why: string; severity: Severity };
@@ -36,6 +37,7 @@ export default function ScamShieldPage() {
   const [result, setResult] = useState<ScamResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reported, setReported] = useState(false);
+  const { emit } = useMascot();
 
   async function analyze() {
     if (!text.trim()) return;
@@ -43,6 +45,8 @@ export default function ScamShieldPage() {
     setResult(null);
     setError(null);
     setReported(false);
+    // Atlas visibly reads the listing while the check runs.
+    emit("DOCUMENT_SCANNING");
     try {
       const res = await fetch("/api/ai/scam-check", {
         method: "POST",
@@ -52,11 +56,23 @@ export default function ScamShieldPage() {
       const data = await res.json();
       if (!res.ok || data?.error) {
         setError(data?.error || `Request failed (${res.status})`);
+        emit("ERROR");
       } else {
-        setResult(data as ScamResult);
+        const scam = data as ScamResult;
+        setResult(scam);
+        // Guardian mode: the reaction scales with actual risk. A high score
+        // pins the warning open (ttl 0) so it can't be missed.
+        if (scam.score >= 67) {
+          emit("SCAM_WARNING", { score: scam.score });
+        } else if (scam.score >= 34) {
+          emit("VERIFICATION_REQUIRED", { score: scam.score });
+        } else {
+          emit("DOCUMENT_VALID");
+        }
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Network error");
+      emit("ERROR");
     } finally {
       setLoading(false);
     }

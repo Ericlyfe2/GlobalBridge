@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import {
   Award, Home, Users, Bot, FileText, GraduationCap, Calendar, MessageSquare,
   ArrowRight, ShieldCheck, TrendingUp, Loader2, AlertCircle, Plane, BadgeCheck, ChevronRight,
@@ -9,6 +10,7 @@ import {
 } from "lucide-react";
 import { authFetch, getUser } from "@/lib/auth";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
+import { useMascot } from "@/mascot/MascotProvider";
 
 type Dashboard = {
   profile: { completion: number; missingFields: string[]; verificationStatus: string };
@@ -30,6 +32,9 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const firstName = (getUser()?.full_name || "there").split(" ")[0];
   const { t } = useTranslation();
+  const { emit, setJourney } = useMascot();
+  // Atlas greets once per visit, not on every re-render (spec §27).
+  const greeted = useRef(false);
 
   const QUICK_ACTIONS = [
     { href: "/opportunities", icon: Award, label: t("dashboard.browseOpportunities") },
@@ -65,6 +70,35 @@ export default function StudentDashboard() {
     })();
     return () => { active = false; };
   }, []);
+
+  // ── Atlas reads the dashboard ────────────────────────────────────────
+  // He interprets progress rather than just saying hello: if there's a visa
+  // journey underway he speaks to it, otherwise he nudges the profile.
+  useEffect(() => {
+    if (!data || greeted.current) return;
+    greeted.current = true;
+
+    setJourney({
+      destination: data.visa?.destination ?? null,
+      progress: data.visa?.progress ?? data.profile.completion,
+    });
+
+    if (data.visa?.destination && typeof data.visa.progress === "number") {
+      emit(
+        "VISA_PROGRESS_UPDATED",
+        { percent: Math.round(data.visa.progress), destination: data.visa.destination },
+        { cta: { label: "Continue preparation", href: "/tools/visa-roadmap" } },
+      );
+    } else if (data.profile.completion < 100) {
+      emit(
+        "USER_WELCOME",
+        { name: firstName },
+        { cta: { label: "Complete your profile", href: "/settings" } },
+      );
+    } else {
+      emit("LOGIN_RETURN", { name: firstName });
+    }
+  }, [data, emit, setJourney, firstName]);
 
   if (loading) {
     return (
@@ -338,7 +372,11 @@ const AI_SUITE = [
 
 function AiSuiteBanner() {
   return (
-    <section className="overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-5 dark:border-emerald-500/20 dark:from-emerald-500/10 dark:via-gray-900 dark:to-gray-900">
+    <section className="relative overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-5 dark:border-emerald-500/20 dark:from-emerald-500/10 dark:via-gray-900 dark:to-gray-900">
+      <Image
+        src="/mascot/atlas.png" alt="" width={120} height={120} aria-hidden
+        className="pointer-events-none absolute -right-3 -top-3 h-24 w-24 object-contain opacity-90 sm:h-28 sm:w-28"
+      />
       <div className="mb-4 flex items-center gap-2">
         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-semibold text-white">
           <Sparkles size={11} /> NEW

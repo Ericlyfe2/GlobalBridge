@@ -116,14 +116,24 @@ async function timedFetch(input: RequestInfo | URL, init: RequestInit = {}, time
  * Fetch wrapper that attaches a fresh Firebase ID token as Bearer.
  * `timeoutMs` defaults to 8s; pass a larger value for calls that may hit a
  * cold-starting backend (e.g. Render free tier wakes in ~50s).
+ *
+ * Retries once with a force-refreshed token on 401: a tab left backgrounded
+ * for a while can miss Firebase's proactive refresh, leaving the cached
+ * token stale even though `getIdToken()` looked fine when it was called.
  */
 export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = FETCH_TIMEOUT) {
-  const headers = new Headers(init.headers);
-  const current = auth.currentUser;
-  const token = current ? await current.getIdToken() : getToken();
-  if (token && !headers.has("Authorization")) headers.set("Authorization", `Bearer ${token}`);
-  if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
-  return timedFetch(input, { ...init, headers }, timeoutMs);
+  async function attempt(forceRefresh: boolean) {
+    const headers = new Headers(init.headers);
+    const current = auth.currentUser;
+    const token = current ? await current.getIdToken(forceRefresh) : getToken();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+    return timedFetch(input, { ...init, headers }, timeoutMs);
+  }
+
+  const res = await attempt(false);
+  if (res.status === 401 && auth.currentUser) return attempt(true);
+  return res;
 }
 
 function friendlyError(err: unknown): Error {

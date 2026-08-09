@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useMascot } from "@/mascot/MascotProvider";
 import { Briefcase, MapPin, ShieldCheck, DollarSign, Search, Filter, Loader2 } from "lucide-react";
 import { SaveButton } from "@/components/SaveButton";
 import { useDebounce } from "@/lib/useDebounce";
@@ -25,6 +26,12 @@ export default function JobsPage() {
   const [sponsorOnly, setSponsorOnly] = useState(true);
   const [type, setType] = useState<"job" | "internship" | "all">("all");
   const debouncedQ = useDebounce(q, 300);
+
+  // Held in a ref so `emit` isn't an effect dependency — otherwise a locale
+  // change would re-run the search effect and re-announce the same results.
+  const { emit } = useMascot();
+  const emitRef = useRef(emit);
+  useEffect(() => { emitRef.current = emit; }, [emit]);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -50,6 +57,16 @@ export default function JobsPage() {
         if (sponsorOnly) list = list.filter((j) => j.sponsors_visa);
         setJobs(list);
         setErr(null);
+
+        // Atlas gets excited about real finds, and specifically flags visa
+        // sponsorship — the thing this audience actually filters for.
+        // The engine's cooldown stops this firing on every keystroke.
+        const sponsoring = list.filter((j) => j.sponsors_visa).length;
+        if (sponsoring > 0) {
+          emitRef.current("SPONSORSHIP_MATCH", { count: sponsoring });
+        } else if (list.length > 0) {
+          emitRef.current("JOB_MATCH_FOUND", { count: list.length });
+        }
       } catch (e) {
         if ((e as Error).name === "AbortError") return;
         setErr(e instanceof Error ? e.message : "Network error");

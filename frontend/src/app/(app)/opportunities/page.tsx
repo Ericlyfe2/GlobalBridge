@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useMascot } from "@/mascot/MascotProvider";
 import {
   Calendar, MapPin, TrendingUp, Filter, Search, BookmarkPlus, ShieldCheck, Loader2, Globe2,
 } from "lucide-react";
@@ -73,6 +74,11 @@ export default function OpportunitiesPage() {
   const [saved, setSaved] = useState<Set<string>>(new Set());
   const debouncedQ = useDebounce(q, 300);
 
+  // Ref-held so `emit` stays out of the search effect's dependencies.
+  const { emit } = useMascot();
+  const emitRef = useRef(emit);
+  useEffect(() => { emitRef.current = emit; }, [emit]);
+
   // Load saved opportunity ids (if signed in)
   useEffect(() => {
     if (!getToken()) return;
@@ -120,6 +126,19 @@ export default function OpportunitiesPage() {
         if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
         setOpps(data.opportunities);
         setErr(null);
+
+        // SURPRISED is reserved for genuinely rare finds — a funded scholarship
+        // that also sponsors a visa. If everything is amazing, nothing is
+        // (docs/MASCOT.md Part 10).
+        const list = (data.opportunities ?? []) as Opp[];
+        const standout = list.filter(
+          (o) => o.type === "scholarship" && o.sponsors_visa && Number(o.funding_amount) > 0,
+        );
+        if (standout.length > 0) {
+          emitRef.current("SCHOLARSHIP_FOUND", { count: standout.length });
+        } else if (list.length > 0) {
+          emitRef.current("OPPORTUNITY_MATCH", { count: list.length });
+        }
       } catch (e) {
         if ((e as Error).name === "AbortError") return;
         setErr(e instanceof Error ? e.message : "Network error");

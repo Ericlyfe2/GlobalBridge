@@ -333,6 +333,15 @@ html[dir="rtl"] {
   will-change: transform;
 }
 
+@keyframes float-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(-2deg); }
+}
+.animate-float-bob {
+  animation: float-bob 3.4s ease-in-out infinite;
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -341,7 +350,8 @@ html[dir="rtl"] {
   }
   .animate-pulse-glow,
   .animate-fade-up,
-  .animate-spin-slow {
+  .animate-spin-slow,
+  .animate-float-bob {
     animation: none !important;
   }
 }

@@ -6,7 +6,7 @@ export const pool = new Pool({
   max: 25,
   min: 2,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 12000,
 });
 
 pool.on("error", (err) => console.error("Postgres pool error", err));

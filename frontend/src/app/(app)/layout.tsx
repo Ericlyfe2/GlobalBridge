@@ -36,6 +36,7 @@ import { useTranslation } from "@/i18n/hooks/useTranslation";
 const CommandPalette = dynamic(() => import("@/components/CommandPalette").then((m) => m.CommandPalette), { ssr: false });
 const CommandTrigger = dynamic(() => import("@/components/CommandPalette").then((m) => m.CommandTrigger), { ssr: false });
 const MobileSidebar = dynamic(() => import("@/components/MobileSidebar").then((m) => m.MobileSidebar), { ssr: false });
+const AtlasStage = dynamic(() => import("@/components/mascot/AtlasStage").then((m) => m.AtlasStage), { ssr: false });
 
 type Role = "student" | "mentor" | "employer" | "admin" | null;
 
@@ -157,6 +158,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <main id="main-content" className="flex-1 overflow-auto">{children}</main>
       </div>
+      {/* Atlas rides along the whole signed-in app; individual pages just
+          raise events and the engine decides whether he speaks. */}
+      <AtlasStage variant="dock" />
     </div>
     </AuthGuard>
   );

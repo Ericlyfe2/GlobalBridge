@@ -162,9 +162,12 @@ export default function AIConfigPage() {
   const [breakdownTab, setBreakdownTab] = useState<"features" | "models" | "errors">("features");
   const [convFilter, setConvFilter] = useState<string>("All");
   const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     const ctrl = new AbortController();
+    setLoading(true);
     (async () => {
       try {
         const [healthRes, statsRes, timelineRes, kpiRes] = await Promise.all([
@@ -178,13 +181,16 @@ export default function AIConfigPage() {
         setStats(await statsRes.json());
         if (timelineRes.ok) setTimeline((await timelineRes.json()).series ?? []);
         if (kpiRes.ok) setKpiSeries(await kpiRes.json());
+        setErr(null);
       } catch (e) {
         if ((e as Error).name === "AbortError") return;
         setErr(e instanceof Error ? e.message : "Network error");
+      } finally {
+        setLoading(false);
       }
     })();
     return () => ctrl.abort();
-  }, []);
+  }, [reloadKey]);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -252,8 +258,15 @@ export default function AIConfigPage() {
     <div className="px-4 py-6 sm:px-6">
       <div className="mx-auto max-w-[1600px] space-y-6">
         {err && (
-          <div className="flex items-center gap-2 rounded-lg border border-red-800/50 bg-red-900/20 p-3 text-sm text-red-300">
-            <AlertTriangle size={14} /> {err}
+          <div className="flex items-center justify-between gap-2 rounded-lg border border-red-800/50 bg-red-900/20 p-3 text-sm text-red-300">
+            <span className="flex items-center gap-2"><AlertTriangle size={14} /> {err}</span>
+            <button
+              onClick={() => setReloadKey((k) => k + 1)}
+              disabled={loading}
+              className="shrink-0 rounded-md border border-red-700/50 px-2.5 py-1 text-xs font-medium text-red-200 transition hover:bg-red-800/30 disabled:opacity-50"
+            >
+              {loading ? "Retrying…" : "Retry"}
+            </button>
           </div>
         )}
 

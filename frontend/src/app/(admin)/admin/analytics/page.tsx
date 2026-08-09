@@ -205,19 +205,42 @@ export default function AnalyticsPage() {
           results.map((r) => r.status === "fulfilled" ? r.value.json() : Promise.reject())
         );
 
-        const getData = <T,>(idx: number, fallback: T): T => {
+        const getRaw = (idx: number): any => {
           const r = jsonResults[idx];
-          return r.status === "fulfilled" ? (r.value as any).data ?? r.value ?? fallback : fallback;
+          return r.status === "fulfilled" ? r.value : null;
         };
 
-        setData({
-          userGrowth: getData<UserGrowthPoint[]>(0, []),
-          opportunities: getData<OpportunitiesPoint[]>(1, []),
-          forums: getData<ForumsPoint[]>(2, []),
-          aiUsage: getData<AiUsagePoint[]>(3, []),
-          languages: getData<LanguageStat[]>(4, []),
-          countries: getData<CountryStat[]>(5, []),
-        });
+        const userGrowth: UserGrowthPoint[] = (getRaw(0)?.series ?? []).map((r: any) => ({
+          date: r.day, students: r.students, mentors: r.mentors, employers: r.employers,
+          total: r.students + r.mentors + r.employers,
+        }));
+
+        const oppByDay = new Map<string, number>();
+        for (const r of getRaw(1)?.series ?? []) oppByDay.set(r.day, (oppByDay.get(r.day) ?? 0) + r.count);
+        const opportunities: OpportunitiesPoint[] = Array.from(oppByDay, ([date, count]) => ({ date, count }))
+          .sort((a, b) => a.date.localeCompare(b.date));
+
+        const forumsRaw = getRaw(2);
+        const postsByDay = new Map<string, number>((forumsRaw?.posts ?? []).map((r: any) => [r.day, r.count]));
+        const repliesByDay = new Map<string, number>((forumsRaw?.replies ?? []).map((r: any) => [r.day, r.count]));
+        const forumDays = new Set([...postsByDay.keys(), ...repliesByDay.keys()]);
+        const forums: ForumsPoint[] = Array.from(forumDays, (date) => ({
+          date, posts: postsByDay.get(date) ?? 0, comments: repliesByDay.get(date) ?? 0,
+        })).sort((a, b) => a.date.localeCompare(b.date));
+
+        const aiUsage: AiUsagePoint[] = (getRaw(3)?.series ?? []).map((r: any) => ({
+          date: r.day, conversations: r.count, messages: r.count, tokens: r.avg_tokens,
+        }));
+
+        const languagesRaw: { language: string; count: number }[] = getRaw(4)?.languages ?? [];
+        const langTotal = languagesRaw.reduce((s, l) => s + l.count, 0) || 1;
+        const languages: LanguageStat[] = languagesRaw.map((l) => ({ ...l, percentage: (l.count / langTotal) * 100 }));
+
+        const countriesRaw: { country: string; count: number }[] = getRaw(5)?.countries ?? [];
+        const countryTotal = countriesRaw.reduce((s, c) => s + c.count, 0) || 1;
+        const countries: CountryStat[] = countriesRaw.map((c) => ({ ...c, percentage: (c.count / countryTotal) * 100 }));
+
+        setData({ userGrowth, opportunities, forums, aiUsage, languages, countries });
       } catch (e) {
         if ((e as Error).name === "AbortError") return;
         setErr(e instanceof Error ? e.message : "Network error");

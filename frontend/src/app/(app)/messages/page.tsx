@@ -34,8 +34,16 @@ function timeOf(iso: string): string {
 }
 
 export default function MessagesPage() {
-  const [authed] = useState(() => !!getToken());
-  const me = getUser();
+  // Start false to match the server (no localStorage there), then sync after mount —
+  // reading getToken()/getUser() during the initial render causes a hydration mismatch
+  // when the client already has a session but the server can't know that.
+  const [authed, setAuthed] = useState(false);
+  const [me, setMe] = useState<ReturnType<typeof getUser>>(null);
+
+  useEffect(() => {
+    setAuthed(!!getToken());
+    setMe(getUser());
+  }, []);
   const [convos, setConvos] = useState<Conversation[] | null>(null);
   const [active, setActive] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -90,8 +98,9 @@ export default function MessagesPage() {
 
     function connect() {
       const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const host = process.env.NEXT_PUBLIC_WS_URL || `${proto}//localhost:4000`;
-      const ws = new WebSocket(`${host}/ws?token=${token}`);
+      // NEXT_PUBLIC_WS_URL already includes the /ws path; the fallback doesn't.
+      const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `${proto}//localhost:4000/ws`;
+      const ws = new WebSocket(`${wsUrl}?token=${token}`);
       wsRef.current = ws;
 
       ws.onopen = () => { reconnectRef.current = 0; };
