@@ -1,15 +1,18 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, FileCheck, Globe, Loader2, Bot, User, X, Download, Printer, History, CheckCircle, ShieldCheck } from "lucide-react";
+import Image from "next/image";
+import { Send, Sparkles, FileCheck, Globe, Loader2, User, X, Download, Printer, History, CheckCircle, ShieldCheck } from "lucide-react";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
 import { getToken, getUser } from "@/lib/auth";
+import { useMascot } from "@/mascot/MascotProvider";
 
 type Source = { title: string; url: string; confidence?: string };
 type Msg = { role: "user" | "assistant"; content: string; sources?: Source[] };
 
 export default function AssistantPage() {
   const { t, lang } = useTranslation();
+  const { emit, dismiss } = useMascot();
   const user = getUser();
   const [messages, setMessages] = useState<Msg[]>([
     {
@@ -51,6 +54,8 @@ export default function AssistantPage() {
     setMessages((m) => [...m, userMsg]);
     setInput("");
     setLoading(true);
+    // Atlas thinks alongside the request instead of just spinning a loader.
+    emit("THINKING");
 
     try {
       const res = await fetch("/api/ai/chat", {
@@ -68,11 +73,13 @@ export default function AssistantPage() {
         setConversationId(data.conversation_id);
       }
       setMessages((m) => [...m, { role: "assistant", content: data.reply, sources: data.sources }]);
+      dismiss();
     } catch {
       setMessages((m) => [
         ...m,
         { role: "assistant", content: t("assistant.errorMessage") },
       ]);
+      emit("ERROR");
     } finally {
       setLoading(false);
     }
@@ -125,8 +132,8 @@ export default function AssistantPage() {
     <div className="h-full flex flex-col">
       <div className="border-b border-cream-200 px-6 py-4 flex items-center justify-between bg-cream-50">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-clay-500 text-white flex items-center justify-center">
-            <Bot size={18} />
+          <div className="w-9 h-9 rounded-lg bg-clay-500 overflow-hidden shrink-0">
+            <Image src="/mascot/atlas.png" alt="Atlas" width={36} height={36} className="w-full h-full object-cover scale-125" />
           </div>
           <div>
             <h2 className="font-display font-semibold text-ink-900">{t("assistant.title")}</h2>
@@ -273,11 +280,11 @@ function Message({ msg }: { msg: Msg }) {
   return (
     <div className={`flex gap-3 ${isUser ? "flex-row-reverse" : ""}`}>
       <div
-        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-          isUser ? "bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-900" : "bg-clay-500 text-white"
+        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 overflow-hidden ${
+          isUser ? "bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-900" : "bg-clay-500"
         }`}
       >
-        {isUser ? <User size={15} /> : <Bot size={15} />}
+        {isUser ? <User size={15} /> : <Image src="/mascot/atlas.png" alt="Atlas" width={32} height={32} className="w-full h-full object-cover scale-125" />}
       </div>
       <div className={`flex-1 max-w-[80%] ${isUser ? "text-right" : ""}`}>
         <div

@@ -8,6 +8,7 @@ import { ReducedMotionGuard } from "@/components/ReducedMotionGuard";
 import { HreflangMeta } from "@/components/HreflangMeta";
 import { SUPPORTED_LANGUAGES, type Lang } from "@/i18n/config";
 import SmoothScroll from "@/components/SmoothScroll";
+import { MascotProvider } from "@/mascot/MascotProvider";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://globalbridge.app";
 const SITE_NAME = "GlobalBridge";
@@ -111,9 +112,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ToastProvider>
             <AuthSync />
             <ReducedMotionGuard />
-            <SmoothScroll>
-              {children}
-            </SmoothScroll>
+            <MascotProvider>
+              <SmoothScroll>
+                {children}
+              </SmoothScroll>
+            </MascotProvider>
           </ToastProvider>
         </LocaleProvider>
       </body>

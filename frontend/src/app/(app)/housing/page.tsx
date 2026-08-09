@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useMascot } from "@/mascot/MascotProvider";
 import { MapPin, Bed, Bath, ShieldCheck, Star, Search, SlidersHorizontal, Loader2, Plus } from "lucide-react";
 import { SaveButton } from "@/components/SaveButton";
 import { useDebounce } from "@/lib/useDebounce";
@@ -54,6 +55,11 @@ export default function HousingPage() {
   const [currency, setCurrency] = useState("");
   const debouncedCity = useDebounce(city, 300);
 
+  // Ref-held so `emit` stays out of the search effect's dependencies.
+  const { emit } = useMascot();
+  const emitRef = useRef(emit);
+  useEffect(() => { emitRef.current = emit; }, [emit]);
+
   useEffect(() => {
     const ctrl = new AbortController();
     (async () => {
@@ -67,6 +73,16 @@ export default function HousingPage() {
         if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
         setListings(data.listings);
         setErr(null);
+
+        // Housing is where users lose real money, so Atlas leads with the
+        // safety signal rather than the count (docs/MASCOT.md Part 9).
+        const all = (data.listings ?? []) as Listing[];
+        const verified = all.filter((l) => l.landlord_status === "verified").length;
+        if (verified > 0) {
+          emitRef.current("VERIFIED_LISTING", { count: verified });
+        } else if (all.length > 0) {
+          emitRef.current("HOUSING_SEARCH", { count: all.length });
+        }
       } catch (e) {
         if ((e as Error).name === "AbortError") return;
         setErr(e instanceof Error ? e.message : "Network error");

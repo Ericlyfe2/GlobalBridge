@@ -17,6 +17,13 @@ import { services } from "@/data/services";
 import AirplanePath from "@/components/AirplanePath";
 import { JsonLd } from "@/components/JsonLd";
 import { SkipLink } from "@/components/SkipLink";
+import dynamic from "next/dynamic";
+
+// three.js touches browser globals at module scope — keep it out of SSR.
+const AtlasStage = dynamic(
+  () => import("@/components/mascot/AtlasStage").then((m) => m.AtlasStage),
+  { ssr: false },
+);
 
 export default function Home() {
   const visa = services.find((s) => s.id === "visa")!;
@@ -46,6 +53,10 @@ export default function Home() {
       <ServiceSection service={housing} disableMaskAnimation={true} />
       </div>
       <HowItWorks />
+
+      {/* Atlas flies across the page as you scroll, introducing the AI suite. */}
+      <AtlasStage variant="travel" />
+
       <AiSuiteShowcase />
       <MentorshipSection />
       <ServiceSection service={jobs}>
