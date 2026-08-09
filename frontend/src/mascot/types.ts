@@ -206,7 +206,7 @@ export const IDLE_STATE: MascotState = {
 /**
  * Accent colour per mode — drives the face glow, aura and cape tint.
  * Values taken from the canonical character sheet
- * (`frontend/public/mascot/atlas-character-sheet.png`); see docs/MASCOT.md Part 1.
+ * (`docs/assets/atlas-character-sheet.png`); see docs/MASCOT.md Part 1.
  */
 export const MODE_COLOR: Record<MascotMode, string> = {
   companion:  "#4fd8f0", // canon cyan — the resting eye colour

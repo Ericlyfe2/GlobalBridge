@@ -53,10 +53,6 @@ export default function Home() {
       <ServiceSection service={housing} disableMaskAnimation={true} />
       </div>
       <HowItWorks />
-
-      {/* Atlas flies across the page as you scroll, introducing the AI suite. */}
-      <AtlasStage variant="travel" />
-
       <AiSuiteShowcase />
       <MentorshipSection />
       <ServiceSection service={jobs}>
@@ -69,6 +65,9 @@ export default function Home() {
 
       <ScrollOrchestrator />
       <Footer />
+      {/* Atlas sits in the corner as a persistent companion rather than
+          occupying a band mid-page. */}
+      <AtlasStage variant="dock" />
     </div>
   );
 }

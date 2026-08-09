@@ -3,59 +3,40 @@
 /**
  * Where Atlas appears, and what it says.
  *
- * Two layouts:
- *   dock   — a corner companion (dashboard, assistant, scam shield)
- *   travel — a full-width band Atlas flies across as you scroll (home page)
+ * He lives in the corner as a persistent companion. The speech bubble is driven
+ * entirely by the mascot engine, so this component has no opinions about *when*
+ * he speaks — only how he looks.
  *
- * The speech bubble is driven entirely by the mascot engine, so this component
- * has no opinions about *when* to speak — only how it looks.
+ * The corner art is the canonical render (AtlasPortrait) rather than live 3D:
+ * at 60-104px a rendered illustration reads far better than primitives, and it
+ * matches the brand sheet exactly. Emotion is still visible — it drives the glow
+ * ring colour, the float intensity and of course the message itself.
  */
 
-import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { X, Sparkles } from "lucide-react";
 import { useMascot } from "@/mascot/MascotProvider";
-import { MODE_COLOR, PRIORITY } from "@/mascot/types";
+import { MODE_COLOR, PRIORITY, type MascotEmotion } from "@/mascot/types";
+import { AtlasPortrait } from "./AtlasPortrait";
 
-/** Flat Atlas — shown while the 3D chunk loads, and on machines without WebGL. */
-function AtlasFallback({ className = "" }: { className?: string }) {
-  return (
-    <Image
-      src="/mascot/atlas.png"
-      alt="Atlas, the GlobalBridge AI assistant"
-      width={128}
-      height={128}
-      className={`h-full w-full object-contain ${className}`}
-      priority={false}
-    />
-  );
-}
-
-const AtlasCanvas = dynamic(() => import("./AtlasCanvas"), {
-  ssr: false,
-  loading: () => <AtlasFallback />,
-});
-
-/**
- * WebGL can be missing (old hardware, blocklisted drivers, some VMs). Detect it
- * once so Atlas degrades to the flat portrait instead of leaving an empty hole.
- */
-function useWebGLSupported() {
-  const [supported, setSupported] = useState<boolean | null>(null);
-  useEffect(() => {
-    try {
-      const canvas = document.createElement("canvas");
-      setSupported(
-        !!(canvas.getContext("webgl2") || canvas.getContext("webgl")),
-      );
-    } catch {
-      setSupported(false);
-    }
-  }, []);
-  return supported;
-}
+/** How energetically he bobs, per emotion. Guardian states go still (Part 12). */
+const FLOAT_BY_EMOTION: Record<MascotEmotion, string> = {
+  idle: "animate-float-bob",
+  happy: "animate-float-bob",
+  excited: "animate-float-bob",
+  proud: "animate-float-bob",
+  winking: "animate-float-bob",
+  surprised: "animate-float-bob",
+  celebrating: "animate-float-bob",
+  thinking: "animate-float-bob",
+  confused: "animate-float-bob",
+  // Stillness is the alarm signal — never bob during a warning.
+  scanning: "",
+  concerned: "",
+  alert: "",
+  serious: "",
+};
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -142,49 +123,12 @@ function useIsRTL() {
   return rtl;
 }
 
-/** Scroll progress (0→1) of an element travelling through the viewport. */
-function useScrollTravel(enabled: boolean) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [travel, setTravel] = useState(-1);
-
-  useEffect(() => {
-    if (!enabled) return;
-    let frame = 0;
-    const onScroll = () => {
-      if (frame) return;
-      frame = requestAnimationFrame(() => {
-        frame = 0;
-        const el = ref.current;
-        if (!el) return;
-        const r = el.getBoundingClientRect();
-        const vh = window.innerHeight;
-        // 0 when the band first enters the viewport, 1 as it leaves.
-        const p = 1 - (r.top + r.height) / (vh + r.height);
-        setTravel(Math.max(-1, Math.min(1, p * 2.4 - 1.1)));
-      });
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (frame) cancelAnimationFrame(frame);
-    };
-  }, [enabled]);
-
-  return { ref, travel };
-}
-
-export function AtlasStage({ variant = "dock" }: { variant?: "dock" | "travel" }) {
+export function AtlasStage({ variant = "dock" }: { variant?: "dock" }) {
   const { emotion, mode, message, cta, priority, dismiss, ready } = useMascot();
   const reduced = usePrefersReducedMotion();
-  const webgl = useWebGLSupported();
   const inputActive = useInputActive();
   const { isMobile } = useViewport();
   const rtl = useIsRTL();
-  const isTravel = variant === "travel";
-  const { ref, travel } = useScrollTravel(isTravel);
   const [open, setOpen] = useState(true);
 
   // A critical alert always reopens the bubble — the user must not miss a
@@ -197,26 +141,6 @@ export function AtlasStage({ variant = "dock" }: { variant?: "dock" | "travel" }
   if (!ready) return null;
 
   const accent = MODE_COLOR[mode];
-
-  if (isTravel) {
-    return (
-      <div ref={ref} className="relative h-[46vh] w-full overflow-hidden" aria-hidden>
-        {webgl === false ? (
-          <div
-            className="flex h-full items-center transition-transform duration-500"
-            style={{ transform: `translateX(${travel * 38}%)` }}
-          >
-            <div className="mx-auto h-40 w-40"><AtlasFallback /></div>
-          </div>
-        ) : (
-          <AtlasCanvas
-            emotion={emotion} mode={mode} travel={travel}
-            followPointer={false} reducedMotion={reduced}
-          />
-        )}
-      </div>
-    );
-  }
 
   // On mobile the keyboard eats the viewport and the dock would sit on the
   // input. Hiding entirely beats shuffling him around. A critical alert still
@@ -275,15 +199,28 @@ export function AtlasStage({ variant = "dock" }: { variant?: "dock" | "travel" }
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "Hide Atlas's message" : "Show Atlas"}
-        className="pointer-events-auto rounded-full outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+        className="group pointer-events-auto relative shrink-0 rounded-full outline-none transition-transform duration-200 hover:scale-105 focus-visible:ring-2 focus-visible:ring-offset-2"
         // Minimum 44px touch target is satisfied at both sizes.
         style={{ width: dockSize, height: dockSize, ["--tw-ring-color" as string]: accent }}
       >
-        {webgl === false ? (
-          <AtlasFallback className="animate-float-bob drop-shadow-lg" />
-        ) : (
-          <AtlasCanvas emotion={emotion} mode={mode} followPointer reducedMotion={reduced} />
-        )}
+        {/* Mode-coloured halo. This is how emotion stays legible now that the
+            face is a fixed render rather than a live screen. */}
+        <span
+          aria-hidden
+          className="absolute -inset-1 rounded-full blur-md transition-colors duration-500"
+          style={{ background: accent, opacity: 0.3 }}
+        />
+        <span
+          aria-hidden
+          className="absolute inset-0 rounded-full ring-2 transition-colors duration-500"
+          style={{ ["--tw-ring-color" as string]: accent }}
+        />
+        <AtlasPortrait
+          size={dockSize}
+          className={`relative bg-[var(--color-surface)] shadow-lg ${
+            reduced ? "" : FLOAT_BY_EMOTION[emotion]
+          }`}
+        />
       </button>
     </div>
   );

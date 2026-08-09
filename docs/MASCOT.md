@@ -3,7 +3,7 @@
 **Single source of truth** for character design, personality, animation, AI behaviour, product
 integration, safety, accessibility and technical architecture.
 
-**Canonical visual reference:** `frontend/public/mascot/atlas-character-sheet.png`
+**Canonical visual reference:** `docs/assets/atlas-character-sheet.png`
 Nothing in this document overrides that image. Where text and image disagree, the image wins.
 
 **Audience:** character artist · animator · UX designer · frontend engineer · AI engineer · PM.
@@ -901,16 +901,23 @@ Implemented in `frontend/src/mascot/` and `frontend/src/components/mascot/`.
                                      ▼
                     ┌──────────────────────────────────┐
                     │         MascotRenderer           │
-                    │  AtlasStage (dock | travel)      │
-                    │   ├── AtlasCanvas (R3F, ssr:false)│
-                    │   │    └── AtlasModel            │
-                    │   │         └── face.ts (canvas  │
-                    │   │            texture per state)│
+                    │  AtlasStage (corner dock)        │
+                    │   ├── AtlasPortrait (canonical   │
+                    │   │     render, framed to bust)  │
+                    │   ├── Mode halo (emotion colour) │
                     │   └── Speech bubble + CTA        │
                     └──────────────────────────────────┘
 ```
 
 ### Modules
+
+> **Rendering decision (2026-08-09).** The corner mascot uses the **canonical
+> render** (`AtlasPortrait`), not live 3D. A procedural three.js Atlas was built and
+> evaluated, but at 60–104px a rendered illustration reads far better than primitives
+> and matches the brand sheet exactly — the same reasoning behind Duolingo's flat
+> corner mascot. Emotion remains legible through the mode-coloured halo, float
+> intensity (Guardian states go still) and the message itself. The 3D implementation
+> is preserved in git history at commit `ec5cb06` should expressive faces be wanted later.
 
 | Module | File | Responsibility |
 |---|---|---|
@@ -918,9 +925,8 @@ Implemented in `frontend/src/mascot/` and `frontend/src/components/mascot/`.
 | **Policy** | `mascot/policy.ts` | `shouldSpeak()` — pure priority + anti-fatigue decision. Unit-tested, no React |
 | `MascotDialogueEngine` | `mascot/dialogue.ts` | Variant bank + `resolveMessage()` with i18n-first lookup |
 | `MascotEngine` + `EventBus` + `Context` | `mascot/MascotProvider.tsx` | State machine, priority guard, TTL, journey context, `useMascot()` |
-| `MascotAnimationController` | `components/mascot/AtlasModel.tsx` | Per-emotion energy → bob, cape, compass, arms; blink timing |
-| Face renderer | `components/mascot/face.ts` | Draws expression to a canvas → emissive texture |
-| `MascotRenderer` | `components/mascot/AtlasStage.tsx` | Dock/travel layout, bubble, CTA, WebGL fallback |
+| `MascotRenderer` | `components/mascot/AtlasStage.tsx` | Corner dock, halo, bubble, CTA, mobile/RTL rules |
+| Portrait | `components/mascot/AtlasPortrait.tsx` | Frames the canonical render to head-and-shoulders |
 
 ### Contract
 
@@ -1279,5 +1285,5 @@ per-session animation budget (Part 25 rule 9).
 
 ---
 
-*Canonical reference: `frontend/public/mascot/atlas-character-sheet.png`*
+*Canonical reference: `docs/assets/atlas-character-sheet.png`*
 *Implementation: `frontend/src/mascot/`, `frontend/src/components/mascot/`*
