@@ -21,6 +21,13 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction) 
   const origin = req.headers.origin;
   const referer = req.headers.referer;
 
+  // Browsers always attach Origin (or at least Referer) to cross-site requests and JS
+  // cannot forge or suppress it — that's what makes origin-checking work as CSRF defense.
+  // A request with neither header is not a browser request (server-to-server calls, e.g.
+  // the Next.js BFF layer calling this API directly) and so isn't a CSRF vector; it still
+  // has to pass normal auth (Bearer token) to do anything.
+  if (!origin && !referer) return next();
+
   const validOrigin = origin ? allowedOrigins.has(origin) : false;
   const validReferer = referer ? allowedOrigins.has(extractOrigin(referer) || "") : false;
 

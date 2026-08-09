@@ -20,7 +20,14 @@ const guestLinksFn = (t: (key: string) => string) => [
 export function Navbar() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [authed] = useState(() => !!getToken());
+  // Start false to match the server (no localStorage there), then sync after mount —
+  // reading getToken() during the initial render/hydration causes a mismatch when the
+  // client has a token but the server can't know that.
+  const [authed, setAuthed] = useState(false);
+
+  useEffect(() => {
+    setAuthed(!!getToken());
+  }, []);
 
   const guestLinks = guestLinksFn(t);
 

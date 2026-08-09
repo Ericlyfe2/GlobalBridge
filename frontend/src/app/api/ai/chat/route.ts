@@ -310,7 +310,7 @@ export async function POST(req: Request) {
     console.error("[/api/ai/chat] OpenAI error:", msg);
     return Response.json(
       {
-        reply: `I hit an error reaching the AI service: ${msg}. Try again in a moment.`,
+        reply: "The AI assistant is temporarily unavailable — our AI provider is having an outage. Meanwhile you can browse verified Opportunities, check Housing listings, or post in Community. Please try again shortly.",
         sources: [],
         conversation_id: conversationId,
       },

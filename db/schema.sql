@@ -262,7 +262,8 @@ CREATE TABLE IF NOT EXISTS ai_conversations (
     origin_country VARCHAR(100),
     destination_country VARCHAR(100),
     visa_type VARCHAR(100),
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS ai_messages (

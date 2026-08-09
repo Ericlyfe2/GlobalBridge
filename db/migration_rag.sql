@@ -94,6 +94,7 @@ ALTER TABLE ai_conversations ADD COLUMN IF NOT EXISTS summary TEXT;
 ALTER TABLE ai_conversations ADD COLUMN IF NOT EXISTS message_count INT DEFAULT 0;
 ALTER TABLE ai_conversations ADD COLUMN IF NOT EXISTS topics TEXT[];
 ALTER TABLE ai_conversations ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+ALTER TABLE ai_conversations ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
 
 -- =====================
 -- AI FEEDBACK & ANALYTICS
