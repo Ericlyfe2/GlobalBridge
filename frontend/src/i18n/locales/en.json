@@ -921,6 +921,11 @@
     "updateTitle": "New version available",
     "updateBody": "Refresh to get the latest improvements.",
     "updateAction": "Refresh",
-    "later": "Later"
+    "later": "Later",
+    "pushTitle": "Browser notifications",
+    "pushBody": "Get alerted about visa deadlines, new messages and important safety warnings — even when GlobalBridge is closed.",
+    "pushUnsupported": "Your browser or device does not support notifications yet. You will still see everything in your notifications list.",
+    "pushBlockedTitle": "Notifications are blocked",
+    "pushBlockedBody": "You previously blocked notifications for GlobalBridge. To turn them back on, enable notifications for this site in your browser settings."
   }
 }

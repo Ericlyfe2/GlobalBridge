@@ -141,3 +141,21 @@ CREATE TABLE IF NOT EXISTS embedding_cache (
 );
 
 CREATE INDEX IF NOT EXISTS idx_embedding_cache_hash ON embedding_cache(input_hash);
+
+-- =====================
+-- WEB PUSH SUBSCRIPTIONS
+-- =====================
+-- One row per browser/device, not per user: a person may install the PWA on a
+-- phone and a laptop and should receive both. `endpoint` is unique because the
+-- push service guarantees it identifies exactly one subscription.
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    endpoint TEXT NOT NULL UNIQUE,
+    p256dh TEXT NOT NULL,
+    auth TEXT NOT NULL,
+    user_agent TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    last_used_at TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_push_subs_user ON push_subscriptions(user_id);

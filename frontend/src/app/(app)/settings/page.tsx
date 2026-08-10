@@ -4,12 +4,12 @@ import { useState } from "react";
 import { Bell, Lock, Globe, Trash2, Moon } from "lucide-react";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { NotificationToggle } from "@/components/pwa/NotificationToggle";
 
 export default function SettingsPage() {
   const { t, lang, setLang } = useTranslation();
   const [emailNotif, setEmailNotif] = useState(true);
   const [smsNotif, setSmsNotif] = useState(false);
-  const [pushNotif, setPushNotif] = useState(true);
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">
@@ -22,7 +22,10 @@ export default function SettingsPage() {
         <Section icon={<Bell size={16} />} title={t("settings.notifications")}>
           <Toggle label={t("settings.emailNotifications")} sub={t("notifications.types.deadline", { title: "" }).trim() || "Application deadlines, mentor replies, verified opportunities."} value={emailNotif} onChange={setEmailNotif} />
           <Toggle label={t("settings.smsNotifications")} sub="Critical reminders only (visa deadlines, scam alerts)." value={smsNotif} onChange={setSmsNotif} />
-          <Toggle label={t("settings.pushNotifications")} sub="Real-time notifications when GlobalBridge is open." value={pushNotif} onChange={setPushNotif} />
+          {/* Real browser push, replacing a toggle that only set local state.
+              This is the one place permission is ever requested, and only on
+              an explicit click — see usePushNotifications. */}
+          <NotificationToggle />
         </Section>
 
         <Section icon={<Globe size={16} />} title={t("settings.languageLabel")}>

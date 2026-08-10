@@ -197,3 +197,68 @@ self.addEventListener("fetch", (event) => {
 self.addEventListener("message", (event) => {
   if (event.data === "SKIP_WAITING") self.skipWaiting();
 });
+
+// ── push ───────────────────────────────────────────────────────────────────
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch {
+    payload = { title: "GlobalBridge", body: event.data.text() };
+  }
+
+  const kind = payload.kind || "info";
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title || "GlobalBridge", {
+      body: payload.body || "",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      // Tagging by kind collapses repeats of the same category rather than
+      // stacking twelve "new message" notifications on a locked phone.
+      tag: kind,
+      // …but never silently swallow a safety alert behind an existing one.
+      renotify: kind === "security" || kind === "deadline",
+      timestamp: payload.timestamp || Date.now(),
+      // Carried through to the click handler so we can deep-link precisely.
+      data: { href: payload.href || "/notifications", kind },
+      requireInteraction: kind === "security",
+    }),
+  );
+});
+
+// ── notification click ─────────────────────────────────────────────────────
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const href = event.notification.data?.href || "/notifications";
+
+  event.waitUntil(
+    (async () => {
+      const clientList = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+
+      // Prefer focusing an open tab and navigating it, rather than opening a
+      // second copy of the app — duplicate windows are a common and irritating
+      // failure of naive notification handling.
+      for (const client of clientList) {
+        if (new URL(client.url).origin === self.location.origin) {
+          await client.focus();
+          if ("navigate" in client) {
+            try {
+              await client.navigate(href);
+            } catch {
+              /* navigation can be blocked; focus alone is still useful */
+            }
+          }
+          return;
+        }
+      }
+
+      await self.clients.openWindow(href);
+    })(),
+  );
+});

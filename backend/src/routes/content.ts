@@ -3,6 +3,7 @@ import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth } from "../middleware/auth";
 import { sanitizeAllStrings } from "../lib/sanitize";
+import { pushEnabled } from "../lib/push";
 
 export const contentRouter = Router();
 
@@ -51,6 +52,55 @@ contentRouter.post("/notifications/read", requireAuth, async (req, res, next) =>
     } else {
       await query(`UPDATE notifications SET read = TRUE WHERE user_id = $1`, [req.user!.sub]);
     }
+    res.json({ ok: true });
+  } catch (err) { next(err); }
+});
+
+// ===== Web push subscriptions =====
+
+/**
+ * The browser's PushSubscription, reshaped. We store the endpoint and the two
+ * keys rather than the whole object so the columns are queryable and the shape
+ * can't drift with browser changes.
+ */
+const pushSubSchema = z.object({
+  endpoint: z.string().url(),
+  keys: z.object({ p256dh: z.string().min(1), auth: z.string().min(1) }),
+});
+
+/** The public VAPID key the client needs to subscribe. Safe to expose. */
+contentRouter.get("/push/key", (_req, res) => {
+  res.json({ key: process.env.VAPID_PUBLIC_KEY ?? null, enabled: pushEnabled });
+});
+
+contentRouter.post("/push/subscribe", requireAuth, async (req, res, next) => {
+  try {
+    const sub = pushSubSchema.parse(req.body);
+    // Upsert on endpoint: re-subscribing on the same device must not create a
+    // duplicate, and a device handed to a different user must re-point, not
+    // keep delivering the previous user's notifications.
+    await query(
+      `INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth, user_agent)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (endpoint) DO UPDATE
+         SET user_id = EXCLUDED.user_id,
+             p256dh  = EXCLUDED.p256dh,
+             auth    = EXCLUDED.auth,
+             user_agent = EXCLUDED.user_agent`,
+      [req.user!.sub, sub.endpoint, sub.keys.p256dh, sub.keys.auth, req.get("user-agent") ?? null],
+    );
+    res.status(201).json({ ok: true });
+  } catch (err) { next(err); }
+});
+
+contentRouter.post("/push/unsubscribe", requireAuth, async (req, res, next) => {
+  try {
+    const { endpoint } = z.object({ endpoint: z.string().url() }).parse(req.body);
+    // Scoped to the caller so one user can't unsubscribe another's device.
+    await query(
+      `DELETE FROM push_subscriptions WHERE endpoint = $1 AND user_id = $2`,
+      [endpoint, req.user!.sub],
+    );
     res.json({ ok: true });
   } catch (err) { next(err); }
 });

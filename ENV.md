@@ -59,3 +59,32 @@
 - `JWT_EXPIRES_IN=7d` appears in `backend/.env` but is not referenced in source code (legacy).
 - The backend degrades gracefully without `DATABASE_URL` and `REDIS_URL`.
 - See per-directory `.env.example` files for placeholder templates.
+
+## Web Push (optional)
+
+Push notifications are entirely optional. Without these keys the backend logs a
+warning at boot and every push send becomes a no-op — the in-app notification
+list and WebSocket delivery keep working unchanged.
+
+Generate a keypair once, then use the same pair everywhere:
+
+```bash
+cd backend && npx web-push generate-vapid-keys
+```
+
+`backend/.env`
+```
+VAPID_PUBLIC_KEY=<public key>
+VAPID_PRIVATE_KEY=<private key>
+VAPID_SUBJECT=mailto:support@globalbridge.app
+```
+
+The public key is served to the browser via `GET /api/content/push/key` and is
+safe to expose. **The private key must never leave the backend** — it is what
+authorises sends on your behalf.
+
+Apply the migration so `push_subscriptions` exists:
+
+```bash
+cd backend && npx tsx run-migration.ts ../db/migration_rag.sql
+```
