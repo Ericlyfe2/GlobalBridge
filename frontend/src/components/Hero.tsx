@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
 import { GLOBE_MARKERS, GLOBE_CONNECTIONS } from "@/data/globeNetwork";
+import HeroVideo from "@/components/HeroVideo";
 
 // Canvas globe is client-only (uses requestAnimationFrame / devicePixelRatio) —
 // load it lazily so it never runs during SSR and is code-split from the hero.
@@ -37,15 +38,10 @@ export default function Hero() {
       id="hero"
       className="relative w-full h-screen overflow-hidden bg-ink-900"
     >
-      {/* ── Background Video ── */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute inset-0 h-full w-full object-cover z-0"
-        src="/video/hero-loop.mp4"
-      />
+      {/* ── Background Video ──
+          Poster paints immediately; the clip itself is skipped entirely on
+          Save-Data, slow connections and reduced-motion. See HeroVideo. */}
+      <HeroVideo />
 
       {/* ── Interactive globe ──
           Sits above the video (z-0) but below the gradient/grain overlays (z-10)

@@ -89,8 +89,9 @@ function isNeverCacheable(url, request) {
   if (request.headers.has("Authorization")) return true;
   // Next.js server-action and RSC payloads are per-user and per-session.
   if (url.searchParams.has("_rsc")) return true;
-  // Video is far too large to cache sensibly — hero-loop.mp4 alone is 23MB, and
-  // range requests produce partial responses that break a naive cache anyway.
+  // Video stays uncached even after the hero clip was cut from 23MB to 1.6MB:
+  // browsers fetch media with Range requests, and storing a 206 partial as if
+  // it were a complete response yields a truncated, unplayable cache hit.
   if (url.pathname.startsWith("/video/")) return true;
   return false;
 }
