@@ -79,6 +79,9 @@ export type MascotEvent =
   | "SCAM_WARNING"
   | "VERIFICATION_REQUIRED"
   | "EMERGENCY_MODE"
+  // CONNECTIVITY
+  | "CONNECTION_LOST"
+  | "CONNECTION_RESTORED"
   // SYSTEM
   | "THINKING"
   | "ERROR"
@@ -184,6 +187,10 @@ export const EVENT_TABLE: Record<MascotEvent, EventSpec> = {
   SCAM_WARNING:          S("alert", "guardian", PRIORITY.critical, 0),
   VERIFICATION_REQUIRED: S("serious", "guardian", PRIORITY.warning, 0),
   EMERGENCY_MODE:        S("serious", "guardian", PRIORITY.critical, 0),
+  // CONNECTIVITY — ambient by design: losing signal is not an emergency, and
+  // must never be able to bury a scam warning.
+  CONNECTION_LOST:      S("concerned", "companion", PRIORITY.ambient, 8000),
+  CONNECTION_RESTORED:  S("happy", "companion", PRIORITY.ambient, 5000),
   // SYSTEM
   THINKING:       S("thinking", "navigator", PRIORITY.ambient, 0),
   // `notable`, not `warning`: an error should always surface (never rate-limited)

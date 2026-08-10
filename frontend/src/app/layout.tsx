@@ -9,6 +9,11 @@ import { HreflangMeta } from "@/components/HreflangMeta";
 import { SUPPORTED_LANGUAGES, type Lang } from "@/i18n/config";
 import SmoothScroll from "@/components/SmoothScroll";
 import { MascotProvider } from "@/mascot/MascotProvider";
+// A "use client" component, imported directly: `ssr: false` isn't permitted in
+// a Server Component, and isn't needed here — every piece of state it renders
+// from starts falsy, so it emits nothing during SSR and all browser-only work
+// (serviceWorker, navigator.onLine, beforeinstallprompt) happens in effects.
+import { PWAProvider } from "@/components/pwa/PWAProvider";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://globalbridge.app";
 const SITE_NAME = "GlobalBridge";
@@ -36,10 +41,24 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: SITE_NAME }],
   icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
-    apple: [{ url: "/favicon.svg" }],
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    // iOS ignores the manifest for the home-screen icon and reads this instead.
+    // It also ignores transparency, so this PNG has the background baked in.
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
   },
   manifest: "/manifest.webmanifest",
+  // Makes iOS launch from the home screen in standalone chrome-less mode.
+  appleWebApp: {
+    capable: true,
+    title: "GlobalBridge",
+    // `default` keeps the status bar legible against the app's own header;
+    // `black-translucent` would let content slide under the notch.
+    statusBarStyle: "default",
+  },
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
@@ -113,6 +132,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <AuthSync />
             <ReducedMotionGuard />
             <MascotProvider>
+              {/* Inside MascotProvider so connection changes can reach Atlas
+                  through the normal event pipeline rather than bypassing it. */}
+              <PWAProvider />
               <SmoothScroll>
                 {children}
               </SmoothScroll>

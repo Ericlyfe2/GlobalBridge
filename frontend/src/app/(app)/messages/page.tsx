@@ -90,9 +90,14 @@ export default function MessagesPage() {
   // WebSocket connection for real-time messages
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectRef = useRef<number>(0);
+  /** Pending reconnect timer, so cleanup can cancel it. */
+  const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Set on unmount so a deliberate close doesn't trigger a reconnect. */
+  const closedRef = useRef(false);
 
   useEffect(() => {
     if (!authed) return;
+    closedRef.current = false;
     const token = getToken();
     if (!token) return;
 
@@ -121,16 +126,40 @@ export default function MessagesPage() {
 
       ws.onclose = () => {
         wsRef.current = null;
+        // Don't fight a known-dead network: wait for the `online` event instead
+        // of burning through the backoff schedule while offline.
+        if (closedRef.current || !navigator.onLine) return;
         const delay = Math.min(1000 * Math.pow(2, reconnectRef.current), 30000);
         reconnectRef.current++;
-        setTimeout(connect, delay);
+        retryRef.current = setTimeout(connect, delay);
       };
 
       ws.onerror = () => ws.close();
     }
 
     connect();
-    return () => { wsRef.current?.close(); };
+
+    // Reconnect promptly when the network returns rather than waiting out
+    // whatever backoff delay happened to be pending.
+    const onOnline = () => {
+      if (closedRef.current || wsRef.current) return;
+      if (retryRef.current) clearTimeout(retryRef.current);
+      reconnectRef.current = 0;
+      connect();
+    };
+    window.addEventListener("online", onOnline);
+
+    return () => {
+      // Mark closed *before* closing, so the onclose handler above doesn't
+      // schedule a reconnect for a socket we're deliberately tearing down.
+      // Without this, navigating away from /messages left a timer firing
+      // forever and opening orphan sockets.
+      closedRef.current = true;
+      window.removeEventListener("online", onOnline);
+      if (retryRef.current) clearTimeout(retryRef.current);
+      wsRef.current?.close();
+      wsRef.current = null;
+    };
   }, [authed, active]);
 
   useEffect(() => {

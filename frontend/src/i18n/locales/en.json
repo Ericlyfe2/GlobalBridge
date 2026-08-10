@@ -904,5 +904,23 @@
   "error": {
     "title": "Sorry — this page misbehaved.",
     "description": "Don't worry, your data is safe. Try the retry button. If it keeps failing, ping us via Help."
+  },
+  "pwa": {
+    "installTitle": "Take GlobalBridge with you",
+    "installBody": "Install the app for faster access to your visa roadmap, opportunities, messages and important updates.",
+    "install": "Install",
+    "notNow": "Not now",
+    "offlineBadge": "You're offline",
+    "reconnecting": "Reconnecting…",
+    "offlineBanner": "You're offline — some features are unavailable",
+    "offlineTitle": "You're offline",
+    "offlineBody": "Some GlobalBridge features need a connection, but your saved resources are still here. We'll reconnect automatically.",
+    "retry": "Retry connection",
+    "retrying": "Checking…",
+    "stillAvailable": "Still available offline",
+    "updateTitle": "New version available",
+    "updateBody": "Refresh to get the latest improvements.",
+    "updateAction": "Refresh",
+    "later": "Later"
   }
 }

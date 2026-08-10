@@ -163,6 +163,16 @@ export const DIALOGUE: Record<MascotEvent, string[]> = {
     "Stay with me. Here's who to contact right now.",
   ],
 
+  // ── CONNECTIVITY ──────────────────────────────────────────────────────
+  CONNECTION_LOST: [
+    "Looks like we are offline. Do not worry — your saved resources are still here.",
+    "We have lost the connection. I will keep what you have saved available.",
+  ],
+  CONNECTION_RESTORED: [
+    "We are back online. Let me refresh your latest updates.",
+    "Connection is back. Everything should be current again.",
+  ],
+
   // ── SYSTEM ────────────────────────────────────────────────────────────
   THINKING: ["Thinking this through…", "Let me work through that…", "One moment…"],
   ERROR: [
