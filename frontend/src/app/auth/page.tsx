@@ -12,6 +12,9 @@ import { roleHome } from "@/lib/roles";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
+import { AtlasPortrait } from "@/components/mascot/AtlasPortrait";
+import AuthVideo from "@/components/AuthVideo";
+import Lightfall from "@/components/Lightfall";
 
 function AuthContent() {
   const { t } = useTranslation();
@@ -94,10 +97,17 @@ function AuthContent() {
     <div className="min-h-screen grid md:grid-cols-2 bg-white dark:bg-gray-950">
       {/* ── Left: brand / trust panel ───────────────────────────── */}
       <aside className="relative hidden md:flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0B1F3A] via-[#0A2540] to-[#06121F] text-white p-8 lg:p-12">
+        {/* Real footage (a public airport concourse), not a stock illustration —
+            fits the "your move, held together" positioning better than a flat
+            gradient. Network-aware: see AuthVideo for the Save-Data / 2G /
+            reduced-motion rules that fall back to a static poster frame. */}
+        <AuthVideo />
+        {/* Darkening scrim so white text stays legible over the footage. */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-[#0B1F3A]/90 via-[#0A2540]/85 to-[#06121F]/90" />
         {/* world-map dot motif */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.18]"
+          className="pointer-events-none absolute inset-0 z-0 opacity-[0.18]"
           style={{
             backgroundImage:
               "radial-gradient(circle, rgba(255,255,255,0.7) 1px, transparent 1.4px)",
@@ -152,12 +162,36 @@ function AuthContent() {
       </aside>
 
       {/* ── Right: form ─────────────────────────────────────────── */}
-      <main className="flex flex-col">
-        <header className="flex items-center justify-between px-6 py-5 md:px-10">
+      <main className="relative flex flex-col overflow-hidden">
+        {/* Ambient WebGL background (React Bits' Lightfall, ported to TS) —
+            kept subtle (low opacity) so it reads as texture behind the card
+            rather than competing with it, and skips entirely under
+            prefers-reduced-motion (see Lightfall.tsx). */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+          <Lightfall
+            colors={["#14b8a6", "#5eead4", "#0d9488"]}
+            backgroundColor="#0a2540"
+            speed={0.4}
+            streakCount={4}
+            streakWidth={0.8}
+            streakLength={1.2}
+            glow={0.9}
+            density={0.5}
+            twinkle={0.6}
+            zoom={3}
+            backgroundGlow={0.35}
+            opacity={0.5}
+            mouseInteraction
+            mouseStrength={0.4}
+            mouseRadius={0.8}
+          />
+        </div>
+
+        <header className="relative z-10 flex items-center justify-between px-6 py-5 md:px-10">
           <Link href="/" className="md:hidden"><Logo /></Link>
           <span className="hidden md:block text-sm text-ink-500 dark:text-gray-400">
             {isSignup ? t("auth.alreadyHaveAccount") : t("auth.newToPlatform")}{" "}
-            <button onClick={switchMode} className="font-semibold text-emerald-600 hover:text-emerald-700">
+            <button onClick={switchMode} className="font-semibold text-clay-600 hover:text-clay-700">
               {isSignup ? t("auth.signIn") : t("auth.createAccount")}
             </button>
           </span>
@@ -167,7 +201,7 @@ function AuthContent() {
         <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-8 lg:px-10">
           <div className="w-full max-w-md">
             <div className="mb-8">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-clay-500/10 px-3 py-1 text-xs font-medium text-clay-700 dark:text-clay-400">
                 <ShieldCheck size={13} /> {isSignup ? t("auth.createFreeAccount") : t("auth.secureSignIn")}
               </span>
               <h1 className="mt-4 text-3xl font-bold tracking-tight text-[#0A2540] dark:text-white">
@@ -232,8 +266,8 @@ function AuthContent() {
                             onClick={() => setRole(r.value)}
                             className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 text-sm font-medium transition-all ${
                               selected
-                                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-2 ring-emerald-500/30"
-                                : "border-cream-200 dark:border-gray-700 text-ink-700 dark:text-gray-300 hover:border-emerald-300 hover:bg-cream-50 dark:hover:bg-gray-800"
+                                ? "border-clay-500 bg-clay-500/10 text-clay-700 dark:text-clay-400 ring-2 ring-clay-500/30"
+                                : "border-cream-200 dark:border-gray-700 text-ink-700 dark:text-gray-300 hover:border-clay-300 hover:bg-cream-50 dark:hover:bg-gray-800"
                             }`}
                           >
                             <r.icon size={20} />
@@ -276,8 +310,8 @@ function AuthContent() {
                           onClick={() => setSigninRole(r.value)}
                           className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 text-sm font-medium transition-all ${
                             selected
-                              ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-2 ring-emerald-500/30"
-                              : "border-cream-200 dark:border-gray-700 text-ink-700 dark:text-gray-300 hover:border-emerald-300 hover:bg-cream-50 dark:hover:bg-gray-800"
+                              ? "border-clay-500 bg-clay-500/10 text-clay-700 dark:text-clay-400 ring-2 ring-clay-500/30"
+                              : "border-cream-200 dark:border-gray-700 text-ink-700 dark:text-gray-300 hover:border-clay-300 hover:bg-cream-50 dark:hover:bg-gray-800"
                           }`}
                         >
                           <r.icon size={20} />
@@ -295,7 +329,7 @@ function AuthContent() {
                     {t("auth.password")}
                   </label>
                   {!isSignup && (
-                    <Link href="/forgot-password" className="text-xs font-medium text-emerald-600 hover:text-emerald-700">
+                    <Link href="/forgot-password" className="text-xs font-medium text-clay-600 hover:text-clay-700">
                       {t("auth.forgotPassword")}
                     </Link>
                   )}
@@ -308,7 +342,7 @@ function AuthContent() {
                     required minLength={isSignup ? PASSWORD_POLICY.minLength : undefined} maxLength={PASSWORD_POLICY.maxLength}
                     value={password} onChange={(e) => setPassword(e.target.value)}
                     autoComplete={isSignup ? "new-password" : "current-password"}
-                    className="w-full rounded-lg border border-cream-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-9 pr-10 text-sm text-ink-900 dark:text-white focus:border-transparent focus:ring-2 focus:ring-emerald-500"
+                    className="w-full rounded-lg border border-cream-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-9 pr-10 text-sm text-ink-900 dark:text-white focus:border-transparent focus:ring-2 focus:ring-clay-500"
                     placeholder={isSignup ? t("auth.minChars") : t("auth.passwordPlaceholder")}
                   />
                   <button
@@ -324,7 +358,7 @@ function AuthContent() {
 
               <button
                 type="submit" disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-clay-600 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-clay-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}
                 {loading ? t("common.loading") : isSignup ? t("auth.createAccount") : t("auth.signIn")}
@@ -337,7 +371,7 @@ function AuthContent() {
 
             <p className="mt-6 text-center text-sm text-ink-500 dark:text-gray-400 lg:hidden">
               {isSignup ? t("auth.alreadyHaveAccount") : t("auth.dontHaveAccount")}{" "}
-              <button onClick={switchMode} className="font-semibold text-emerald-600 hover:text-emerald-700">
+              <button onClick={switchMode} className="font-semibold text-clay-600 hover:text-clay-700">
                 {isSignup ? t("auth.signIn") : t("auth.createOne")}
               </button>
             </p>
@@ -355,6 +389,22 @@ function AuthContent() {
                 })}.
               </p>
             )}
+
+            {/* Atlas here is decorative + a static tip, not the live event-driven
+                dock (that only lives inside the signed-in app shell). The
+                advice itself is real, evergreen platform guidance — not
+                fabricated per-session content. */}
+            <div className="mt-8 flex items-start gap-3">
+              <AtlasPortrait size={40} className="shrink-0" />
+              <div className="rounded-2xl rounded-tl-sm border border-cream-200 dark:border-gray-700 bg-cream-50 dark:bg-gray-800/60 px-3.5 py-2.5">
+                <p className="flex items-center gap-1 text-xs font-semibold text-leaf-600">
+                  <ShieldCheck size={12} /> {t("auth.securityTipTitle")}
+                </p>
+                <p className="mt-0.5 text-xs leading-relaxed text-ink-600 dark:text-gray-400">
+                  {t("auth.securityTipBody")}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -375,7 +425,7 @@ function GoogleIcon({ size = 16 }: { size?: number }) {
 }
 
 const inputCls =
-  "w-full rounded-lg border border-cream-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-9 pr-4 text-sm text-ink-900 dark:text-white placeholder:text-ink-400 focus:border-transparent focus:ring-2 focus:ring-emerald-500";
+  "w-full rounded-lg border border-cream-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-9 pr-4 text-sm text-ink-900 dark:text-white placeholder:text-ink-400 focus:border-transparent focus:ring-2 focus:ring-clay-500";
 
 function Field({
   label, htmlFor, icon: Icon, children,
@@ -407,7 +457,7 @@ function PasswordStrength({ password }: { password: string }) {
   const passed = checks.filter((c) => c.pass).length;
   const strength = passed <= 2 ? "weak" : passed <= 3 ? "medium" : "strong";
   const barColor: Record<string, string> = {
-    weak: "bg-red-500", medium: "bg-amber-500", strong: "bg-emerald-500",
+    weak: "bg-red-500", medium: "bg-amber-500", strong: "bg-leaf-500",
   };
   const strengthLabel = strength === "weak" ? t("auth.passwordWeak") : strength === "medium" ? t("auth.passwordMedium") : t("auth.passwordStrong");
 
@@ -430,11 +480,11 @@ function PasswordStrength({ password }: { password: string }) {
         {checks.map((c) => (
           <div key={c.label} className="flex items-center gap-1.5 text-xs">
             {c.pass ? (
-              <Check size={12} className="shrink-0 text-emerald-500" />
+              <Check size={12} className="shrink-0 text-leaf-500" />
             ) : (
               <X size={12} className="shrink-0 text-ink-400" />
             )}
-            <span className={c.pass ? "text-emerald-600 dark:text-emerald-400" : "text-ink-500 dark:text-gray-400"}>
+            <span className={c.pass ? "text-leaf-600 dark:text-leaf-400" : "text-ink-500 dark:text-gray-400"}>
               {c.label}
             </span>
           </div>
@@ -448,7 +498,7 @@ export default function AuthPage() {
   return (
     <Suspense fallback={
       <div className="flex min-h-screen items-center justify-center bg-white dark:bg-gray-950">
-        <Loader2 size={24} className="animate-spin text-emerald-500" />
+        <Loader2 size={24} className="animate-spin text-clay-500" />
       </div>
     }>
       <AuthContent />

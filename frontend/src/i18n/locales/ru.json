@@ -425,6 +425,8 @@
     "signIn": "Sign in",
     "createFreeAccount": "Create your free account",
     "secureSignIn": "Secure sign in",
+    "securityTipTitle": "Security tip",
+    "securityTipBody": "Never share your GlobalBridge password with a mentor, landlord, or third-party visa consultant — we will never ask for it.",
     "continueWithGoogle": "Continue with Google",
     "orDivider": "OR",
     "signupSubtitle": "Join thousands building their future abroad — it takes a minute.",
