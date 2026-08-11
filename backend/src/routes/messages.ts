@@ -3,6 +3,7 @@ import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth } from "../middleware/auth";
 import { sanitizeAllStrings } from "../lib/sanitize";
+import { dispatchNotification } from "../lib/push";
 
 export const messagesRouter = Router();
 
@@ -82,6 +83,26 @@ messagesRouter.post("/send", requireAuth, async (req, res, next) => {
       [convo!.id, me, safe.body]
     );
     await query(`UPDATE conversations SET last_message_at = NOW() WHERE id = $1`, [convo!.id]);
+
+    // Respond first: delivery is best-effort and must never delay or fail the
+    // send. The message is already committed at this point.
     res.status(201).json({ message: msg, conversation_id: convo!.id });
+
+    // Notify the recipient — in-app row (source of truth), WebSocket to open
+    // tabs, and web push to closed devices. Previously nothing was raised here
+    // at all, so a recipient with the app shut had no idea a message arrived.
+    const sender = await queryOne<{ full_name: string }>(
+      `SELECT full_name FROM users WHERE id = $1`,
+      [me],
+    );
+    const preview = safe.body.length > 120 ? `${safe.body.slice(0, 117)}…` : safe.body;
+    await dispatchNotification({
+      userId: safe.recipient_id,
+      kind: "message",
+      title: sender?.full_name ? `New message from ${sender.full_name}` : "New message",
+      body: preview,
+      // Deep-link straight to the thread rather than the app root.
+      href: `/messages?c=${convo!.id}`,
+    });
   } catch (err) { next(err); }
 });

@@ -270,7 +270,7 @@ export default function MessagesPage() {
                   </p>
                 </div>
               </div>
-              <button className="p-2 rounded-md hover:bg-cream-200"><MoreVertical size={16} /></button>
+              <button className="grid min-h-11 min-w-11 place-items-center rounded-md hover:bg-cream-200"><MoreVertical size={16} /></button>
             </header>
 
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6 space-y-4">

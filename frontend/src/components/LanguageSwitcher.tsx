@@ -57,7 +57,9 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "ful
           aria-haspopup="menu"
           aria-expanded={open}
           title={`${current.native} — change language`}
-          className="flex items-center gap-1.5 rounded-lg border border-cream-300 bg-[var(--color-surface)] px-2.5 py-1.5 text-ink-700 shadow-sm transition hover:border-clay-300 hover:bg-cream-100"
+          // min-h-11 (44px) for a comfortable touch target; padding alone left
+          // this at 32px, which is fiddly on a phone.
+          className="flex min-h-11 items-center gap-1.5 rounded-lg border border-cream-300 bg-[var(--color-surface)] px-2.5 py-1.5 text-ink-700 shadow-sm transition hover:border-clay-300 hover:bg-cream-100"
         >
           {translating ? (
             <Loader2 size={16} className="animate-spin" />

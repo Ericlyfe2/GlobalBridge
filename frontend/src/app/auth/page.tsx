@@ -277,7 +277,7 @@ function AuthContent() {
                   <button
                     type="button" onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? t("common.hide") : t("common.show")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600" tabIndex={-1}
+                    className="absolute right-1 top-1/2 grid min-h-11 min-w-11 -translate-y-1/2 place-items-center text-ink-400 hover:text-ink-600" tabIndex={-1}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>

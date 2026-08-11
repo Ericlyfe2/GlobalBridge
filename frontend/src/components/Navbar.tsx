@@ -80,7 +80,7 @@ export function Navbar() {
           <LanguageSwitcher />
           <ThemeToggle />
           <button
-            className="p-2 rounded-md hover:bg-cream-200"
+            className="grid min-h-11 min-w-11 place-items-center rounded-md hover:bg-cream-200"
             onClick={() => setOpen(!open)}
             aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")}
             aria-expanded={open}

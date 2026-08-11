@@ -25,7 +25,9 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       type="button"
       onClick={toggle}
       aria-label="Toggle theme"
-      className={`p-2 rounded-md text-ink-700 hover:bg-cream-200 transition ${className}`}
+      // min-h/w-11 = 44px, the WCAG 2.5.5 touch target. The icon stays visually
+      // small; only the hit area grows, so nothing shifts on desktop.
+      className={`grid min-h-11 min-w-11 place-items-center rounded-md text-ink-700 transition hover:bg-cream-200 ${className}`}
     >
       {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
     </button>
