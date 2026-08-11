@@ -57,8 +57,21 @@ const EMPLOYER_NAV = [
   { href: "/assistant",          label: "AI Assistant", Icon: Bot },
 ];
 
-export function MobileSidebar({ preset }: { preset: SidebarPreset }) {
-  const [open, setOpen] = useState(false);
+/**
+ * The drawer holding every destination. Optionally controlled, so the mobile
+ * bottom bar's "More" opens this same drawer — two navigation surfaces sharing
+ * one source of truth, rather than a second competing menu.
+ */
+export function MobileSidebar({
+  preset, open: openProp, onOpenChange,
+}: { preset: SidebarPreset; open?: boolean; onOpenChange?: (v: boolean) => void }) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const controlled = openProp !== undefined;
+  const open = controlled ? openProp : internalOpen;
+  const setOpen = (v: boolean) => {
+    if (!controlled) setInternalOpen(v);
+    onOpenChange?.(v);
+  };
   const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
@@ -83,14 +96,18 @@ export function MobileSidebar({ preset }: { preset: SidebarPreset }) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Open menu"
-        className="md:hidden p-2 rounded-md hover:bg-cream-200 text-ink-700"
-      >
-        <Menu size={18} />
-      </button>
+      {/* Hidden when the parent drives it, so the header doesn't show a second
+          menu button next to the bottom bar's "More". */}
+      {!controlled && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Open menu"
+          className="md:hidden grid min-h-11 min-w-11 place-items-center rounded-md text-ink-700 hover:bg-cream-200"
+        >
+          <Menu size={18} />
+        </button>
+      )}
 
       {open && (
         <div className="md:hidden fixed inset-0 z-[90]" role="dialog" aria-modal="true">

@@ -36,6 +36,7 @@ import { useTranslation } from "@/i18n/hooks/useTranslation";
 const CommandPalette = dynamic(() => import("@/components/CommandPalette").then((m) => m.CommandPalette), { ssr: false });
 const CommandTrigger = dynamic(() => import("@/components/CommandPalette").then((m) => m.CommandTrigger), { ssr: false });
 const MobileSidebar = dynamic(() => import("@/components/MobileSidebar").then((m) => m.MobileSidebar), { ssr: false });
+const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav").then((m) => m.MobileBottomNav), { ssr: false });
 const AtlasStage = dynamic(() => import("@/components/mascot/AtlasStage").then((m) => m.AtlasStage), { ssr: false });
 
 type Role = "student" | "mentor" | "employer" | "admin" | null;
@@ -45,6 +46,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [role, setRole] = useState<Role>(null);
+  // Lifted so the bottom bar's "More" and the header button open the same drawer.
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     try { setRole(localStorage.getItem("user-role") as Role); } catch { setRole(null); }
@@ -141,7 +144,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-14 border-b border-cream-200 bg-cream-50 px-4 md:px-6 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <MobileSidebar preset="app" />
+            <MobileSidebar preset="app" open={drawerOpen} onOpenChange={setDrawerOpen} />
             <CommandTrigger />
           </div>
 
@@ -156,11 +159,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main id="main-content" className="flex-1 overflow-auto">{children}</main>
+        {/* pb-20 on mobile clears the fixed bottom bar so the last item in any
+            list stays reachable; md:pb-0 restores desktop spacing. */}
+        <main id="main-content" className="flex-1 overflow-auto pb-20 md:pb-0">{children}</main>
       </div>
+
+      {/* Mobile-only bottom bar. "More" opens the same drawer as the header. */}
+      <MobileBottomNav onOpenMore={() => setDrawerOpen(true)} />
+
       {/* Atlas rides along the whole signed-in app; individual pages just
-          raise events and the engine decides whether he speaks. */}
-      <AtlasStage variant="dock" />
+          raise events and the engine decides whether he speaks.
+          --gb-dock-offset lifts him above the bottom bar on mobile so the two
+          don't overlap; AtlasStage adds it to its own bottom inset. */}
+      <div className="contents [--gb-dock-offset:4rem] md:[--gb-dock-offset:0px]">
+        <AtlasStage variant="dock" />
+      </div>
     </div>
     </AuthGuard>
   );

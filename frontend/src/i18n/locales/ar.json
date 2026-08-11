@@ -142,7 +142,10 @@
     "signIn": "تسجيل الدخول",
     "getStarted": "ابدأ الآن",
     "openMenu": "افتح القائمة",
-    "closeMenu": "أغلق القائمة"
+    "closeMenu": "أغلق القائمة",
+    "more": "المزيد",
+    "primary": "التنقل الرئيسي",
+    "visaRoadmap": "خطة التأشيرة"
   },
   "tools": {
     "countryCompare": {

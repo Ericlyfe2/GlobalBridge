@@ -130,7 +130,10 @@
     "signIn": "Sign in",
     "getStarted": "Get started",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "more": "More",
+    "primary": "Primary",
+    "visaRoadmap": "Visa Roadmap"
   },
   "tools": {
     "countryCompare": {

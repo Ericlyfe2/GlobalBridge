@@ -154,7 +154,12 @@ export function AtlasStage({ variant = "dock" }: { variant?: "dock" }) {
       className={`pointer-events-none fixed z-[60] flex items-end gap-2 ${
         rtl ? "left-3 flex-row-reverse" : "right-3"
       }`}
-      style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
+      // --gb-dock-offset is set by the signed-in layout to lift Atlas above the
+      // mobile bottom navigation. Defaults to 0 everywhere else.
+      style={{
+        bottom:
+          "calc(1rem + env(safe-area-inset-bottom, 0px) + var(--gb-dock-offset, 0px))",
+      }}
     >
       {message && open && (
         <div
