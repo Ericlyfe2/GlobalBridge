@@ -2,22 +2,65 @@
 
 import { useEffect, useState } from "react";
 import {
-  Users, ShieldCheck, Flag, FileText, TrendingUp, AlertTriangle, Activity, Bot,
+  Users, ShieldCheck, Flag, TrendingUp, AlertTriangle, Activity, Bot,
   GraduationCap, Briefcase, Building2, Bell, BarChart3, MessageSquare, Home, Award,
+  Download, ScrollText, User as UserIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { authFetch } from "@/lib/auth";
 
 type HealthProbe = { name: string; status: "up" | "down" | "not_configured"; latencyMs: number | null; detail?: string };
 type DashboardStats = Record<string, number>;
+type SignupPoint = { date: string; count: number };
+type AuditEntry = {
+  id: string; action: string; target_type: string | null;
+  created_at: string; admin_name: string | null; admin_email: string | null;
+};
 
 const HEALTH_LABELS: Record<string, string> = { postgres: "PostgreSQL", redis: "Redis cache", ai: "AI service" };
+
+const AUDIT_LABELS: Record<string, string> = {
+  "user.verify": "Verified a user",
+  "user.status": "Changed a user's status",
+  "report.resolve": "Resolved a report",
+  "listing.status": "Changed a listing's status",
+};
+
+/** Compact 30-day signup sparkline. The full breakdown lives on /admin/analytics — this is a glance, not a duplicate of that page. */
+function SignupSparkline({ series }: { series: SignupPoint[] }) {
+  const max = Math.max(...series.map((p) => p.count), 1);
+  const w = 100, h = 32;
+  const step = series.length > 1 ? w / (series.length - 1) : w;
+  const points = series.map((p, i) => `${i * step},${h - (p.count / max) * h}`).join(" ");
+  const total = series.reduce((sum, p) => sum + p.count, 0);
+  return (
+    <div>
+      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="w-full h-16">
+        <polyline points={points} fill="none" stroke="var(--color-clay-500)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+      </svg>
+      <p className="mt-1 text-xs text-ink-500">{total} new signups, last {series.length} days</p>
+    </div>
+  );
+}
+
+function downloadStatsCsv(stats: DashboardStats) {
+  const rows = Object.entries(stats).map(([k, v]) => `${k},${v}`).join("\n");
+  const blob = new Blob([`metric,value\n${rows}`], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `globalbridge-admin-snapshot-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function AdminOverview() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [health, setHealth] = useState<HealthProbe[] | null>(null);
   const [healthErr, setHealthErr] = useState(false);
+  const [signups, setSignups] = useState<SignupPoint[] | null>(null);
+  const [activity, setActivity] = useState<AuditEntry[] | null>(null);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -50,6 +93,30 @@ export default function AdminOverview() {
     return () => { active = false; clearInterval(id); };
   }, []);
 
+  useEffect(() => {
+    const ctrl = new AbortController();
+    (async () => {
+      try {
+        const res = await authFetch("/api/users/summary/signups?days=30", { signal: ctrl.signal }, 30000);
+        const data = await res.json();
+        if (res.ok) setSignups(data.series);
+      } catch { /* optional widget */ }
+    })();
+    return () => ctrl.abort();
+  }, []);
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    (async () => {
+      try {
+        const res = await authFetch("/api/admin/audit?limit=4", { signal: ctrl.signal }, 30000);
+        const data = await res.json();
+        if (res.ok) setActivity(data.entries);
+      } catch { /* optional widget */ }
+    })();
+    return () => ctrl.abort();
+  }, []);
+
   const statCards = stats ? [
     { label: "Total Users", value: stats.total_users?.toLocaleString() ?? "0", icon: Users, tone: "clay", href: "/admin/users" },
     { label: "Students", value: stats.students?.toLocaleString() ?? "0", icon: GraduationCap, tone: "sky", href: "/admin/users?role=student" },
@@ -67,14 +134,22 @@ export default function AdminOverview() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-display font-semibold text-ink-900">Admin Dashboard</h1>
-          <p className="text-sm text-ink-600 mt-1">Platform overview and management center.</p>
+          <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900 dark:text-white">Admin Dashboard</h1>
+          <p className="text-sm text-ink-600 dark:text-gray-400 mt-1">Platform overview and management center.</p>
         </div>
         <div className="flex items-center gap-2">
           <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${healthErr ? "bg-red-500/10 text-red-600" : "bg-leaf-500/10 text-leaf-600"}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${healthErr ? "bg-red-500" : "bg-leaf-500"}`} />
             {healthErr ? "System Degraded" : "All Systems Online"}
           </span>
+          {stats && (
+            <button
+              onClick={() => downloadStatsCsv(stats)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-cream-200 dark:border-gray-700 px-3 py-1.5 text-xs font-medium text-ink-700 dark:text-gray-300 hover:border-clay-300"
+            >
+              <Download size={13} /> Export snapshot
+            </button>
+          )}
         </div>
       </header>
 
@@ -108,18 +183,31 @@ export default function AdminOverview() {
                 </div>
                 {s.warn && <AlertTriangle size={14} className="text-amber-500" />}
               </div>
-              <p className="mt-4 text-xl sm:text-2xl font-display font-semibold text-ink-900">{s.value}</p>
+              <p className="mt-4 text-xl sm:text-2xl font-display font-semibold text-ink-900 dark:text-white">{s.value}</p>
               <p className="text-xs text-ink-500 mt-1">{s.label}</p>
             </Link>
           ))}
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
+        {/* Signup growth */}
+        <div className="card lg:col-span-2">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="font-display text-base sm:text-lg font-semibold text-ink-900 dark:text-white flex items-center gap-2">
+              <TrendingUp size={16} className="text-clay-500" /> User Growth
+            </h2>
+            <Link href="/admin/analytics" className="text-xs font-medium text-clay-600 hover:text-clay-700">Full analytics</Link>
+          </div>
+          {signups ? <SignupSparkline series={signups} /> : (
+            <div className="h-16 flex items-center justify-center text-xs text-ink-400">Loading…</div>
+          )}
+        </div>
+
         {/* System Status */}
         <div className="card lg:col-span-1">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display text-base sm:text-lg font-semibold text-ink-900">System Status</h2>
+            <h2 className="font-display text-base sm:text-lg font-semibold text-ink-900 dark:text-white">System Status</h2>
             <Activity size={14} className={healthErr ? "text-red-500" : "text-ink-500"} />
           </div>
           {healthErr && <p className="text-xs text-red-600"><span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block mr-1" /> Unable to reach API health endpoint.</p>}
@@ -127,13 +215,15 @@ export default function AdminOverview() {
           {health && <ul className="space-y-3">{health.map((s) => {
             const label = HEALTH_LABELS[s.name] ?? s.name;
             const cfg = s.status === "up" ? { text: "Online", dot: "bg-leaf-500", tone: "text-leaf-600" } : s.status === "not_configured" ? { text: "Not configured", dot: "bg-ink-300", tone: "text-ink-500" } : { text: "Down", dot: "bg-red-500", tone: "text-red-600" };
-            return <li key={s.name} className="flex items-center justify-between text-sm"><span className="text-ink-700">{label}</span><span className={`flex items-center gap-1.5 text-xs font-medium ${cfg.tone}`}>{s.status === "up" && s.latencyMs != null && <span className="text-ink-400 tabular-nums">{s.latencyMs}ms</span>}<span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />{cfg.text}</span></li>;
+            return <li key={s.name} className="flex items-center justify-between text-sm"><span className="text-ink-700 dark:text-gray-300">{label}</span><span className={`flex items-center gap-1.5 text-xs font-medium ${cfg.tone}`}>{s.status === "up" && s.latencyMs != null && <span className="text-ink-400 tabular-nums">{s.latencyMs}ms</span>}<span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />{cfg.text}</span></li>;
           })}</ul>}
         </div>
+      </div>
 
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Quick Actions */}
         <div className="card lg:col-span-1">
-          <h2 className="font-display text-base sm:text-lg font-semibold text-ink-900 mb-4">Quick Actions</h2>
+          <h2 className="font-display text-base sm:text-lg font-semibold text-ink-900 dark:text-white mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 gap-2">
             {[
               { href: "/admin/users", label: "Manage Users", icon: Users },
@@ -142,9 +232,9 @@ export default function AdminOverview() {
               { href: "/admin/notifications", label: "Send Notification", icon: Bell },
               { href: "/admin/settings", label: "Platform Settings", icon: SettingsIcon },
             ].map((l) => (
-              <Link key={l.href} href={l.href} className="flex items-center gap-3 p-2.5 rounded-lg border border-cream-200 hover:border-clay-300 transition text-sm">
+              <Link key={l.href} href={l.href} className="flex items-center gap-3 p-2.5 rounded-lg border border-cream-200 dark:border-gray-800 hover:border-clay-300 transition text-sm">
                 <div className="w-8 h-8 rounded-md bg-clay-500/15 text-clay-600 flex items-center justify-center shrink-0"><l.icon size={14} /></div>
-                <span className="font-medium text-ink-900">{l.label}</span>
+                <span className="font-medium text-ink-900 dark:text-white">{l.label}</span>
               </Link>
             ))}
           </div>
@@ -152,7 +242,7 @@ export default function AdminOverview() {
 
         {/* Community Breakdown */}
         {stats && <div className="card lg:col-span-1">
-          <h2 className="font-display text-base sm:text-lg font-semibold text-ink-900 mb-4">Community</h2>
+          <h2 className="font-display text-base sm:text-lg font-semibold text-ink-900 dark:text-white mb-4">Community</h2>
           <div className="grid grid-cols-2 gap-2">
             {[
               { label: "Students", value: stats.students, icon: GraduationCap },
@@ -160,14 +250,43 @@ export default function AdminOverview() {
               { label: "Employers", value: stats.employers, icon: Building2 },
               { label: "Admins", value: (stats.admins ?? 0) + 1, icon: Users },
             ].map((r) => (
-              <div key={r.label} className="rounded-lg border border-cream-200 p-3 text-center">
+              <div key={r.label} className="rounded-lg border border-cream-200 dark:border-gray-800 p-3 text-center">
                 <r.icon size={16} className="mx-auto text-ink-400 mb-1" />
-                <p className="text-lg font-display font-semibold text-ink-900">{(r.value ?? 0).toLocaleString()}</p>
+                <p className="text-lg font-display font-semibold text-ink-900 dark:text-white">{(r.value ?? 0).toLocaleString()}</p>
                 <p className="text-xs text-ink-500">{r.label}</p>
               </div>
             ))}
           </div>
         </div>}
+
+        {/* Recent activity */}
+        <div className="card lg:col-span-1">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display text-base sm:text-lg font-semibold text-ink-900 dark:text-white">Recent Activity</h2>
+            <Link href="/admin/audit" className="text-xs font-medium text-clay-600 hover:text-clay-700">View all</Link>
+          </div>
+          {!activity && (
+            <ul className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <li key={i} className="h-4 rounded bg-cream-200 animate-pulse" />)}</ul>
+          )}
+          {activity && activity.length === 0 && <p className="text-xs text-ink-400 py-4 text-center">No admin actions recorded yet.</p>}
+          {activity && activity.length > 0 && (
+            <ul className="space-y-3">
+              {activity.map((a) => (
+                <li key={a.id} className="flex items-start gap-2.5">
+                  <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-cream-100 dark:bg-gray-800 text-ink-500">
+                    <ScrollText size={13} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs text-ink-800 dark:text-gray-200 truncate">{AUDIT_LABELS[a.action] ?? a.action}</p>
+                    <p className="text-[11px] text-ink-400 flex items-center gap-1">
+                      <UserIcon size={10} /> {a.admin_name || a.admin_email || "System"} · {new Date(a.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       {/* Growth Stats */}
@@ -180,7 +299,7 @@ export default function AdminOverview() {
         ].map((s) => (
           <div key={s.label} className="card">
             <p className="text-xs text-ink-500">{s.label}</p>
-            <p className="text-xl font-display font-semibold text-ink-900 mt-1">{(s.value ?? 0).toLocaleString()}</p>
+            <p className="text-xl font-display font-semibold text-ink-900 dark:text-white mt-1">{(s.value ?? 0).toLocaleString()}</p>
           </div>
         ))}
       </div>}

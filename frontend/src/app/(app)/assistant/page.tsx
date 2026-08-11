@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
 import { Send, Sparkles, FileCheck, Globe, Loader2, User, X, Download, Printer, History, CheckCircle, ShieldCheck } from "lucide-react";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
 import { getToken, getUser } from "@/lib/auth";
 import { useMascot } from "@/mascot/MascotProvider";
+import { AtlasPortrait } from "@/components/mascot/AtlasPortrait";
 
 type Source = { title: string; url: string; confidence?: string };
 type Msg = { role: "user" | "assistant"; content: string; sources?: Source[] };
@@ -133,7 +133,7 @@ export default function AssistantPage() {
       <div className="border-b border-cream-200 px-6 py-4 flex items-center justify-between bg-cream-50">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-clay-500 overflow-hidden shrink-0">
-            <Image src="/mascot/atlas.png" alt="Atlas" width={36} height={36} className="w-full h-full object-cover scale-125" />
+            <AtlasPortrait size={36} />
           </div>
           <div>
             <h2 className="font-display font-semibold text-ink-900">{t("assistant.title")}</h2>
@@ -284,7 +284,7 @@ function Message({ msg }: { msg: Msg }) {
           isUser ? "bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-900" : "bg-clay-500"
         }`}
       >
-        {isUser ? <User size={15} /> : <Image src="/mascot/atlas.png" alt="Atlas" width={32} height={32} className="w-full h-full object-cover scale-125" />}
+        {isUser ? <User size={15} /> : <AtlasPortrait size={32} />}
       </div>
       <div className={`flex-1 max-w-[80%] ${isUser ? "text-right" : ""}`}>
         <div

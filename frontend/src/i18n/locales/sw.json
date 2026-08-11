@@ -439,6 +439,12 @@
   },
   "dashboard": {
     "welcome": "Karibu tena, {name}",
+    "safetyBannerTitle": "Scammers target students first",
+    "safetyBannerBody": "Verify any listing, offer, or consultant through the platform before you pay a deposit or share documents.",
+    "safetyBannerCta": "Check community scam alerts",
+    "visaRoadmapCta": "Continue your roadmap",
+    "startVisaRoadmap": "Start your visa roadmap",
+    "startVisaRoadmapBody": "Get a step-by-step checklist tailored to your destination and passport.",
     "studentTitle": "Dashibodi ya Mwanafunzi",
     "mentorTitle": "Dashibodi ya Mshauri",
     "employerTitle": "Dashibodi ya Mwajiri",

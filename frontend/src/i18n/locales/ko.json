@@ -436,6 +436,12 @@
   },
   "dashboard": {
     "welcome": "{name}님, 환영합니다",
+    "safetyBannerTitle": "Scammers target students first",
+    "safetyBannerBody": "Verify any listing, offer, or consultant through the platform before you pay a deposit or share documents.",
+    "safetyBannerCta": "Check community scam alerts",
+    "visaRoadmapCta": "Continue your roadmap",
+    "startVisaRoadmap": "Start your visa roadmap",
+    "startVisaRoadmapBody": "Get a step-by-step checklist tailored to your destination and passport.",
     "studentTitle": "학생 대시보드",
     "mentorTitle": "멘토 대시보드",
     "employerTitle": "고용주 대시보드",

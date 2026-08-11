@@ -1,16 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import {
   Award, Home, Users, Bot, FileText, GraduationCap, Calendar, MessageSquare,
-  ArrowRight, ShieldCheck, TrendingUp, Loader2, AlertCircle, Plane, BadgeCheck, ChevronRight,
-  ShieldAlert, Route, Gauge, Sparkles,
+  ArrowRight, ShieldCheck, TrendingUp, Loader2, AlertCircle, BadgeCheck, ChevronRight,
+  ShieldAlert, Route, Gauge, Sparkles, Check,
 } from "lucide-react";
 import { authFetch, getUser } from "@/lib/auth";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
 import { useMascot } from "@/mascot/MascotProvider";
+import { AtlasPortrait } from "@/components/mascot/AtlasPortrait";
 
 type Dashboard = {
   profile: { completion: number; missingFields: string[]; verificationStatus: string };
@@ -103,7 +103,7 @@ export default function StudentDashboard() {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center py-32">
-        <Loader2 size={24} className="animate-spin text-emerald-500" />
+        <Loader2 size={24} className="animate-spin text-clay-500" />
       </div>
     );
   }
@@ -113,7 +113,7 @@ export default function StudentDashboard() {
       <div className="mx-auto flex max-w-md flex-col items-center justify-center gap-3 py-32 text-center">
         <AlertCircle size={28} className="text-red-500" />
         <p className="text-sm text-ink-600 dark:text-gray-300">{error || "No data available."}</p>
-        <button onClick={() => location.reload()} className="text-sm font-medium text-emerald-600 hover:text-emerald-700">
+        <button onClick={() => location.reload()} className="text-sm font-medium text-clay-600 hover:text-clay-700">
           Try again
         </button>
       </div>
@@ -127,7 +127,7 @@ export default function StudentDashboard() {
       {/* Welcome */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#0A2540] dark:text-white">
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">
             {t("dashboard.welcome", { name: firstName })} 👋
           </h1>
           <p className="mt-1 text-sm text-ink-500 dark:text-gray-400">
@@ -137,8 +137,8 @@ export default function StudentDashboard() {
         <span
           className={`inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
             verified
-              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
-              : "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+              ? "bg-leaf-500/10 text-leaf-600"
+              : "bg-amber-500/10 text-amber-600"
           }`}
         >
           {verified ? <BadgeCheck size={13} /> : <ShieldCheck size={13} />}
@@ -146,7 +146,12 @@ export default function StudentDashboard() {
         </span>
       </header>
 
-      {/* New: AI Intelligence Suite */}
+      {/* Safety first: an evergreen reminder, not a fabricated "trending scam"
+          claim — scam patterns are real and ongoing, but a dashboard shouldn't
+          assert a location-specific spike it can't verify. */}
+      <SafetyBanner />
+
+      {/* AI Intelligence Suite */}
       <AiSuiteBanner />
 
       {/* Profile completion + stats */}
@@ -160,6 +165,10 @@ export default function StudentDashboard() {
         </div>
       </div>
 
+      {/* Visa roadmap — promoted to its own section: for a student mid-journey
+          this is the single most consequential tracker on the page. */}
+      <VisaRoadmapCard visa={data.visa} />
+
       {/* Quick actions */}
       <section>
         <h2 className="mb-3 text-sm font-semibold text-ink-700 dark:text-gray-300">{t("dashboard.quickActions")}</h2>
@@ -167,9 +176,9 @@ export default function StudentDashboard() {
           {QUICK_ACTIONS.map((a) => (
             <Link
               key={a.href} href={a.href}
-              className="group flex flex-col items-start gap-2 rounded-xl border border-cream-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900"
+              className="group flex flex-col items-start gap-2 rounded-xl border border-cream-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-clay-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900"
             >
-              <span className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+              <span className="grid h-9 w-9 place-items-center rounded-lg bg-clay-500/10 text-clay-600">
                 <a.icon size={18} />
               </span>
               <span className="text-xs font-medium leading-snug text-ink-800 dark:text-gray-200">{a.label}</span>
@@ -183,12 +192,6 @@ export default function StudentDashboard() {
         {/* Status trackers */}
         <SectionCard title="Status trackers" className="lg:col-span-1">
           <div className="space-y-4">
-            <Tracker
-              icon={Plane} label="Visa checklist"
-              value={data.visa ? `${data.visa.progress}%` : "Not started"}
-              progress={data.visa?.progress ?? 0}
-              sub={data.visa?.destination ? `Destination: ${data.visa.destination}` : "Start your visa checklist"}
-            />
             <Tracker
               icon={Award} label="Applications"
               value={`${data.stats.savedScholarships} tracked`}
@@ -217,7 +220,7 @@ export default function StudentDashboard() {
                       <p className="truncate text-sm font-medium text-ink-800 dark:text-gray-200">{d.title}</p>
                       <p className="text-xs text-ink-400">{d.country} · {d.type}</p>
                     </div>
-                    <span className="shrink-0 text-xs font-medium text-emerald-600">{fmtDate(d.deadline)}</span>
+                    <span className="shrink-0 text-xs font-medium text-clay-600">{fmtDate(d.deadline)}</span>
                   </Link>
                 </li>
               ))}
@@ -256,10 +259,10 @@ export default function StudentDashboard() {
             {opps.slice(0, 4).map((o) => (
               <Link
                 key={o.id} href={`/opportunities/${o.id}`}
-                className="group rounded-xl border border-cream-200 p-4 transition-all hover:border-emerald-300 hover:shadow-sm dark:border-gray-800"
+                className="group rounded-xl border border-cream-200 p-4 transition-all hover:border-clay-300 hover:shadow-sm dark:border-gray-800"
               >
                 <div className="flex items-center justify-between">
-                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                  <span className="rounded-full bg-clay-500/10 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-clay-700">
                     {o.type}
                   </span>
                   <ChevronRight size={15} className="text-ink-300 transition-transform group-hover:translate-x-0.5" />
@@ -288,8 +291,8 @@ function fmtDate(d: string | null): string {
 function Stat({ icon: Icon, label, value }: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; value: number | string }) {
   return (
     <div className="rounded-xl border border-cream-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-      <Icon size={18} className="text-emerald-600 dark:text-emerald-400" />
-      <p className="mt-3 text-2xl font-bold text-[#0A2540] dark:text-white">{value}</p>
+      <Icon size={18} className="text-clay-600" />
+      <p className="mt-3 text-2xl font-bold text-ink-900 dark:text-white">{value}</p>
       <p className="mt-0.5 text-xs text-ink-500 dark:text-gray-400">{label}</p>
     </div>
   );
@@ -304,9 +307,9 @@ function ProfileCard({ completion, missing }: { completion: number; missing: str
         <svg className="h-20 w-20 -rotate-90" viewBox="0 0 80 80">
           <circle cx="40" cy="40" r={r} fill="none" strokeWidth="7" className="stroke-cream-200 dark:stroke-gray-700" />
           <circle cx="40" cy="40" r={r} fill="none" strokeWidth="7" strokeLinecap="round"
-            className="stroke-emerald-500" strokeDasharray={c} strokeDashoffset={offset} />
+            className="stroke-clay-500" strokeDasharray={c} strokeDashoffset={offset} />
         </svg>
-        <span className="absolute text-sm font-bold text-[#0A2540] dark:text-white">{t("dashboard.profileCompletion", { percent: completion })}</span>
+        <span className="absolute text-sm font-bold text-ink-900 dark:text-white">{t("dashboard.profileCompletion", { percent: completion })}</span>
       </div>
       <div className="min-w-0">
         <p className="text-sm font-semibold text-ink-800 dark:text-gray-200">Profile completion</p>
@@ -315,9 +318,9 @@ function ProfileCard({ completion, missing }: { completion: number; missing: str
             {t("dashboard.missingFields", { fields: missing.slice(0, 2).join(", ") })}{missing.length > 2 ? "…" : ""}
           </p>
         ) : (
-          <p className="mt-1 text-xs text-emerald-600">All set — great work!</p>
+          <p className="mt-1 text-xs text-leaf-600">All set — great work!</p>
         )}
-        <Link href="/dashboard/profile" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700">
+        <Link href="/dashboard/profile" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-clay-600 hover:text-clay-700">
           {t("dashboard.completeProfile")} <ArrowRight size={12} />
         </Link>
       </div>
@@ -337,7 +340,7 @@ function Tracker({
         <span className="text-xs font-semibold text-ink-800 dark:text-gray-200">{value}</span>
       </div>
       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-cream-200 dark:bg-gray-700">
-        <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${progress}%` }} />
+        <div className="h-full rounded-full bg-clay-500 transition-all" style={{ width: `${progress}%` }} />
       </div>
       <p className="mt-1 text-xs text-ink-400">{sub}</p>
     </div>
@@ -350,7 +353,7 @@ function SectionCard({ title, href, className = "", children }: { title: string;
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-ink-800 dark:text-gray-200">{title}</h2>
         {href && (
-          <Link href={href} className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700">
+          <Link href={href} className="inline-flex items-center gap-1 text-xs font-medium text-clay-600 hover:text-clay-700">
             View all <ArrowRight size={12} />
           </Link>
         )}
@@ -372,30 +375,27 @@ const AI_SUITE = [
 
 function AiSuiteBanner() {
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-5 dark:border-emerald-500/20 dark:from-emerald-500/10 dark:via-gray-900 dark:to-gray-900">
-      <Image
-        src="/mascot/atlas.png" alt="" width={120} height={120} aria-hidden
-        className="pointer-events-none absolute -right-3 -top-3 h-24 w-24 object-contain opacity-90 sm:h-28 sm:w-28"
-      />
+    <section className="relative overflow-hidden rounded-2xl border border-clay-500/20 bg-gradient-to-br from-clay-500/5 via-white to-cream-100 p-5 dark:from-clay-500/10 dark:via-gray-900 dark:to-gray-900">
+      <AtlasPortrait size={96} className="pointer-events-none absolute -right-3 -top-3 opacity-90" />
       <div className="mb-4 flex items-center gap-2">
-        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-semibold text-white">
+        <span className="inline-flex items-center gap-1 rounded-full bg-clay-600 px-2.5 py-0.5 text-[11px] font-semibold text-white">
           <Sparkles size={11} /> NEW
         </span>
-        <h2 className="text-sm font-semibold text-[#0A2540] dark:text-white">AI Intelligence Suite</h2>
+        <h2 className="text-sm font-semibold text-ink-900 dark:text-white">AI Intelligence Suite</h2>
       </div>
       <div className="grid gap-3 sm:grid-cols-3">
         {AI_SUITE.map((a) => (
           <Link
             key={a.href} href={a.href}
-            className="group flex items-start gap-3 rounded-xl border border-cream-200 bg-white/70 p-4 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900/60"
+            className="group flex items-start gap-3 rounded-xl border border-cream-200 bg-white/70 p-4 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-clay-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900/60"
           >
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-clay-600/10 text-clay-600">
               <a.icon size={20} />
             </span>
             <div className="min-w-0">
               <p className="flex items-center gap-1 text-sm font-semibold text-ink-900 dark:text-white">
                 {a.title}
-                <ArrowRight size={13} className="text-emerald-500 transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight size={13} className="text-clay-500 transition-transform group-hover:translate-x-0.5" />
               </p>
               <p className="mt-0.5 text-xs leading-snug text-ink-500 dark:text-gray-400">{a.desc}</p>
             </div>
@@ -403,5 +403,121 @@ function AiSuiteBanner() {
         ))}
       </div>
     </section>
+  );
+}
+
+/**
+ * Evergreen safety reminder, not a live threat feed. Real, specific scam
+ * reports live at /scam-alerts (community-sourced) — this banner exists to
+ * point there and to the checker, not to assert an unverifiable claim like
+ * "scams are up 40% in Berlin" on someone's personal dashboard.
+ */
+function SafetyBanner() {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-amber-500/20 text-amber-600">
+        <ShieldAlert size={18} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-ink-900 dark:text-white">{t("dashboard.safetyBannerTitle")}</p>
+        <p className="mt-0.5 text-xs leading-relaxed text-ink-600 dark:text-gray-400">{t("dashboard.safetyBannerBody")}</p>
+      </div>
+      <Link
+        href="/scam-alerts"
+        className="hidden shrink-0 items-center gap-1 self-center rounded-lg border border-amber-500/40 px-3 py-1.5 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-500/10 dark:text-amber-400 sm:flex"
+      >
+        {t("dashboard.safetyBannerCta")} <ArrowRight size={12} />
+      </Link>
+    </div>
+  );
+}
+
+/**
+ * A step-by-step read of `visa.done`/`visa.total` rather than a plain bar —
+ * for a journey this consequential, "3 of 5 steps done" reads better than a
+ * bare percentage. Falls back to a start-CTA when no roadmap exists yet, and
+ * to a plain percent bar if the backend ever omits step counts.
+ */
+function VisaRoadmapCard({ visa }: { visa: Dashboard["visa"] }) {
+  const { t } = useTranslation();
+
+  if (!visa) {
+    return (
+      <SectionCard title="Visa Roadmap">
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-clay-500/10 text-clay-600">
+              <Route size={20} />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-ink-900 dark:text-white">{t("dashboard.startVisaRoadmap")}</p>
+              <p className="mt-0.5 text-xs text-ink-500 dark:text-gray-400">{t("dashboard.startVisaRoadmapBody")}</p>
+            </div>
+          </div>
+          <Link
+            href="/tools/visa-roadmap"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-clay-600 px-4 py-2 text-xs font-semibold text-white hover:bg-clay-700"
+          >
+            {t("dashboard.startVisaRoadmap")} <ArrowRight size={12} />
+          </Link>
+        </div>
+      </SectionCard>
+    );
+  }
+
+  const hasSteps = visa.total > 0;
+
+  return (
+    <SectionCard title="Visa Roadmap">
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-ink-500 dark:text-gray-400">
+            {visa.destination ? `Destination: ${visa.destination}` : "Your visa journey"}
+          </p>
+          <span className="rounded-full bg-leaf-500/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-leaf-600">
+            {visa.progress}% complete
+          </span>
+        </div>
+
+        {hasSteps ? (
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {Array.from({ length: visa.total }).map((_, i) => {
+              const isDone = i < visa.done;
+              const isCurrent = i === visa.done;
+              return (
+                <div key={i} className="flex flex-1 items-center gap-1.5 sm:gap-2">
+                  <span
+                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-semibold transition-colors ${
+                      isDone
+                        ? "bg-leaf-500 text-white"
+                        : isCurrent
+                          ? "bg-white text-clay-600 ring-2 ring-clay-500 dark:bg-gray-900"
+                          : "bg-cream-200 text-ink-400 dark:bg-gray-700"
+                    }`}
+                  >
+                    {isDone ? <Check size={14} /> : i + 1}
+                  </span>
+                  {i < visa.total - 1 && (
+                    <span className={`h-0.5 flex-1 rounded-full ${isDone ? "bg-leaf-500" : "bg-cream-200 dark:bg-gray-700"}`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="h-1.5 overflow-hidden rounded-full bg-cream-200 dark:bg-gray-700">
+            <div className="h-full rounded-full bg-clay-500 transition-all" style={{ width: `${visa.progress}%` }} />
+          </div>
+        )}
+
+        <Link
+          href="/tools/visa-roadmap"
+          className="inline-flex w-fit items-center gap-1.5 text-xs font-semibold text-clay-600 hover:text-clay-700"
+        >
+          {t("dashboard.visaRoadmapCta")} <ArrowRight size={12} />
+        </Link>
+      </div>
+    </SectionCard>
   );
 }

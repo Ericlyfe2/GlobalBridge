@@ -65,6 +65,15 @@ const typeColors: Record<Opp["type"], string> = {
   job: "badge-clay",
 };
 
+const TYPE_TABS: { value: string; label: string }[] = [
+  { value: "", label: "All Opportunities" },
+  { value: "scholarship", label: "Scholarships" },
+  { value: "internship", label: "Internships" },
+  { value: "exchange", label: "Exchanges" },
+  { value: "work_study", label: "Work-Study" },
+  { value: "job", label: "Jobs" },
+];
+
 export default function OpportunitiesPage() {
   const [opps, setOpps] = useState<Opp[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -201,6 +210,23 @@ export default function OpportunitiesPage() {
         </p>
       </div>
 
+      {/* Type tabs — same `type` state the grid and globe already filter on */}
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+        {TYPE_TABS.map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => setType(tab.value)}
+            className={`shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              type === tab.value
+                ? "bg-clay-500 text-white"
+                : "bg-cream-100 dark:bg-gray-800 text-ink-600 dark:text-gray-300 border border-cream-200 dark:border-gray-700 hover:border-clay-300"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       <div className="card !p-4 flex flex-wrap gap-3 items-center">
         <div className="flex-1 min-w-[240px] relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-500" />
@@ -211,14 +237,6 @@ export default function OpportunitiesPage() {
             placeholder="Search by title, country, field..."
           />
         </div>
-        <select value={type} onChange={(e) => setType(e.target.value)} className="input w-auto">
-          <option value="">All types</option>
-          <option value="scholarship">Scholarship</option>
-          <option value="internship">Internship</option>
-          <option value="exchange">Exchange</option>
-          <option value="work_study">Work-Study</option>
-          <option value="job">Job</option>
-        </select>
         <select value={country} onChange={(e) => setCountry(e.target.value)} className="input w-auto">
           <option value="">Any country</option>
           <option>Canada</option>
@@ -228,7 +246,7 @@ export default function OpportunitiesPage() {
           <option>Australia</option>
         </select>
         <button className="btn-ghost border border-cream-300">
-          <Filter size={14} /> Filters
+          <Filter size={14} /> More filters
         </button>
       </div>
 
@@ -266,7 +284,7 @@ export default function OpportunitiesPage() {
       )}
 
       {opps && opps.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {opps.map((o) => (
             <Link
               key={o.id}

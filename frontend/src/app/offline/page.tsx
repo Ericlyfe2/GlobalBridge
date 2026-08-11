@@ -12,11 +12,11 @@
  */
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { RefreshCw, WifiOff, BookOpen, Home, ShieldCheck } from "lucide-react";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
 import { useNetworkStatus } from "@/lib/pwa/useNetworkStatus";
+import { AtlasPortrait } from "@/components/mascot/AtlasPortrait";
 
 export default function OfflinePage() {
   const { t } = useTranslation();
@@ -56,18 +56,10 @@ export default function OfflinePage() {
   ];
 
   return (
-    <main className="flex min-h-[100dvh] flex-col items-center justify-center bg-cream-50 px-6 py-12 text-center dark:bg-ink-900">
+    <main className="flex min-h-[100dvh] flex-col items-center justify-center bg-cream-50 px-6 py-12 text-center">
       <div className="w-full max-w-md">
-        <div className="relative mx-auto mb-6 h-24 w-24">
-          <Image
-            src="/mascot/atlas.png"
-            alt=""
-            aria-hidden
-            width={693}
-            height={379}
-            className="absolute h-[268px] w-[490px] max-w-none opacity-90"
-            style={{ left: "-190px", top: "-16px" }}
-          />
+        <div className="mx-auto mb-6">
+          <AtlasPortrait size={96} className="opacity-90" />
         </div>
 
         <span className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-cream-300 bg-cream-100 px-3 py-1 text-xs font-medium text-ink-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">

@@ -1,9 +1,24 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import {
   Map, Loader2, Bot, Milestone, CalendarClock, Coins, FileText, Lightbulb, AlertTriangle, Route,
+  Fingerprint, PlaneTakeoff, Stamp, MessageSquare, FolderOpen, ArrowRight, ShieldCheck,
 } from "lucide-react";
+
+/** Best-effort icon per phase, matched on real phase.title keywords — purely
+ * cosmetic, never used to imply a phase is "current" or "done" since the
+ * generator has no persistent per-user state to base that on. */
+function phaseIcon(title: string) {
+  const t = title.toLowerCase();
+  if (t.includes("biometric") || t.includes("fingerprint")) return Fingerprint;
+  if (t.includes("interview") || t.includes("consulate") || t.includes("embassy")) return MessageSquare;
+  if (t.includes("decision") || t.includes("approval") || t.includes("issue")) return Stamp;
+  if (t.includes("depart") || t.includes("travel") || t.includes("arrival")) return PlaneTakeoff;
+  if (t.includes("document") || t.includes("gather") || t.includes("prepare")) return FolderOpen;
+  return Milestone;
+}
 
 type Phase = { id: string; title: string; timeframe: string; cost: string; documents: string[]; tip: string };
 type Roadmap = { title: string; totalWeeks: number; phases: Phase[] };
@@ -107,58 +122,88 @@ export default function VisaRoadmapPage() {
 
       {/* Timeline */}
       {roadmap && (
-        <div>
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-            <h2 className="text-xl font-display font-semibold text-ink-900">{roadmap.title}</h2>
-            <span className="badge badge-clay"><CalendarClock size={12} /> ~{roadmap.totalWeeks} weeks end-to-end</span>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+              <h2 className="text-xl font-display font-semibold text-ink-900">{roadmap.title}</h2>
+              <span className="badge badge-clay"><CalendarClock size={12} /> ~{roadmap.totalWeeks} weeks end-to-end</span>
+            </div>
+
+            <ol className="relative border-l-2 border-cream-300 ml-3 space-y-6">
+              {roadmap.phases.map((p, i) => {
+                const Icon = phaseIcon(p.title);
+                return (
+                  <li
+                    key={p.id}
+                    className="relative pl-8 gb-reveal"
+                    style={{ animationDelay: `${i * 110}ms` }}
+                  >
+                    {/* node */}
+                    <span className="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-clay-500 text-white text-xs font-semibold flex items-center justify-center ring-4 ring-cream-50">
+                      {i + 1}
+                    </span>
+
+                    <div className="card">
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <h3 className="font-display text-lg font-semibold text-ink-900 flex items-center gap-2">
+                          <Icon size={15} className="text-clay-600" /> {p.title}
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <span className="badge !bg-cream-200 !text-ink-700"><CalendarClock size={11} /> {p.timeframe}</span>
+                          <span className="badge !bg-amber-500/15 !text-amber-500"><Coins size={11} /> {p.cost}</span>
+                        </div>
+                      </div>
+
+                      {p.documents?.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mb-3">
+                          {p.documents.map((d, di) => (
+                            <span key={di} className="inline-flex items-center gap-1 text-xs text-ink-700 bg-cream-100 border border-cream-200 rounded-md px-2 py-1">
+                              <FileText size={11} className="text-ink-500" /> {d}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {p.tip && (
+                        <p className="text-xs text-ink-600 flex items-start gap-1.5 bg-leaf-500/8 border border-leaf-500/20 rounded-md px-2.5 py-2">
+                          <Lightbulb size={12} className="text-leaf-600 mt-0.5 shrink-0" /> <span>{p.tip}</span>
+                        </p>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+
+            <p className="text-xs text-ink-500 text-center mt-6">
+              ⚠ Timelines and costs are estimates. Always confirm requirements on the official government portal.
+            </p>
           </div>
 
-          <ol className="relative border-l-2 border-cream-300 ml-3 space-y-6">
-            {roadmap.phases.map((p, i) => (
-              <li
-                key={p.id}
-                className="relative pl-8 gb-reveal"
-                style={{ animationDelay: `${i * 110}ms` }}
-              >
-                {/* node */}
-                <span className="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-clay-500 text-white text-xs font-semibold flex items-center justify-center ring-4 ring-cream-50">
-                  {i + 1}
-                </span>
-
-                <div className="card">
-                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                    <h3 className="font-display text-lg font-semibold text-ink-900 flex items-center gap-2">
-                      <Milestone size={15} className="text-clay-600" /> {p.title}
-                    </h3>
-                    <div className="flex items-center gap-2">
-                      <span className="badge !bg-cream-200 !text-ink-700"><CalendarClock size={11} /> {p.timeframe}</span>
-                      <span className="badge !bg-amber-500/15 !text-amber-500"><Coins size={11} /> {p.cost}</span>
-                    </div>
-                  </div>
-
-                  {p.documents?.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                      {p.documents.map((d, di) => (
-                        <span key={di} className="inline-flex items-center gap-1 text-xs text-ink-700 bg-cream-100 border border-cream-200 rounded-md px-2 py-1">
-                          <FileText size={11} className="text-ink-500" /> {d}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {p.tip && (
-                    <p className="text-xs text-ink-600 flex items-start gap-1.5 bg-leaf-500/8 border border-leaf-500/20 rounded-md px-2.5 py-2">
-                      <Lightbulb size={12} className="text-leaf-600 mt-0.5 shrink-0" /> <span>{p.tip}</span>
-                    </p>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ol>
-
-          <p className="text-xs text-ink-500 text-center mt-6">
-            ⚠ Timelines and costs are estimates. Always confirm requirements on the official government portal.
-          </p>
+          {/* Sidebar — evergreen, not tied to any specific fabricated case */}
+          <aside className="lg:col-span-1 space-y-4">
+            <div className="card">
+              <h3 className="flex items-center gap-2 font-display text-base font-semibold text-ink-900 mb-3">
+                <ShieldCheck size={16} className="text-clay-600" /> How to use this
+              </h3>
+              <ul className="space-y-2.5 text-sm text-ink-700">
+                <li className="flex gap-2"><span className="text-clay-500 font-semibold">1.</span> Treat this as a starting checklist, not a guarantee — every country&apos;s process changes.</li>
+                <li className="flex gap-2"><span className="text-clay-500 font-semibold">2.</span> Cross-check every document and fee against your destination&apos;s official immigration site.</li>
+                <li className="flex gap-2"><span className="text-clay-500 font-semibold">3.</span> Re-run this with a different purpose (study/work/settle) to compare paths.</li>
+              </ul>
+            </div>
+            <div className="card bg-clay-500/5 border-clay-500/20">
+              <h3 className="flex items-center gap-2 font-display text-base font-semibold text-ink-900 mb-2">
+                <Bot size={16} className="text-clay-600" /> Have a specific question?
+              </h3>
+              <p className="text-sm text-ink-600 mb-3">
+                The AI Assistant can dig into your exact situation — a document you&apos;re unsure about, a timeline conflict, or a country-specific quirk.
+              </p>
+              <Link href="/assistant" className="btn-accent w-full justify-center text-sm">
+                Ask the AI Assistant <ArrowRight size={13} />
+              </Link>
+            </div>
+          </aside>
         </div>
       )}
 
