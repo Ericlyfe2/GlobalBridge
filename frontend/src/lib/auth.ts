@@ -6,6 +6,8 @@ import { FirebaseError } from "firebase/app";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
   signOut,
   sendPasswordResetEmail,
   updateProfile,
@@ -180,6 +182,29 @@ export async function login(email: string, password: string) {
     const token = await cred.user.getIdToken();
     await syncProfile(cred.user.uid, token, { email: cred.user.email ?? email, full_name: cred.user.displayName ?? email });
   } catch (err) {
+    throw friendlyError(err);
+  }
+}
+
+/**
+ * Works for both sign-in and first-time sign-up: Firebase treats a new Google
+ * account the same as a returning one, and the backend's requireAuth
+ * self-heals a minimal `users` row (role defaults to "student") on first
+ * request if /register-profile was never called — see
+ * backend/src/middleware/auth.ts resolvePostgresUser.
+ */
+export async function loginWithGoogle() {
+  try {
+    const cred = await signInWithPopup(auth, new GoogleAuthProvider());
+    const token = await cred.user.getIdToken();
+    await syncProfile(cred.user.uid, token, {
+      email: cred.user.email ?? "",
+      full_name: cred.user.displayName ?? cred.user.email ?? "User",
+    });
+  } catch (err) {
+    if (err instanceof FirebaseError && err.code === "auth/popup-closed-by-user") {
+      throw new Error("Sign-in was cancelled.");
+    }
     throw friendlyError(err);
   }
 }
