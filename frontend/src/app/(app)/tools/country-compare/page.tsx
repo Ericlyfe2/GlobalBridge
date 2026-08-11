@@ -164,35 +164,35 @@ export default function CountryComparePage() {
           )}
         </div>
 
-        {/* Comparison Grid */}
-        <div className="space-y-3">
-          {result.categories.map((cat, i) => {
-            const Icon = ICON_MAP[cat.icon] ?? Globe;
-            return (
-              <div key={i} className="card">
-                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-cream-200">
-                  <Icon size={16} className="text-clay-600 shrink-0" />
-                  <h3 className="font-display text-sm font-semibold text-ink-900">{cat.label}</h3>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="flex items-start gap-2">
-                    <span className={`fi fi-${result.country1Code} mt-0.5 shrink-0`} aria-hidden="true" />
-                    <div>
-                      <p className="text-xs font-medium text-ink-500 mb-0.5">{result.country1Name}</p>
-                      <p className="text-sm text-ink-700">{cat.country1}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className={`fi fi-${result.country2Code} mt-0.5 shrink-0`} aria-hidden="true" />
-                    <div>
-                      <p className="text-xs font-medium text-ink-500 mb-0.5">{result.country2Name}</p>
-                      <p className="text-sm text-ink-700">{cat.country2}</p>
-                    </div>
-                  </div>
-                </div>
+        {/* Side-by-side country cards. Each row is the AI's own text per
+            category — there's no numeric per-category score in the response,
+            so this stays qualitative rather than faking a bar-chart index. */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {[
+            { name: result.country1Name, code: result.country1Code, key: "country1" as const },
+            { name: result.country2Name, code: result.country2Code, key: "country2" as const },
+          ].map((c) => (
+            <div key={c.key} className="card">
+              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-cream-200">
+                <span className={`fi fi-${c.code} shrink-0`} aria-hidden="true" />
+                <h3 className="font-display text-lg font-semibold text-ink-900">{c.name}</h3>
               </div>
-            );
-          })}
+              <div className="space-y-4">
+                {result.categories.map((cat, i) => {
+                  const Icon = ICON_MAP[cat.icon] ?? Globe;
+                  return (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <Icon size={14} className="text-clay-600 mt-0.5 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-ink-500 mb-0.5">{cat.label}</p>
+                        <p className="text-sm text-ink-700">{cat[c.key]}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </>
     );

@@ -87,6 +87,27 @@ export default function JobsPage() {
         </p>
       </div>
 
+      {/* Type chips — same `type` state the fetch already filters on */}
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+        {([
+          { value: "all", label: "All types" },
+          { value: "job", label: "Full-time" },
+          { value: "internship", label: "Internship" },
+        ] as const).map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => setType(opt.value)}
+            className={`shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              type === opt.value
+                ? "bg-clay-500 text-white"
+                : "bg-cream-100 dark:bg-gray-800 text-ink-600 dark:text-gray-300 border border-cream-200 dark:border-gray-700 hover:border-clay-300"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
       <div className="card !p-4 flex flex-wrap gap-3 items-center">
         <div className="flex-1 min-w-[240px] relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-500" />
@@ -104,19 +125,10 @@ export default function JobsPage() {
             onChange={(e) => setSponsorOnly(e.target.checked)}
             className="accent-clay-500"
           />
-          Visa sponsors only
+          <ShieldCheck size={13} className="text-leaf-600" /> Visa sponsors only
         </label>
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value as typeof type)}
-          className="input w-auto"
-        >
-          <option value="all">All types</option>
-          <option value="job">Full-time</option>
-          <option value="internship">Internship</option>
-        </select>
         <button className="btn-ghost border border-cream-300">
-          <Filter size={14} /> Filters
+          <Filter size={14} /> More filters
         </button>
       </div>
 
