@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { LifeBuoy, Search, MessageCircle, Mail, AlertOctagon, Bot, Sparkles } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 type Topic = "all" | "account" | "visa" | "housing" | "jobs" | "payments" | "safety";
 
@@ -57,6 +58,7 @@ export default function HelpPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
+      <Breadcrumbs items={[{ label: "Help Center" }]} />
 
       <section className="max-w-5xl mx-auto px-6 lg:px-8 py-20 md:py-24">
         <div className="text-center max-w-2xl mx-auto">

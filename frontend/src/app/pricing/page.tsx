@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Check, X, Sparkles, ShieldCheck, Zap } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -88,6 +90,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
+      <Breadcrumbs items={[{ label: "Pricing" }]} />
 
       <section className="max-w-7xl mx-auto px-6 lg:px-8 py-20 md:py-24">
         <div className="max-w-2xl">
@@ -164,6 +167,7 @@ export default function PricingPage() {
       </section>
 
       <Footer />
+      <StickyMobileCTA />
     </div>
   );
 }

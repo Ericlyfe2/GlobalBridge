@@ -32,6 +32,31 @@ contentRouter.get("/stories/:id", async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// ===== Contact form =====
+const contactSchema = z.object({
+  topic: z.enum(["general", "support", "safety", "press", "partner", "institution"]),
+  name: z.string().min(1).max(200),
+  email: z.string().email(),
+  message: z.string().min(1).max(5000),
+});
+
+contentRouter.post("/contact", async (req, res, next) => {
+  try {
+    const b = sanitizeAllStrings(contactSchema.parse(req.body));
+    const saved = await queryOne<{ id: string }>(
+      `INSERT INTO contact_messages (topic, name, email, message) VALUES ($1,$2,$3,$4) RETURNING id`,
+      [b.topic, b.name, b.email, b.message]
+    );
+    // Admins get a real notification so the message doesn't just sit in the table unseen.
+    await query(
+      `INSERT INTO notifications (user_id, kind, title, body, href)
+       SELECT id, 'contact', $1, $2, NULL FROM users WHERE role = 'admin' OR role = 'super_admin'`,
+      [`New contact message: ${b.topic}`, `${b.name} <${b.email}>: ${b.message.slice(0, 140)}`]
+    );
+    res.status(201).json({ ok: true, id: saved?.id });
+  } catch (err) { next(err); }
+});
+
 // ===== Notifications =====
 contentRouter.get("/notifications", requireAuth, async (req, res, next) => {
   try {

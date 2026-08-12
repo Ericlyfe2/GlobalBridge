@@ -16,6 +16,7 @@ const publicRoutes = [
   "/privacy",
   "/terms",
   "/auth",
+  "/stories",
 ];
 
 const allRoutes = publicRoutes;

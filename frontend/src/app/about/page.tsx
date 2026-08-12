@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Globe, Heart, Shield, Sparkles, Users, ArrowRight, Award } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 
 export const metadata: Metadata = {
   title: "About",
@@ -36,6 +38,7 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
+      <Breadcrumbs items={[{ label: "About" }]} />
 
       {/* Hero */}
       <section className="max-w-7xl mx-auto px-6 lg:px-8 py-20 md:py-24">
@@ -153,6 +156,7 @@ export default function AboutPage() {
       </section>
 
       <Footer />
+      <StickyMobileCTA />
     </div>
   );
 }

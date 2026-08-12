@@ -17,6 +17,7 @@ import { services } from "@/data/services";
 import AirplanePath from "@/components/AirplanePath";
 import { JsonLd } from "@/components/JsonLd";
 import { SkipLink } from "@/components/SkipLink";
+import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 import dynamic from "next/dynamic";
 
 // three.js touches browser globals at module scope — keep it out of SSR.
@@ -65,9 +66,13 @@ export default function Home() {
 
       <ScrollOrchestrator />
       <Footer />
+      <StickyMobileCTA />
       {/* Atlas sits in the corner as a persistent companion rather than
-          occupying a band mid-page. */}
-      <AtlasStage variant="dock" />
+          occupying a band mid-page. --gb-dock-offset lifts him above the
+          sticky mobile CTA bar so the two don't overlap on small screens. */}
+      <div className="contents [--gb-dock-offset:4.5rem] md:[--gb-dock-offset:0px]">
+        <AtlasStage variant="dock" />
+      </div>
     </div>
   );
 }

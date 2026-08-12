@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Send, Mail, Globe, MessageCircle, AlertOctagon, Loader2, CheckCircle2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Send, Mail, Globe, MessageCircle, AlertOctagon, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 type Topic = "general" | "support" | "safety" | "press" | "partner" | "institution";
 
@@ -18,21 +20,31 @@ const topics: { key: Topic; label: string; sla: string }[] = [
 ];
 
 export default function ContactPage() {
+  const router = useRouter();
   const [topic, setTopic] = useState<Topic>("general");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !message.trim()) return;
     setSending(true);
-    setTimeout(() => {
+    setError(null);
+    try {
+      const res = await fetch("/api/content/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic, name, email, message }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || "Couldn't send your message");
+      router.push("/thank-you?from=contact");
+    } catch (err) {
       setSending(false);
-      setSent(true);
-    }, 900);
+      setError(err instanceof Error ? err.message : "Couldn't send your message");
+    }
   }
 
   const meta = topics.find((t) => t.key === topic)!;
@@ -40,6 +52,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
+      <Breadcrumbs items={[{ label: "Contact" }]} />
 
       <section className="max-w-6xl mx-auto px-6 lg:px-8 py-20 md:py-24">
         <div className="max-w-2xl">
@@ -56,24 +69,6 @@ export default function ContactPage() {
         <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Form */}
           <div className="lg:col-span-2">
-            {sent ? (
-              <div className="card border-leaf-300 dark:border-leaf-900/40">
-                <div className="flex items-start gap-3">
-                  <div className="w-11 h-11 rounded-full bg-leaf-500/15 text-leaf-600 flex items-center justify-center shrink-0">
-                    <CheckCircle2 size={22} />
-                  </div>
-                  <div>
-                    <h2 className="font-display text-xl font-semibold text-ink-900">Message sent</h2>
-                    <p className="text-sm text-ink-600 mt-1">
-                      We&apos;ll reply to <span className="font-medium text-ink-900">{email}</span>. {meta.sla}.
-                    </p>
-                    <button onClick={() => { setSent(false); setMessage(""); }} className="btn-ghost border border-cream-300 text-sm mt-4">
-                      Send another
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
               <form onSubmit={onSubmit} className="card space-y-4">
                 <Field label="What's this about?">
                   <select value={topic} onChange={(e) => setTopic(e.target.value as Topic)} className="input">
@@ -114,6 +109,10 @@ export default function ContactPage() {
                   </div>
                 )}
 
+                {error && (
+                  <p className="text-sm text-red-600">{error}</p>
+                )}
+
                 <button type="submit" disabled={sending} className="btn-accent disabled:opacity-50">
                   {sending ? <><Loader2 size={14} className="animate-spin" /> Sending...</> : <><Send size={14} /> Send message</>}
                 </button>
@@ -122,7 +121,6 @@ export default function ContactPage() {
                   By submitting, you agree to our <Link href="/privacy" className="text-clay-600 hover:underline">Privacy Policy</Link>.
                 </p>
               </form>
-            )}
           </div>
 
           {/* Channels sidebar */}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -26,6 +27,7 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
+      <Breadcrumbs items={[{ label: "Terms of Service" }]} />
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16 md:py-24">
         <div className="lg:grid lg:grid-cols-[16rem_1fr] lg:gap-16">
