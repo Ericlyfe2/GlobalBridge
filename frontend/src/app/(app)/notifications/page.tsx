@@ -36,16 +36,6 @@ function mapNote(r: RawNote): Note {
   };
 }
 
-const initial: Note[] = [
-  { id: "n_1", kind: "message",      title: "Ama Owusu replied",                 body: "Yes, you can apply for SIN as soon as you arrive...", when: "2m",   read: false, href: "/messages" },
-  { id: "n_2", kind: "verification", title: "Verification approved",             body: "Your government ID was approved. You now have a Verified badge.", when: "1h",   read: false, href: "/dashboard/verification" },
-  { id: "n_3", kind: "scam",         title: "Scam alert in your area",           body: "Fake Canadian Study Permit consultant reported in Lagos.", when: "3h",   read: false, href: "/scam-alerts" },
-  { id: "n_4", kind: "opportunity",  title: "Scholarship match",                 body: "MasterCard Foundation Scholarship matches your profile. Deadline in 14 days.", when: "5h",   read: true,  href: "/opportunities" },
-  { id: "n_5", kind: "housing",      title: "Saved listing price dropped",       body: "Cozy studio near UofT is now CAD 1,150 (was 1,300).", when: "Yesterday", read: true,  href: "/housing" },
-  { id: "n_6", kind: "job",          title: "New visa-sponsor job",              body: "Frontend Intern at TechCo. Sponsors student visa holders.", when: "2d",   read: true,  href: "/jobs" },
-  { id: "n_7", kind: "ai",           title: "AI assistant added new feature",    body: "Document validity checker is now live. Upload a passport scan to test it.", when: "3d",   read: true,  href: "/assistant" },
-];
-
 const iconMap: Record<Kind, { Icon: typeof Bell; tone: string }> = {
   message:      { Icon: MessageCircle, tone: "bg-clay-500/15 text-clay-600" },
   verification: { Icon: ShieldCheck,   tone: "bg-leaf-500/15 text-leaf-600" },
@@ -66,41 +56,42 @@ const filters: { key: Kind | "all" | "unread"; label: string }[] = [
 ];
 
 export default function NotificationsPage() {
-  const [notes, setNotes] = useState<Note[]>(initial);
+  const [notes, setNotes] = useState<Note[] | null>(null);
   const [active, setActive] = useState<typeof filters[number]["key"]>("all");
+  const signedIn = !!getToken();
 
-  // Load real notifications when signed in; otherwise keep demo set
   useEffect(() => {
-    if (!getToken()) return;
+    if (!signedIn) { setNotes([]); return; }
     const ctrl = new AbortController();
     (async () => {
       try {
         const res = await authFetch("/api/content/notifications", { signal: ctrl.signal });
         const data = await res.json();
-        if (res.ok && Array.isArray(data.notifications) && data.notifications.length) {
-          setNotes((data.notifications as RawNote[]).map(mapNote));
-        }
-      } catch { /* keep demo set */ }
+        setNotes(res.ok && Array.isArray(data.notifications) ? (data.notifications as RawNote[]).map(mapNote) : []);
+      } catch {
+        setNotes([]);
+      }
     })();
     return () => ctrl.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const filtered = notes.filter((n) => {
+  const filtered = (notes ?? []).filter((n) => {
     if (active === "all") return true;
     if (active === "unread") return !n.read;
     return n.kind === active;
   });
 
   function markRead(id: string) {
-    setNotes((arr) => arr.map((n) => (n.id === id ? { ...n, read: true } : n)));
-    if (getToken()) authFetch("/api/content/notifications/read", { method: "POST", body: JSON.stringify({ id }) }).catch(() => {});
+    setNotes((arr) => (arr ?? []).map((n) => (n.id === id ? { ...n, read: true } : n)));
+    if (signedIn) authFetch("/api/content/notifications/read", { method: "POST", body: JSON.stringify({ id }) }).catch(() => {});
   }
   function markAll() {
-    setNotes((arr) => arr.map((n) => ({ ...n, read: true })));
-    if (getToken()) authFetch("/api/content/notifications/read", { method: "POST", body: JSON.stringify({}) }).catch(() => {});
+    setNotes((arr) => (arr ?? []).map((n) => ({ ...n, read: true })));
+    if (signedIn) authFetch("/api/content/notifications/read", { method: "POST", body: JSON.stringify({}) }).catch(() => {});
   }
 
-  const unreadCount = notes.filter((n) => !n.read).length;
+  const unreadCount = (notes ?? []).filter((n) => !n.read).length;
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">
@@ -162,7 +153,16 @@ export default function NotificationsPage() {
             </li>
           );
         })}
-        {filtered.length === 0 && (
+        {notes === null && (
+          <li className="card text-center text-sm text-ink-500 py-10">Loading...</li>
+        )}
+        {notes !== null && !signedIn && (
+          <li className="card text-center text-sm text-ink-500 py-10">
+            <Bell size={20} className="mx-auto mb-2 opacity-50" />
+            <Link href="/auth?mode=signin" className="text-clay-600 font-medium hover:underline">Sign in</Link> to see your notifications.
+          </li>
+        )}
+        {notes !== null && signedIn && filtered.length === 0 && (
           <li className="card text-center text-sm text-ink-500 py-10">
             <Bell size={20} className="mx-auto mb-2 opacity-50" /> Nothing here.
           </li>

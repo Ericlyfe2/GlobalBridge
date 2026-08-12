@@ -1,22 +1,48 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { ShieldCheck, Mail, Phone, FileText, CheckCircle2, Clock, Upload, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ShieldCheck, Mail, Phone, FileText, CheckCircle2, Clock, XCircle, Upload, Loader2 } from "lucide-react";
 import { uploadFile } from "@/lib/upload";
 import { getToken } from "@/lib/auth";
+import { auth } from "@/lib/firebase";
 
-type Step = "pending" | "in_review" | "done";
+type Step = "pending" | "in_review" | "done" | "rejected";
+
+const INITIAL_STEPS: { key: string; title: string; desc: string; icon: React.ReactNode; status: Step }[] = [
+  { key: "email", title: "Email verified", desc: "Confirmed via magic link.", icon: <Mail size={16} />, status: "pending" },
+  { key: "phone", title: "Phone number", desc: "Send SMS code to verify identity.", icon: <Phone size={16} />, status: "pending" },
+  { key: "id", title: "Government ID", desc: "Upload passport / national ID. Reviewed within 24h.", icon: <FileText size={16} />, status: "pending" },
+  { key: "student", title: "Student / immigrant status", desc: "Upload acceptance letter, study permit, or residence card.", icon: <ShieldCheck size={16} />, status: "pending" },
+];
 
 export default function VerificationPage() {
-  const [steps, setSteps] = useState<{ key: string; title: string; desc: string; icon: React.ReactNode; status: Step }[]>([
-    { key: "email", title: "Email verified", desc: "Confirmed via magic link.", icon: <Mail size={16} />, status: "done" },
-    { key: "phone", title: "Phone number", desc: "Send SMS code to verify identity.", icon: <Phone size={16} />, status: "pending" },
-    { key: "id", title: "Government ID", desc: "Upload passport / national ID. Reviewed within 24h.", icon: <FileText size={16} />, status: "pending" },
-    { key: "student", title: "Student / immigrant status", desc: "Upload acceptance letter, study permit, or residence card.", icon: <ShieldCheck size={16} />, status: "in_review" },
-  ]);
+  const [steps, setSteps] = useState(INITIAL_STEPS);
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  // Pull the account's real verification state instead of guessing — email
+  // verification comes straight from the Firebase client (no round trip
+  // needed), the document status comes from the account's real DB column.
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) return;
+        const data = await res.json() as { user: { verification_status: string | null } };
+        const vs = data.user.verification_status;
+        const docStatus: Step = vs === "verified" ? "done" : vs === "in_review" ? "in_review" : vs === "rejected" ? "rejected" : "pending";
+        const emailStatus: Step = auth.currentUser?.emailVerified ? "done" : "pending";
+        setSteps((arr) => arr.map((s) => {
+          if (s.key === "email") return { ...s, status: emailStatus };
+          if (s.key === "id" || s.key === "student") return { ...s, status: docStatus };
+          return s;
+        }));
+      } catch { /* keep pending defaults on error */ }
+    })();
+  }, []);
 
   const progress = Math.round((steps.filter((s) => s.status === "done").length / steps.length) * 100);
 
@@ -75,7 +101,7 @@ export default function VerificationPage() {
                 </div>
                 <p className="text-sm text-ink-600 mt-1">{s.desc}</p>
               </div>
-              {isUpload && s.status !== "done" && (
+              {isUpload && s.status !== "done" && s.status !== "in_review" && (
                 <>
                   <input
                     ref={(el) => { fileInputs.current[s.key] = el; }}
@@ -129,6 +155,13 @@ function StatusIcon({ status }: { status: Step }) {
       </div>
     );
   }
+  if (status === "rejected") {
+    return (
+      <div className="w-9 h-9 rounded-full bg-red-500/15 text-red-600 flex items-center justify-center shrink-0">
+        <XCircle size={18} />
+      </div>
+    );
+  }
   return (
     <div className="w-9 h-9 rounded-full bg-cream-200 text-ink-500 flex items-center justify-center shrink-0">
       <ShieldCheck size={18} />
@@ -139,5 +172,6 @@ function StatusIcon({ status }: { status: Step }) {
 function StatusBadge({ status }: { status: Step }) {
   if (status === "done") return <span className="badge badge-verified">Verified</span>;
   if (status === "in_review") return <span className="badge !bg-amber-500/15 !text-amber-500">In review</span>;
+  if (status === "rejected") return <span className="badge !bg-red-500/15 !text-red-600">Rejected — resubmit</span>;
   return <span className="badge !bg-cream-200 !text-ink-600">Pending</span>;
 }

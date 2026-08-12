@@ -74,6 +74,7 @@ forumsRouter.post("/posts", requireAuth, async (req, res, next) => {
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
       [safe.category_id, req.user!.sub, safe.title, safe.body, safe.tags]
     );
+    await query(`UPDATE forum_categories SET post_count = post_count + 1 WHERE id = $1`, [safe.category_id]);
     res.status(201).json({ post });
   } catch (err) { next(err); }
 });

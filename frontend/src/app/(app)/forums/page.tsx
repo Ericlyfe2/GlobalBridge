@@ -3,21 +3,23 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
-  MessageSquare, ShieldCheck, Pin, TrendingUp, Search, Plus, ArrowUp, Flame, Globe, Loader2,
+  MessageSquare, ShieldCheck, Pin, TrendingUp, Search, Plus, ArrowUp, Flame, Globe, Loader2, X,
 } from "lucide-react";
 import { useDebounce } from "@/lib/useDebounce";
+import { authFetch, getToken } from "@/lib/auth";
 
 type Category = "all" | "visas" | "housing" | "scholarships" | "life-abroad" | "jobs" | "country";
 
-const categories: { key: Category; label: string; count: number }[] = [
-  { key: "all",          label: "All",                  count: 1287 },
-  { key: "visas",        label: "Visas & Permits",      count: 384 },
-  { key: "housing",      label: "Housing & Arrival",    count: 211 },
-  { key: "scholarships", label: "Scholarships & Funding", count: 167 },
-  { key: "life-abroad",  label: "Life Abroad",          count: 298 },
-  { key: "jobs",         label: "Jobs & Internships",   count: 152 },
-  { key: "country",      label: "Country Groups",       count: 75 },
-];
+type RawCategory = { id: string; name: string; slug: string; post_count: number };
+
+const SLUG_TO_KEY: Record<string, Category> = {
+  "visa-immigration": "visas",
+  "housing":          "housing",
+  "scholarships":     "scholarships",
+  "culture":          "life-abroad",
+  "careers":          "jobs",
+  "finance":          "life-abroad",
+};
 
 type Thread = {
   id: string; title: string; cat: Category; pinned?: boolean; hot?: boolean;
@@ -38,15 +40,6 @@ type RawPost = {
   author_role: "student" | "mentor" | "employer" | "admin";
 };
 
-const SLUG_TO_CAT: Record<string, Category> = {
-  "visa-immigration": "visas",
-  "housing":          "housing",
-  "scholarships":     "scholarships",
-  "culture":          "life-abroad",
-  "careers":          "jobs",
-  "finance":          "life-abroad",
-};
-
 function relativeTime(iso: string): string {
   const diffSec = (Date.now() - new Date(iso).getTime()) / 1000;
   if (diffSec < 60) return "just now";
@@ -60,7 +53,7 @@ function mapPost(p: RawPost): Thread {
   return {
     id: p.id,
     title: p.title,
-    cat: SLUG_TO_CAT[p.category_slug] ?? "all",
+    cat: SLUG_TO_KEY[p.category_slug] ?? "all",
     pinned: /megathread/i.test(p.title),
     hot: p.upvotes >= 80,
     author: p.author_name,
@@ -77,7 +70,10 @@ export default function ForumsPage() {
   const [cat, setCat] = useState<Category>("all");
   const [q, setQ] = useState("");
   const [threads, setThreads] = useState<Thread[] | null>(null);
+  const [rawCategories, setRawCategories] = useState<RawCategory[]>([]);
   const [err, setErr] = useState<string | null>(null);
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const debouncedQ = useDebounce(q, 300);
 
   useEffect(() => {
@@ -97,7 +93,32 @@ export default function ForumsPage() {
       }
     })();
     return () => ctrl.abort();
-  }, [debouncedQ]);
+  }, [debouncedQ, refreshKey]);
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    (async () => {
+      try {
+        const res = await fetch("/api/forums/categories", { signal: ctrl.signal });
+        const data = await res.json();
+        if (res.ok) setRawCategories(data.categories as RawCategory[]);
+      } catch { /* category badges just won't show counts */ }
+    })();
+    return () => ctrl.abort();
+  }, [refreshKey]);
+
+  const categories = useMemo(() => {
+    const allCount = rawCategories.reduce((sum, c) => sum + c.post_count, 0);
+    const byKey: { key: Category; label: string; count: number }[] = [{ key: "all", label: "All", count: allCount }];
+    for (const c of rawCategories) {
+      const key = SLUG_TO_KEY[c.slug];
+      if (!key) continue;
+      const existing = byKey.find((b) => b.key === key);
+      if (existing) existing.count += c.post_count;
+      else byKey.push({ key, label: c.name, count: c.post_count });
+    }
+    return byKey;
+  }, [rawCategories]);
 
   const filtered = useMemo(() => {
     const list = threads ?? [];
@@ -107,6 +128,11 @@ export default function ForumsPage() {
       .sort((a, b) => Number(b.pinned ?? false) - Number(a.pinned ?? false));
   }, [threads, cat, debouncedQ]);
 
+  function handlePosted() {
+    setComposeOpen(false);
+    setRefreshKey((k) => k + 1);
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
       <header className="mb-6 flex items-end justify-between gap-4 flex-wrap">
@@ -115,8 +141,12 @@ export default function ForumsPage() {
           <h1 className="text-3xl font-display font-semibold text-ink-900">Forums</h1>
           <p className="text-sm text-ink-600 mt-1">Ask. Answer. Verified mentors weigh in.</p>
         </div>
-        <button className="btn-accent text-sm"><Plus size={14} /> New thread</button>
+        <button onClick={() => setComposeOpen(true)} className="btn-accent text-sm"><Plus size={14} /> New thread</button>
       </header>
+
+      {composeOpen && (
+        <NewThreadModal categories={rawCategories} onClose={() => setComposeOpen(false)} onPosted={handlePosted} />
+      )}
 
       {/* Search */}
       <div className="relative mb-5 max-w-md">
@@ -196,6 +226,76 @@ export default function ForumsPage() {
           </li>
         )}
       </ul>
+    </div>
+  );
+}
+
+function NewThreadModal({
+  categories, onClose, onPosted,
+}: {
+  categories: RawCategory[];
+  onClose: () => void;
+  onPosted: () => void;
+}) {
+  const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [sending, setSending] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!getToken()) { setErr("Sign in to start a thread."); return; }
+    setSending(true);
+    setErr(null);
+    try {
+      const res = await authFetch("/api/forums/posts", {
+        method: "POST",
+        body: JSON.stringify({ category_id: categoryId, title, body }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || "Couldn't post thread");
+      onPosted();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Couldn't post thread");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
+      <form onClick={(e) => e.stopPropagation()} onSubmit={submit} className="card w-full max-w-lg space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-lg font-semibold text-ink-900">New thread</h2>
+          <button type="button" onClick={onClose} className="p-1 rounded-md hover:bg-cream-200"><X size={16} /></button>
+        </div>
+
+        <label className="block">
+          <span className="block text-xs font-medium text-ink-600 mb-1.5">Category</span>
+          <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="input" required>
+            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </label>
+
+        <label className="block">
+          <span className="block text-xs font-medium text-ink-600 mb-1.5">Title</span>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} className="input" placeholder="Ask a clear, specific question" minLength={5} maxLength={200} required />
+        </label>
+
+        <label className="block">
+          <span className="block text-xs font-medium text-ink-600 mb-1.5">Details</span>
+          <textarea value={body} onChange={(e) => setBody(e.target.value)} className="input min-h-[140px]" placeholder="Give enough context for someone to actually help" minLength={20} maxLength={10000} required />
+        </label>
+
+        {err && <p className="text-sm text-red-600">{err}</p>}
+
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="btn-ghost border border-cream-300 text-sm">Cancel</button>
+          <button type="submit" disabled={sending || !categoryId} className="btn-accent text-sm disabled:opacity-50">
+            {sending ? <><Loader2 size={13} className="animate-spin" /> Posting...</> : "Post thread"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

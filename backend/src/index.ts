@@ -21,6 +21,8 @@ import { contentRouter } from "./routes/content";
 import { jobsRouter } from "./routes/jobs";
 import { uploadsRouter } from "./routes/uploads";
 import { adminRouter } from "./routes/admin";
+import { safeSpaceRouter } from "./routes/safeSpace";
+import { libraryRouter } from "./routes/library";
 import { UPLOAD_PATH } from "./lib/storage";
 import { errorHandler } from "./middleware/error";
 import { csrfProtection } from "./middleware/csrf";
@@ -89,6 +91,8 @@ app.use("/api/moderation", moderationRouter);
 app.use("/api/content", contentRouter);
 app.use("/api/jobs", jobsRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/safe-space", safeSpaceRouter);
+app.use("/api/library", libraryRouter);
 // Only serve non-sensitive uploads via static (avatars, housing photos).
 // Verification documents are served through an auth-gated proxy on the uploads router.
 app.use("/api/uploads/files", requireAuth, express.static(UPLOAD_PATH));

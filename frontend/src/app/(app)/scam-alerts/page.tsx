@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import {
-  AlertTriangle, Shield, Flag, Search, ExternalLink, ArrowUp, ShieldCheck, Bot, Loader2,
+  AlertTriangle, Shield, Flag, Search, ArrowUp, ShieldCheck, Bot, Loader2, X,
 } from "lucide-react";
+import { authFetch, getToken } from "@/lib/auth";
 
 type Severity = "high" | "med" | "low";
 type Kind = "visa" | "housing" | "job" | "scholarship" | "phishing";
@@ -22,95 +23,6 @@ type Alert = {
   posted: string; reporters: number; upvotes: number; verified: boolean; aiFlagged: boolean;
   body: string; signals: string[]; what_to_do: string[];
 };
-
-const seedAlerts: Alert[] = [
-  {
-    id: "sa_001", title: "Fake Canadian Study Permit consultant in Lagos asking for $2,000 upfront",
-    kind: "visa", severity: "high",
-    countries: ["Nigeria", "Ghana"], flags: ["ng", "gh"],
-    posted: "12m ago", reporters: 11, upvotes: 87, verified: true, aiFlagged: true,
-    body: "Person calling themselves 'CanadaVisaPro' on Instagram is contacting students with offers to 'guarantee' Canadian study permits for $2,000. IRCC does not work with private agents.",
-    signals: [
-      "Guarantees visa approval",
-      "Asks for full payment upfront via Western Union or crypto",
-      "Refuses video call",
-      "DMs from Instagram instead of registered company website",
-    ],
-    what_to_do: [
-      "Block & report on Instagram",
-      "Use the official IRCC portal — application is CAD 150",
-      "If you already paid, file a report with EFCC (Nigeria) and your bank",
-    ],
-  },
-  {
-    id: "sa_002", title: "Fake 'luxury' Manchester apartment listing — photos copied from Airbnb",
-    kind: "housing", severity: "high",
-    countries: ["United Kingdom"], flags: ["gb"],
-    posted: "1h ago", reporters: 4, upvotes: 42, verified: true, aiFlagged: true,
-    body: "Listing offering a £400/month 'fully furnished luxury studio' in central Manchester. Reverse image search shows the photos are from an Airbnb in Berlin.",
-    signals: [
-      "Rent dramatically below market (£400 vs typical £800-1100)",
-      "Landlord won't show flat in person or video",
-      "Asks for full deposit before signing",
-      "Pressure tactics ('3 other students are interested')",
-    ],
-    what_to_do: [
-      "Always view in person or via live video before paying",
-      "Use the GlobalBridge verified housing marketplace",
-      "Report the listing → admin removes within 1h",
-    ],
-  },
-  {
-    id: "sa_003", title: "Phishing email pretending to be IRCC asking for biometrics fee",
-    kind: "phishing", severity: "high",
-    countries: ["Multi-country"], flags: ["ca"],
-    posted: "3h ago", reporters: 6, upvotes: 34, verified: true, aiFlagged: true,
-    body: "Email from 'ircc-verify@canada-gov-update.com' (note the suspicious domain) asking applicants to 'reverify' their biometrics fee. Real IRCC emails come from @cic.gc.ca only.",
-    signals: [
-      "Sender domain is NOT canada.ca or cic.gc.ca",
-      "Urgent language ('application will be cancelled in 48h')",
-      "Link goes to a lookalike payment page",
-    ],
-    what_to_do: [
-      "Do not click links — log in via the official portal directly",
-      "Forward email to spam@fintrac-canafe.gc.ca",
-    ],
-  },
-  {
-    id: "sa_004", title: "'Work from home' job paying $40/hour — actually a money-laundering mule scam",
-    kind: "job", severity: "high",
-    countries: ["United States", "Canada"], flags: ["us", "ca"],
-    posted: "Yesterday", reporters: 7, upvotes: 56, verified: true, aiFlagged: true,
-    body: "WhatsApp messages offering $40/hour 'package re-shipping' or 'transferring funds for our client' jobs. These are mule schemes — you become legally liable for fraud.",
-    signals: [
-      "Hired with no interview",
-      "Asked to receive money and forward it",
-      "Asked to receive packages and reship",
-      "Pay seems too high for the task",
-    ],
-    what_to_do: [
-      "Do NOT accept. You can be prosecuted even if you didn't know.",
-      "Report on the platform you were contacted on",
-      "If you already participated, contact a lawyer immediately",
-    ],
-  },
-  {
-    id: "sa_005", title: "Fake DAAD scholarship form harvesting passport data",
-    kind: "scholarship", severity: "med",
-    countries: ["Multi-country"], flags: ["de"],
-    posted: "2d ago", reporters: 3, upvotes: 18, verified: false, aiFlagged: true,
-    body: "Google Form impersonating DAAD asking for passport scan, bank details, and a $50 'verification fee'. DAAD applications go through portal.mydaad.de only and are always free.",
-    signals: [
-      "Google Form instead of official DAAD domain",
-      "Asks for sensitive ID + bank info in same form",
-      "Charges an application fee",
-    ],
-    what_to_do: [
-      "Apply only via the official DAAD portal",
-      "If you submitted info — change passwords + monitor accounts",
-    ],
-  },
-];
 
 const sevTone: Record<Severity, string> = {
   high: "border-red-300 dark:border-red-900/40",
@@ -187,6 +99,8 @@ export default function ScamAlertsPage() {
   const [kind, setKind] = useState<Kind | "all">("all");
   const [alerts, setAlerts] = useState<Alert[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -195,19 +109,16 @@ export default function ScamAlertsPage() {
         const res = await fetch("/api/moderation/scam-alerts", { signal: ctrl.signal });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
-        const mapped = (data.alerts as RawAlert[]).map(mapAlert);
-        // Merge with hand-crafted seed entries (richer signals / what-to-do panels)
-        // so the page degrades gracefully if DB is empty.
-        setAlerts(mapped.length ? mapped : seedAlerts);
+        setAlerts((data.alerts as RawAlert[]).map(mapAlert));
         setErr(null);
       } catch (e) {
         if ((e as Error).name === "AbortError") return;
         setErr(e instanceof Error ? e.message : "Network error");
-        setAlerts(seedAlerts);
+        setAlerts([]);
       }
     })();
     return () => ctrl.abort();
-  }, []);
+  }, [refreshKey]);
 
   const list = alerts ?? [];
   const filtered = list.filter((a) => {
@@ -229,12 +140,16 @@ export default function ScamAlertsPage() {
           </p>
           {err && (
             <p className="text-xs text-amber-500 mt-2">
-              Live feed unavailable ({err}). Showing cached entries.
+              Live feed unavailable ({err}).
             </p>
           )}
         </div>
-        <button className="btn-accent text-sm"><Flag size={14} /> Report a scam</button>
+        <button onClick={() => setReportOpen(true)} className="btn-accent text-sm"><Flag size={14} /> Report a scam</button>
       </header>
+
+      {reportOpen && (
+        <ReportScamModal onClose={() => setReportOpen(false)} onPosted={() => { setReportOpen(false); setRefreshKey((k) => k + 1); }} />
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
@@ -249,6 +164,12 @@ export default function ScamAlertsPage() {
           ))}
         </select>
       </div>
+
+      {alerts === null && (
+        <div className="card text-center py-10 text-ink-500 mb-4">
+          <Loader2 size={18} className="animate-spin mx-auto mb-2" /> Loading alerts...
+        </div>
+      )}
 
       {/* Feed */}
       <ul className="space-y-4">
@@ -291,41 +212,109 @@ export default function ScamAlertsPage() {
 
               <p className="text-sm text-ink-700 leading-relaxed">{a.body}</p>
 
-              {/* Two-column: signals + what to do */}
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="rounded-md bg-red-500/5 border border-red-500/15 px-3 py-2.5">
-                  <p className="font-semibold text-xs text-red-600 mb-1.5 flex items-center gap-1"><AlertTriangle size={11} /> Red flags</p>
-                  <ul className="text-xs text-ink-700 space-y-1">
-                    {a.signals.map((s) => <li key={s}>• {s}</li>)}
-                  </ul>
+              {/* Two-column: signals + what to do (only for entries that have them) */}
+              {(a.signals.length > 0 || a.what_to_do.length > 0) && (
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {a.signals.length > 0 && (
+                    <div className="rounded-md bg-red-500/5 border border-red-500/15 px-3 py-2.5">
+                      <p className="font-semibold text-xs text-red-600 mb-1.5 flex items-center gap-1"><AlertTriangle size={11} /> Red flags</p>
+                      <ul className="text-xs text-ink-700 space-y-1">
+                        {a.signals.map((s) => <li key={s}>• {s}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                  {a.what_to_do.length > 0 && (
+                    <div className="rounded-md bg-leaf-500/5 border border-leaf-500/15 px-3 py-2.5">
+                      <p className="font-semibold text-xs text-leaf-600 mb-1.5 flex items-center gap-1"><Shield size={11} /> What to do</p>
+                      <ul className="text-xs text-ink-700 space-y-1">
+                        {a.what_to_do.map((s) => <li key={s}>• {s}</li>)}
+                      </ul>
+                    </div>
+                  )}
                 </div>
-                <div className="rounded-md bg-leaf-500/5 border border-leaf-500/15 px-3 py-2.5">
-                  <p className="font-semibold text-xs text-leaf-600 mb-1.5 flex items-center gap-1"><Shield size={11} /> What to do</p>
-                  <ul className="text-xs text-ink-700 space-y-1">
-                    {a.what_to_do.map((s) => <li key={s}>• {s}</li>)}
-                  </ul>
-                </div>
-              </div>
-
-              <div className="mt-3 flex justify-end">
-                <button className="text-xs text-clay-600 font-medium hover:underline inline-flex items-center gap-1">
-                  Share with my country group <ExternalLink size={11} />
-                </button>
-              </div>
+              )}
             </article>
           </li>
         ))}
 
-        {filtered.length === 0 && (
+        {alerts !== null && filtered.length === 0 && (
           <li className="card text-center text-sm text-ink-500 py-10">
-            <Shield size={20} className="mx-auto mb-2 opacity-50" /> No scams match this filter.
+            <Shield size={20} className="mx-auto mb-2 opacity-50" /> No scams reported yet.
           </li>
         )}
       </ul>
 
       <p className="text-xs text-ink-500 mt-6 text-center">
-        AI auto-scans new listings and DMs for known scam patterns. False positives? Hit the appeal button on any flagged content.
+        Not sure if something is a scam? Paste it into{" "}
+        <a href="/tools/scam-shield" className="text-clay-600 font-medium hover:underline">Scam Shield</a>{" "}
+        for an instant AI check.
       </p>
+    </div>
+  );
+}
+
+function ReportScamModal({ onClose, onPosted }: { onClose: () => void; onPosted: () => void }) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [scamType, setScamType] = useState<Kind>("visa");
+  const [sending, setSending] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!getToken()) { setErr("Sign in to report a scam."); return; }
+    setSending(true);
+    setErr(null);
+    try {
+      const res = await authFetch("/api/moderation/scam-alerts", {
+        method: "POST",
+        body: JSON.stringify({ title, description, scam_type: scamType }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || "Couldn't submit report");
+      onPosted();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Couldn't submit report");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
+      <form onClick={(e) => e.stopPropagation()} onSubmit={submit} className="card w-full max-w-lg space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-lg font-semibold text-ink-900 flex items-center gap-2">
+            <Flag size={16} className="text-red-600" /> Report a scam
+          </h2>
+          <button type="button" onClick={onClose} className="p-1 rounded-md hover:bg-cream-200"><X size={16} /></button>
+        </div>
+
+        <label className="block">
+          <span className="block text-xs font-medium text-ink-600 mb-1.5">Category</span>
+          <select value={scamType} onChange={(e) => setScamType(e.target.value as Kind)} className="input">
+            {(Object.keys(kindLabels) as Kind[]).map((k) => <option key={k} value={k}>{kindLabels[k]}</option>)}
+          </select>
+        </label>
+
+        <label className="block">
+          <span className="block text-xs font-medium text-ink-600 mb-1.5">Title</span>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} className="input" placeholder="Short summary of the scam" minLength={5} maxLength={200} required />
+        </label>
+
+        <label className="block">
+          <span className="block text-xs font-medium text-ink-600 mb-1.5">What happened</span>
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="input min-h-[140px]" placeholder="Include URLs, usernames, or screenshots if you have them" minLength={20} maxLength={5000} required />
+        </label>
+
+        {err && <p className="text-sm text-red-600">{err}</p>}
+
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="btn-ghost border border-cream-300 text-sm">Cancel</button>
+          <button type="submit" disabled={sending} className="btn-accent text-sm disabled:opacity-50">
+            {sending ? <><Loader2 size={13} className="animate-spin" /> Submitting...</> : "Submit report"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
