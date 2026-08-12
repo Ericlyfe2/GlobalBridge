@@ -123,15 +123,20 @@ const saveMessageSchema = z.object({
 aiRouter.post("/messages", requireAuth, async (req, res, next) => {
   try {
     const body = saveMessageSchema.parse(req.body);
+    // Ownership check, matching every other /conversations/:id endpoint in this
+    // file — without it, any authenticated user who knows a conversation_id
+    // could write fabricated "assistant" content into someone else's history.
+    const owned = await queryOne(
+      `UPDATE ai_conversations SET message_count = message_count + 1, updated_at = NOW()
+       WHERE id = $1 AND user_id = $2 RETURNING id`,
+      [body.conversation_id, req.user!.sub],
+    );
+    if (!owned) return res.status(404).json({ error: "Conversation not found" });
+
     const msg = await queryOne(
       `INSERT INTO ai_messages (conversation_id, role, content, sources)
        VALUES ($1, $2, $3, $4) RETURNING id, role, content, created_at`,
       [body.conversation_id, body.role, body.content, JSON.stringify(body.sources ?? [])],
-    );
-    // Update conversation message count and timestamp
-    await query(
-      `UPDATE ai_conversations SET message_count = message_count + 1, updated_at = NOW() WHERE id = $1`,
-      [body.conversation_id],
     );
     res.status(201).json({ message: msg });
   } catch (err) {

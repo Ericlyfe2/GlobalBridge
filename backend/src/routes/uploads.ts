@@ -1,10 +1,16 @@
+import path from "path";
 import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
-import { requireAuth } from "../middleware/auth";
-import { storage } from "../lib/storage";
+import { requireAuth, isAdmin } from "../middleware/auth";
+import { storage, UPLOAD_PATH } from "../lib/storage";
 
 export const uploadsRouter = Router();
+
+// Purposes that are meant to be publicly visible as part of the product
+// (profile avatars, housing listing photos) vs. ones that are sensitive and
+// must stay scoped to the uploader + admins (ID scans, financial documents).
+const PUBLIC_PURPOSES = new Set(["avatar", "housing"]);
 
 const MIME_EXT: Record<string, string> = {
   "image/png": ".png",
@@ -78,6 +84,35 @@ uploadsRouter.get("/documents", requireAuth, async (req, res, next) => {
       [req.user!.sub]
     );
     res.json({ documents: docs });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/uploads/files/:key — serves the actual file. Avatars and housing
+// photos are product-public (anyone signed in needs to see other users'
+// profile pictures and listing photos); verification/document uploads are
+// sensitive and are only released to their owner or an admin.
+uploadsRouter.get("/files/:key", requireAuth, async (req, res, next) => {
+  try {
+    // path.basename strips any directory components — the key is looked up
+    // by exact match below, but this keeps the eventual fs path unambiguous.
+    const key = path.basename(String(req.params.key));
+    const doc = await queryOne<{ user_id: string; purpose: string; mime: string }>(
+      `SELECT user_id, purpose, mime FROM user_documents WHERE storage_key = $1`,
+      [key]
+    );
+    if (!doc) return res.status(404).json({ error: "File not found" });
+
+    const authorized = PUBLIC_PURPOSES.has(doc.purpose)
+      || doc.user_id === req.user!.sub
+      || isAdmin(req.user!.role);
+    if (!authorized) return res.status(403).json({ error: "Not authorized to view this file" });
+
+    res.type(doc.mime);
+    res.sendFile(key, { root: UPLOAD_PATH }, (err) => {
+      if (err) next(err);
+    });
   } catch (err) {
     next(err);
   }

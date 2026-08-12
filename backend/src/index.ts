@@ -23,10 +23,8 @@ import { uploadsRouter } from "./routes/uploads";
 import { adminRouter } from "./routes/admin";
 import { safeSpaceRouter } from "./routes/safeSpace";
 import { libraryRouter } from "./routes/library";
-import { UPLOAD_PATH } from "./lib/storage";
 import { errorHandler } from "./middleware/error";
 import { csrfProtection } from "./middleware/csrf";
-import { requireAuth } from "./middleware/auth";
 import { initWebsocket } from "./ws";
 
 const app = express();
@@ -93,9 +91,10 @@ app.use("/api/jobs", jobsRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/safe-space", safeSpaceRouter);
 app.use("/api/library", libraryRouter);
-// Only serve non-sensitive uploads via static (avatars, housing photos).
-// Verification documents are served through an auth-gated proxy on the uploads router.
-app.use("/api/uploads/files", requireAuth, express.static(UPLOAD_PATH));
+// File retrieval (GET /api/uploads/files/:key) lives inside uploadsRouter,
+// where it can check the document's purpose/owner before serving — avatars
+// and housing photos stay public, verification/document uploads are scoped
+// to their owner or an admin.
 app.use("/api/uploads", uploadsRouter);
 
 app.use(errorHandler);
