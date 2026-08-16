@@ -15,7 +15,7 @@ export default function UnauthorizedPage() {
   });
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-white px-6 text-center dark:bg-gray-950">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-white dark:bg-[var(--color-surface)] px-6 text-center dark:bg-gray-950">
       <div className="grid h-16 w-16 place-items-center rounded-2xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400">
         <ShieldAlert size={30} />
       </div>

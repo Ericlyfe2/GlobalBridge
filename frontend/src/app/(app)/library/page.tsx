@@ -5,6 +5,7 @@ import {
   Headphones, Play, Video, Mic, ShieldCheck, Clock, Search, Filter, Sparkles, Loader2, Plus, X,
 } from "lucide-react";
 import { authFetch, getToken, getUser } from "@/lib/auth";
+import { useEscapeToClose } from "@/lib/useEscapeToClose";
 
 type Type = "all" | "podcast" | "video" | "vlog";
 type Topic = "all" | "visa" | "arrival" | "academic" | "career" | "life";
@@ -167,7 +168,7 @@ export default function LibraryPage() {
             <p className="mt-2 text-sm text-white/85">
               {featured.creator} {featured.verified && "· verified"} · {featured.durationMin} min
             </p>
-            <button onClick={() => play(featured)} className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-white text-slate-900 font-medium text-sm hover:bg-slate-100 transition">
+            <button onClick={() => play(featured)} className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-white dark:bg-[var(--color-surface)] text-slate-900 font-medium text-sm hover:bg-slate-100 transition">
               <Play size={14} /> Watch now
             </button>
           </div>
@@ -265,6 +266,7 @@ function ContributeModal({ onClose, onContributed }: { onClose: () => void; onCo
   const [mediaUrl, setMediaUrl] = useState("");
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  useEscapeToClose(onClose);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -292,9 +294,9 @@ function ContributeModal({ onClose, onContributed }: { onClose: () => void; onCo
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
-      <form onClick={(e) => e.stopPropagation()} onSubmit={submit} className="card w-full max-w-lg space-y-3 max-h-[90vh] overflow-y-auto">
+      <form role="dialog" aria-modal="true" aria-labelledby="contribute-title" onClick={(e) => e.stopPropagation()} onSubmit={submit} className="card w-full max-w-lg space-y-3 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-lg font-semibold text-ink-900">Contribute to the library</h2>
+          <h2 id="contribute-title" className="font-display text-lg font-semibold text-ink-900">Contribute to the library</h2>
           <button type="button" onClick={onClose} className="p-1 rounded-md hover:bg-cream-200"><X size={16} /></button>
         </div>
 

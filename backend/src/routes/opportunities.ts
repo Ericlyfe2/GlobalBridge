@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
-import { sanitizeAllStrings } from "../lib/sanitize";
+import { sanitizeAllStrings, escapeLike } from "../lib/sanitize";
 
 export const opportunitiesRouter = Router();
 
@@ -30,7 +30,7 @@ opportunitiesRouter.get("/", async (req, res, next) => {
     }
     if (search) {
       filters.push(`(title ILIKE $${i} OR description ILIKE $${i})`);
-      values.push(`%${search}%`);
+      values.push(`%${escapeLike(search)}%`);
       i++;
     }
     filters.push(`(deadline IS NULL OR deadline >= CURRENT_DATE)`);

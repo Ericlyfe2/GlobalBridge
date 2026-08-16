@@ -58,7 +58,7 @@ export default function AiSuiteShowcase() {
             <Link
               key={f.title}
               href={f.href}
-              className="ai-card group relative flex flex-col overflow-hidden rounded-2xl border border-cream-200 bg-white p-6 transition-all hover:-translate-y-1 hover:border-clay-500/40 hover:shadow-[0_24px_60px_-30px_rgba(13,148,136,0.45)]"
+              className="ai-card group relative flex flex-col overflow-hidden rounded-2xl border border-cream-200 bg-white dark:bg-[var(--color-surface)] p-6 transition-all hover:-translate-y-1 hover:border-clay-500/40 hover:shadow-[0_24px_60px_-30px_rgba(13,148,136,0.45)]"
               style={{ animationDelay: `${i * 120}ms` }}
             >
               <div className="mb-5 flex items-center justify-between">

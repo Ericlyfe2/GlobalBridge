@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useDebounce } from "@/lib/useDebounce";
 import { authFetch, getToken } from "@/lib/auth";
+import { useEscapeToClose } from "@/lib/useEscapeToClose";
 
 type Category = "all" | "visas" | "housing" | "scholarships" | "life-abroad" | "jobs" | "country";
 
@@ -242,6 +243,7 @@ function NewThreadModal({
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  useEscapeToClose(onClose);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -264,9 +266,9 @@ function NewThreadModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
-      <form onClick={(e) => e.stopPropagation()} onSubmit={submit} className="card w-full max-w-lg space-y-4">
+      <form role="dialog" aria-modal="true" aria-labelledby="new-thread-title" onClick={(e) => e.stopPropagation()} onSubmit={submit} className="card w-full max-w-lg space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-lg font-semibold text-ink-900">New thread</h2>
+          <h2 id="new-thread-title" className="font-display text-lg font-semibold text-ink-900">New thread</h2>
           <button type="button" onClick={onClose} className="p-1 rounded-md hover:bg-cream-200"><X size={16} /></button>
         </div>
 

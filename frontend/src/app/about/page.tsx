@@ -144,7 +144,7 @@ export default function AboutPage() {
               If you&apos;ve studied or worked abroad and want to give back, we&apos;ll get you verified within 48h.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/register?role=mentor" className="btn-primary !bg-white !text-slate-900 hover:!bg-slate-100">
+              <Link href="/register?role=mentor" className="btn-primary !bg-white dark:bg-[var(--color-surface)] !text-slate-900 hover:!bg-slate-100">
                 Become a mentor <ArrowRight size={14} />
               </Link>
               <Link href="/contact" className="btn-ghost !text-white border border-white/30 hover:!bg-white/10">

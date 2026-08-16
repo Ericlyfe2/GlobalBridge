@@ -71,7 +71,7 @@ export function NotificationToggle() {
         }`}
       >
         <span
-          className={`absolute top-0.5 grid h-5 w-5 place-items-center rounded-full bg-white transition-transform ${
+          className={`absolute top-0.5 grid h-5 w-5 place-items-center rounded-full bg-white dark:bg-[var(--color-surface)] transition-transform ${
             on ? "translate-x-[22px]" : "translate-x-0.5"
           }`}
         >

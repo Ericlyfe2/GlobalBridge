@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
+import { getAiConfig } from "@/lib/aiConfig";
 
 export const runtime = "nodejs";
 
@@ -68,7 +69,7 @@ type DocCheckResult = {
 export async function POST(req: Request) {
   const apiKey = process.env.OPENAI_API_KEY;
   const baseURL = process.env.OPENAI_BASE_URL;
-  const modelName = process.env.OPENAI_MODEL || "gpt-4o";
+  const aiConfig = await getAiConfig();
 
   let body: Body;
   try {
@@ -78,6 +79,13 @@ export async function POST(req: Request) {
   }
   if (!body?.docType) {
     return Response.json({ error: "docType required" }, { status: 400 });
+  }
+
+  if (!aiConfig.ai_doc_check_enabled) {
+    return Response.json(
+      { score: 0, label: "Needs fixes" as const, summary: "The document checker has been turned off by an admin.", findings: [], disabled: true },
+      { status: 200 },
+    );
   }
 
   if (!apiKey) {
@@ -104,7 +112,7 @@ export async function POST(req: Request) {
 
   try {
     const completion = await client.chat.completions.create({
-      model: modelName,
+      model: aiConfig.ai_model,
       max_tokens: 1500,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },

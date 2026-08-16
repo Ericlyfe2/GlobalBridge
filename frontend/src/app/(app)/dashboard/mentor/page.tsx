@@ -8,13 +8,21 @@ import {
 } from "lucide-react";
 import { authFetch, getUser } from "@/lib/auth";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
+import { formatDateOnly } from "@/lib/utils";
 
 type MentorDashboard = {
   stats: { activeMentees: number; pendingRequests: number; totalSessions: number; hoursMentored: number };
   community: { answers: number; acceptedAnswers: number; successStories: number; impactScore: number };
-  upcomingSessions: { id: string; student_name: string | null; slot_date: string; slot_time: string; duration_min: number; goal: string | null; status: string }[];
-  pendingRequests: { id: string; student_name: string | null; slot_date: string; slot_time: string; goal: string | null }[];
+  upcomingSessions: { id: string; student_name: string | null; slot_date: string; slot_time: string; duration_min: number; goal: string | null; status: string; student_timezone: string | null }[];
+  pendingRequests: { id: string; student_name: string | null; slot_date: string; slot_time: string; goal: string | null; student_timezone: string | null }[];
 };
+
+// slot_time alone doesn't say whose clock it's on — a mentor and student can
+// easily be in different timezones. Label it explicitly rather than let the
+// mentor assume it's their own local time.
+function fmtSlotTime(slotTime: string, studentTimezone: string | null): string {
+  return studentTimezone ? `${slotTime} (student's time, ${studentTimezone})` : slotTime;
+}
 
 const MANAGE = [
   { href: "/community", icon: UserCheck, label: "Manage mentees" },
@@ -81,7 +89,7 @@ export default function MentorDashboard() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {MANAGE.map((a) => (
             <Link key={a.label} href={a.href}
-              className="group flex flex-col items-start gap-2 rounded-xl border border-cream-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900">
+              className="group flex flex-col items-start gap-2 rounded-xl border border-cream-200 bg-white dark:bg-[var(--color-surface)] p-4 transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900">
               <span className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"><a.icon size={18} /></span>
               <span className="text-xs font-medium text-ink-800 dark:text-gray-200">{a.label}</span>
             </Link>
@@ -109,7 +117,7 @@ export default function MentorDashboard() {
                   </div>
                   <div className="shrink-0 text-right">
                     <p className="text-xs font-medium text-emerald-600">{fmtDate(s.slot_date)}</p>
-                    <p className="text-xs text-ink-400">{s.slot_time} · {s.duration_min}m</p>
+                    <p className="text-xs text-ink-400">{fmtSlotTime(s.slot_time, s.student_timezone)} · {s.duration_min}m</p>
                   </div>
                 </li>
               ))}
@@ -138,7 +146,7 @@ export default function MentorDashboard() {
               <li key={r.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-ink-800 dark:text-gray-200">{r.student_name || "Student"}</p>
-                  <p className="truncate text-xs text-ink-400">{r.goal || "Wants to connect"} · {fmtDate(r.slot_date)} {r.slot_time}</p>
+                  <p className="truncate text-xs text-ink-400">{r.goal || "Wants to connect"} · {fmtDate(r.slot_date)} {fmtSlotTime(r.slot_time, r.student_timezone)}</p>
                 </div>
                 <Link href="/messages" className="shrink-0 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">Review</Link>
               </li>
@@ -154,15 +162,11 @@ function initials(name: string | null): string {
   if (!name) return "S";
   return name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "S";
 }
-function fmtDate(d: string | null): string {
-  if (!d) return "—";
-  const date = new Date(d);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
+const fmtDate = formatDateOnly;
 
 function Stat({ icon: Icon, label, value, accent = false }: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; value: number; accent?: boolean }) {
   return (
-    <div className={`rounded-xl border bg-white p-4 dark:bg-gray-900 ${accent ? "border-amber-300 dark:border-amber-700" : "border-cream-200 dark:border-gray-800"}`}>
+    <div className={`rounded-xl border bg-white dark:bg-[var(--color-surface)] p-4 dark:bg-gray-900 ${accent ? "border-amber-300 dark:border-amber-700" : "border-cream-200 dark:border-gray-800"}`}>
       <Icon size={18} className={accent ? "text-amber-500" : "text-emerald-600 dark:text-emerald-400"} />
       <p className="mt-3 text-2xl font-bold text-[#0A2540] dark:text-white">{value}</p>
       <p className="mt-0.5 text-xs text-ink-500 dark:text-gray-400">{label}</p>
@@ -181,7 +185,7 @@ function ImpactRow({ icon: Icon, label, value }: { icon: React.ComponentType<{ s
 
 function SectionCard({ title, href, className = "", children }: { title: string; href?: string; className?: string; children: React.ReactNode }) {
   return (
-    <section className={`rounded-2xl border border-cream-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900 ${className}`}>
+    <section className={`rounded-2xl border border-cream-200 bg-white dark:bg-[var(--color-surface)] p-5 dark:border-gray-800 dark:bg-gray-900 ${className}`}>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-ink-800 dark:text-gray-200">{title}</h2>
         {href && <Link href={href} className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700">View all <ArrowRight size={12} /></Link>}

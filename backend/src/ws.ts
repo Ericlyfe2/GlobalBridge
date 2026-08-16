@@ -32,7 +32,11 @@ export function initWebsocket(server: Server) {
           return;
         }
 
-        const decoded = await adminAuth.verifyIdToken(msg.token);
+        // checkRevoked=true: matches middleware/auth.ts's requireAuth — without it,
+        // a token issued before an account was deleted/suspended still opens a
+        // live socket and keeps receiving private messages/notifications until
+        // the JWT naturally expires (up to 1hr later).
+        const decoded = await adminAuth.verifyIdToken(msg.token, true);
 
         // Resolve Postgres user (same flow as requireAuth middleware)
         const result = await pool.query(

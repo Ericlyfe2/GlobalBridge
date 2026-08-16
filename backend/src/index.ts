@@ -23,6 +23,7 @@ import { uploadsRouter } from "./routes/uploads";
 import { adminRouter } from "./routes/admin";
 import { safeSpaceRouter } from "./routes/safeSpace";
 import { libraryRouter } from "./routes/library";
+import { peerReviewRouter } from "./routes/peerReview";
 import { errorHandler } from "./middleware/error";
 import { csrfProtection } from "./middleware/csrf";
 import { initWebsocket } from "./ws";
@@ -59,11 +60,15 @@ app.use(compression());
 app.use(morgan("dev"));
 app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:3000", credentials: true }));
 
-// Rate limiter before body parsers to avoid parsing large bodies on rejected requests
+// Rate limiter before body parsers to avoid parsing large bodies on rejected requests.
+// Keyed by IP (express-rate-limit default) with no per-user carve-out, so this budget
+// is shared by everyone behind the same public IP — common for this audience, who are
+// often on campus/dorm NAT where dozens of students share one address. 1200/15min keeps
+// it a meaningful abuse backstop without collectively locking out a shared connection.
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 300,
+    max: 1200,
     standardHeaders: true,
     legacyHeaders: false,
   })
@@ -71,8 +76,10 @@ app.use(
 
 app.use(csrfProtection);
 
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+// 12mb accommodates the 8MB upload limit in routes/uploads.ts once base64-encoded
+// (base64 inflates size by ~4/3, so 8MB -> ~10.7MB) plus JSON field overhead.
+app.use(express.json({ limit: "12mb" }));
+app.use(express.urlencoded({ extended: true, limit: "12mb" }));
 
 app.get("/health", (_req, res) => res.json({ status: "ok", service: "globalbridge-api" }));
 
@@ -91,6 +98,7 @@ app.use("/api/jobs", jobsRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/safe-space", safeSpaceRouter);
 app.use("/api/library", libraryRouter);
+app.use("/api/peer-review", peerReviewRouter);
 // File retrieval (GET /api/uploads/files/:key) lives inside uploadsRouter,
 // where it can check the document's purpose/owner before serving — avatars
 // and housing photos stay public, verification/document uploads are scoped

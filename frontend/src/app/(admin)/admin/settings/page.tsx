@@ -39,7 +39,7 @@ const DEFAULT_SETTINGS: PlatformSettings = {
   ai_scam_detection_enabled: true,
   ai_translation_enabled: true,
   ai_temperature: 0.3,
-  ai_model: "claude-haiku-4-5",
+  ai_model: "gpt-4o-mini",
   ai_system_prompt: "",
   max_login_attempts: 5,
   session_timeout_minutes: 60,
@@ -412,7 +412,7 @@ function Toggle({
         }`}
       >
         <span
-          className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${
+          className={`absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-[var(--color-surface)] shadow transition-all ${
             value ? "left-5" : "left-0.5"
           }`}
         />

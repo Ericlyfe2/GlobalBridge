@@ -3,19 +3,27 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import {
-  ArrowLeft, ShieldCheck, MapPin, Briefcase, Clock, DollarSign, Globe, Bookmark, Share2, Check, AlertCircle, Loader2,
+  ArrowLeft, ShieldCheck, MapPin, DollarSign, Share2, Check, Loader2,
 } from "lucide-react";
+import { SaveButton } from "@/components/SaveButton";
+
+async function share(title: string, url: string) {
+  if (typeof navigator !== "undefined" && navigator.share) {
+    await navigator.share({ title, url }).catch(() => {});
+  } else if (typeof navigator !== "undefined") {
+    await navigator.clipboard.writeText(url);
+  }
+}
 
 type Job = {
   id: string; title: string; company: string; companyInitials: string;
-  city: string; country: string; flag: string;
-  remote: "onsite" | "hybrid" | "remote";
+  country: string; flag: string;
   level: "intern" | "junior" | "mid" | "senior";
   salary: string;
-  visaSponsor: boolean; sponsorshipRate: number;
-  posted: string; closes: string;
+  visaSponsor: boolean;
+  closes: string;
   description: string;
-  responsibilities: string[]; requirements: string[]; benefits: string[];
+  requirements: string[]; applicationUrl: string | null;
 };
 
 type RawOpp = {
@@ -43,26 +51,15 @@ function mapJob(r: RawOpp): Job {
     title: r.title,
     company,
     companyInitials: company.slice(0, 2).toUpperCase(),
-    city: r.country,
     country: r.country,
     flag: COUNTRY_FLAG[r.country] ?? "un",
-    remote: "hybrid",
     level: r.type === "internship" ? "intern" : "junior",
     salary,
     visaSponsor: r.sponsors_visa,
-    sponsorshipRate: r.sponsors_visa ? 86 : 0,
-    posted: "recently",
     closes: r.deadline ?? "Rolling",
     description: r.description,
-    responsibilities: [
-      "Deliver core product features",
-      "Collaborate across design + engineering",
-      "Participate in code review + planning",
-    ],
     requirements: reqs,
-    benefits: r.sponsors_visa
-      ? ["Visa sponsorship for the right candidate", "Competitive salary", "Learning budget"]
-      : ["Competitive salary", "Learning budget", "Flexible hybrid work"],
+    applicationUrl: r.application_url,
   };
 }
 
@@ -127,17 +124,19 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
             <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-ink-500">
               <span className="flex items-center gap-1">
                 <span className={`fi fi-${j.flag}`} aria-hidden="true" />
-                <MapPin size={11} /> {j.city}, {j.country}
+                <MapPin size={11} /> {j.country}
               </span>
-              <span className="flex items-center gap-1"><Briefcase size={11} /> {j.remote}</span>
-              <span className="flex items-center gap-1"><Clock size={11} /> Posted {j.posted}</span>
               <span className="flex items-center gap-1"><DollarSign size={11} /> {j.salary}</span>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <button className="btn-ghost border border-cream-300 text-sm"><Bookmark size={13} /> Save</button>
-            <button className="btn-ghost border border-cream-300 text-sm"><Share2 size={13} /> Share</button>
-            <button className="btn-accent text-sm">Apply now</button>
+            <SaveButton type="job" id={j.id} className="btn-ghost border border-cream-300 text-sm" label />
+            <button onClick={() => share(j.title, window.location.href)} className="btn-ghost border border-cream-300 text-sm"><Share2 size={13} /> Share</button>
+            {j.applicationUrl ? (
+              <a href={j.applicationUrl} target="_blank" rel="noopener noreferrer" className="btn-accent text-sm">Apply now</a>
+            ) : (
+              <span className="btn-accent text-sm opacity-50 cursor-not-allowed" title="No application link on file">Apply now</span>
+            )}
           </div>
         </div>
 
@@ -146,9 +145,9 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
           <div className="mt-4 px-4 py-3 rounded-md bg-leaf-500/10 border border-leaf-500/25 flex items-center gap-3">
             <ShieldCheck size={16} className="text-leaf-600 shrink-0" />
             <div className="flex-1 text-sm">
-              <p className="font-medium text-leaf-600">Visa sponsor — verified</p>
+              <p className="font-medium text-leaf-600">Visa sponsor</p>
               <p className="text-xs text-ink-700 mt-0.5">
-                Sponsored {j.sponsorshipRate}% of international hires in 2024. Has an active sponsor license.
+                This employer has sponsored visas for international hires before.
               </p>
             </div>
           </div>
@@ -163,9 +162,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
             <p className="text-sm text-ink-700 leading-relaxed">{j.description}</p>
           </div>
 
-          <ListCard title="What you'll do" items={j.responsibilities} />
-          <ListCard title="What we're looking for" items={j.requirements} />
-          <ListCard title="Benefits" items={j.benefits} />
+          <ListCard title="Eligibility" items={j.requirements} />
         </div>
 
         {/* Sidebar */}
@@ -173,22 +170,13 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
           <div className="card">
             <p className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-3">At a glance</p>
             <Row label="Level" value={j.level} />
-            <Row label="Work mode" value={j.remote} />
             <Row label="Salary" value={j.salary} />
             <Row label="Closes" value={j.closes} />
-            <button className="btn-accent w-full mt-4">Apply now</button>
-            <p className="text-xs text-ink-500 mt-2 text-center">Application takes ~6 minutes.</p>
-          </div>
-
-          <div className="card">
-            <p className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-2 flex items-center gap-1">
-              <Globe size={11} /> Useful for visa applicants
-            </p>
-            <ul className="space-y-1.5 text-sm text-ink-700">
-              <li className="flex items-center gap-2"><Check size={13} className="text-leaf-600" /> Pays above £29,000 salary threshold</li>
-              <li className="flex items-center gap-2"><Check size={13} className="text-leaf-600" /> RQF Level 3+ skill code (eligible)</li>
-              <li className="flex items-start gap-2"><AlertCircle size={13} className="text-amber-500 mt-0.5" /> CoS issued only after offer accepted</li>
-            </ul>
+            {j.applicationUrl ? (
+              <a href={j.applicationUrl} target="_blank" rel="noopener noreferrer" className="btn-accent w-full mt-4 flex items-center justify-center">Apply now</a>
+            ) : (
+              <p className="text-xs text-ink-500 mt-4 text-center">No application link on file — check back later.</p>
+            )}
           </div>
         </aside>
       </div>

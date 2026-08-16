@@ -4,8 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import {
-  ArrowLeft, ShieldCheck, MapPin, Star, Wifi, Snowflake, Sparkles, Train, GraduationCap, Check, Calendar, Heart, Share2, Loader2,
+  ArrowLeft, ShieldCheck, MapPin, Star, Wifi, Snowflake, Sparkles, Train, GraduationCap, Check, Calendar, Share2, Loader2,
 } from "lucide-react";
+import { SaveButton } from "@/components/SaveButton";
 
 async function shareListing(title: string, url: string) {
   if (navigator.share) {
@@ -144,7 +145,7 @@ export default function HousingDetail({ params }: { params: Promise<{ id: string
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button className="btn-ghost border border-cream-300 text-sm"><Heart size={14} /> Save</button>
+          <SaveButton type="housing" id={id} className="btn-ghost border border-cream-300 text-sm" label />
           <button onClick={() => shareListing(l.title, window.location.href)} className="btn-ghost border border-cream-300 text-sm"><Share2 size={14} /> Share</button>
         </div>
       </header>

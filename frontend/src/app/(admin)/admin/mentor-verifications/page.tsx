@@ -8,6 +8,7 @@ import {
   Clock, AlertCircle, BadgeCheck, User,
 } from "lucide-react";
 import { authFetch } from "@/lib/auth";
+import { useEscapeToClose } from "@/lib/useEscapeToClose";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -122,6 +123,7 @@ export default function MentorVerificationsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("pending");
   const [rejectModal, setRejectModal] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  useEscapeToClose(() => { setRejectModal(null); setRejectReason(""); }, !!rejectModal);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // -----------------------------------------------------------------------
@@ -556,9 +558,9 @@ export default function MentorVerificationsPage() {
       {/* ── Reject Modal ───────────────────────────────────── */}
       {rejectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="card max-w-md w-full !p-6 space-y-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="reject-verification-title" className="card max-w-md w-full !p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-display text-lg font-semibold text-ink-900">Reject Verification</h3>
+              <h3 id="reject-verification-title" className="font-display text-lg font-semibold text-ink-900">Reject Verification</h3>
               <button
                 onClick={() => { setRejectModal(null); setRejectReason(""); }}
                 className="p-1 rounded hover:bg-cream-200 transition"

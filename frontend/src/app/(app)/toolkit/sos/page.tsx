@@ -125,9 +125,19 @@ export default function SOSPage() {
 
   const d = data[country];
 
+  function sendSms(locationText: string) {
+    const body = `EMERGENCY — I need help.${locationText ? ` My location: ${locationText}` : ""}`;
+    window.location.href = `sms:${trustedContact}?body=${encodeURIComponent(body)}`;
+  }
+
   function alertContact() {
     if (!trustedContact) { alert("Add a trusted contact first."); return; }
-    window.location.href = `sms:${trustedContact}?body=${encodeURIComponent("EMERGENCY — I need help. My approximate location: " + (typeof navigator !== "undefined" ? navigator.userAgent : ""))}`;
+    if (typeof navigator === "undefined" || !navigator.geolocation) { sendSms(""); return; }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => sendSms(`https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`),
+      () => sendSms(""), // permission denied / unavailable — still send the alert, just without a location
+      { timeout: 5000 },
+    );
   }
 
   return (

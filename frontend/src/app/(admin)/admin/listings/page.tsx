@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Home, Award, Briefcase, ShieldCheck, AlertTriangle, MoreVertical, Eye, Loader2 } from "lucide-react";
+import { Home, Award, Briefcase, ShieldCheck, AlertTriangle, Eye, Loader2 } from "lucide-react";
 import { authFetch, getToken } from "@/lib/auth";
 
 type Kind = "housing" | "opportunity" | "job";
@@ -15,7 +15,7 @@ type Listing = {
 
 type RawHousing = {
   id: string; title: string; city: string; country: string;
-  status: string; landlord_name: string; created_at: string;
+  status: string; landlord_name: string; created_at: string; report_count: number;
 };
 
 // Demo rows for texture when there's no real pending data / not signed in.
@@ -26,9 +26,9 @@ const demo: Listing[] = [
   { id: "l_006", title: "Suspicious work-from-home gig $$$",       kind: "job",       state: "flagged", owner: "scammer_x",  created: "2026-05-21", views: 22,  reports: 7 },
 ];
 
-function mapState(s: string): State {
+function mapState(s: string, reportCount: number): State {
+  if (reportCount > 0) return "flagged";
   if (s === "active") return "live";
-  if (s === "flagged") return "flagged";
   return "pending";
 }
 
@@ -53,11 +53,11 @@ export default function ListingsPage() {
             id: h.id,
             title: h.title,
             kind: "housing",
-            state: mapState(h.status),
+            state: mapState(h.status, h.report_count),
             owner: h.landlord_name,
             created: (h.created_at || "").slice(0, 10),
             views: 0,
-            reports: 0,
+            reports: h.report_count,
             real: true,
           }));
           setItems([...real, ...demo]);
@@ -71,7 +71,7 @@ export default function ListingsPage() {
     return () => ctrl.abort();
   }, []);
 
-  async function setStatus(id: string, status: "active" | "rejected") {
+  async function setStatus(id: string, status: "active" | "archived") {
     setBusyId(id);
     try {
       const res = await authFetch(`/api/housing/${id}/status`, {
@@ -138,7 +138,6 @@ export default function ListingsPage() {
                   <p className="text-xs text-ink-500 mt-0.5">by {l.owner} · {l.created}</p>
                 </div>
               </div>
-              <button className="p-1.5 rounded-md text-ink-500 hover:bg-cream-200 shrink-0"><MoreVertical size={14} /></button>
             </div>
 
             <div className="mt-4 flex items-center justify-between text-xs">
@@ -162,9 +161,9 @@ export default function ListingsPage() {
                     {busyId === l.id ? <Loader2 size={11} className="animate-spin" /> : <ShieldCheck size={11} />} Approve
                   </button>
                 )}
-                {l.state !== "flagged" && (
+                {l.state !== "live" && (
                   <button
-                    onClick={() => l.real && setStatus(l.id, "rejected")}
+                    onClick={() => l.real && setStatus(l.id, "archived")}
                     disabled={!l.real || busyId === l.id}
                     title={l.real ? "Reject / take down" : "Demo row"}
                     className="text-xs px-2 py-1 rounded-md text-red-600 hover:bg-red-500/10 transition disabled:opacity-40 disabled:cursor-not-allowed"

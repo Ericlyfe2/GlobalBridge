@@ -84,7 +84,12 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     return res.status(401).json({ error: "Missing auth token" });
   }
   try {
-    const decoded = await adminAuth.verifyIdToken(token);
+    // checkRevoked=true: without it, a token issued before an account was
+    // deleted or its sessions revoked keeps verifying successfully until it
+    // naturally expires (JWTs are stateless) — self-heal below would then
+    // quietly recreate a blank Postgres row for an account that no longer
+    // exists in Firebase.
+    const decoded = await adminAuth.verifyIdToken(token, true);
     const rawRole = (decoded as Record<string, unknown>).role;
     const claimRole = (typeof rawRole === "string" && VALID_ROLES.has(rawRole)
       ? rawRole

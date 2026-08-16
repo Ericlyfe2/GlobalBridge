@@ -7,6 +7,49 @@ import { collectHealth } from "../lib/health";
 import { clampLimit } from "../lib/audit";
 import { recordAudit } from "../lib/audit";
 import { buildDailySeries, clampDays } from "../lib/analytics";
+import { escapeLike } from "../lib/sanitize";
+import { adminAuth } from "../lib/firebase-admin";
+import { clearUserCache } from "../middleware/auth";
+
+// "Suspend" is presented to admins as blocking a user, but a Firebase ID token
+// is a stateless JWT — flipping verification_status in Postgres does nothing
+// to a session already in the user's hands. revokeRefreshTokens() invalidates
+// it: combined with requireAuth's checkRevoked=true, their very next request
+// (and any open WebSocket) fails immediately instead of drifting on for up to
+// an hour until the token naturally expires.
+async function revokeUserSessions(userId: string) {
+  const row = await queryOne<{ firebase_uid: string }>(`SELECT firebase_uid FROM users WHERE id = $1`, [userId]);
+  if (!row) return;
+  try {
+    await adminAuth.revokeRefreshTokens(row.firebase_uid);
+    clearUserCache(row.firebase_uid);
+  } catch {
+    // Best-effort — the Postgres status change is the source of truth for the
+    // rest of the app either way; a Firebase-side hiccup shouldn't block it.
+  }
+}
+
+// Deletes the Postgres row (with the same NO-ACTION-FK cleanup as the
+// self-service DELETE /me in routes/users.ts) and the Firebase account.
+// Without the Firebase deletion, the user's still-valid token would pass
+// requireAuth's checkRevoked fine (the account isn't revoked, just gone from
+// our DB) and self-heal a brand-new blank row right back into existence on
+// their next request — an admin "delete" that silently undoes itself.
+async function deleteUserAccount(userId: string) {
+  await query(`DELETE FROM reports WHERE reporter_id = $1`, [userId]);
+  await query(`UPDATE reports SET resolved_by = NULL WHERE resolved_by = $1`, [userId]);
+  await query(`DELETE FROM scam_alerts WHERE reported_by = $1`, [userId]);
+  await query(`UPDATE mentor_profiles SET verified_by = NULL WHERE verified_by = $1`, [userId]);
+  const deleted = await queryOne<{ firebase_uid: string }>(`DELETE FROM users WHERE id = $1 RETURNING firebase_uid`, [userId]);
+  if (!deleted) return;
+  clearUserCache(deleted.firebase_uid);
+  try {
+    await adminAuth.deleteUser(deleted.firebase_uid);
+  } catch {
+    // Postgres row is already gone (the part that gates every route); a
+    // stray Firebase account with no app data is harmless.
+  }
+}
 
 export const adminRouter = Router();
 
@@ -173,7 +216,7 @@ adminRouter.get("/users", requireAuth, requireAdmin(), async (req, res, next) =>
       else if (status === "active") conditions.push(`u.verification_status = 'verified'`);
       else conditions.push(`u.verification_status = $${idx++}`); params.push(status);
     }
-    if (search) { conditions.push(`(u.full_name ILIKE $${idx} OR u.email ILIKE $${idx})`); params.push(`%${search}%`); idx++; }
+    if (search) { conditions.push(`(u.full_name ILIKE $${idx} OR u.email ILIKE $${idx})`); params.push(`%${escapeLike(search)}%`); idx++; }
 
     const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
@@ -255,6 +298,25 @@ adminRouter.patch("/users/:id", requireAuth, requireAdmin(), async (req, res, ne
       `UPDATE users SET ${updates.join(", ")} WHERE id = $${i}`,
       values
     );
+    if (verification_status === "rejected") await revokeUserSessions(String(req.params.id));
+
+    // Same reason as register-profile: a mentor with no mentor_profiles row
+    // is invisible in the verification queue and the public mentor directory.
+    if (role === "mentor" && isSuperAdmin(req.user!.role)) {
+      await query(
+        `INSERT INTO mentor_profiles (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`,
+        [req.params.id]
+      );
+    }
+    // Same bug, same fix, for employers — the admin employer-verification
+    // queue also INNER JOINs employer_profiles.
+    if (role === "employer" && isSuperAdmin(req.user!.role)) {
+      const target = await queryOne<{ full_name: string }>(`SELECT full_name FROM users WHERE id = $1`, [req.params.id]);
+      await query(
+        `INSERT INTO employer_profiles (user_id, company_name) VALUES ($1, $2) ON CONFLICT (user_id) DO NOTHING`,
+        [req.params.id, `${target?.full_name ?? "New employer"}'s company`]
+      );
+    }
 
     await recordAudit({
       adminId: req.user!.sub,
@@ -277,12 +339,38 @@ adminRouter.delete("/users/:id", requireAuth, requireAdmin(), async (req, res, n
     if (targetUser.role === "super_admin") {
       return res.status(403).json({ error: "Cannot delete super admin account" });
     }
-    await query(`DELETE FROM users WHERE id = $1`, [req.params.id]);
+    await deleteUserAccount(String(req.params.id));
     await recordAudit({
       adminId: req.user!.sub,
       action: "user.delete",
       targetType: "user",
       targetId: String(req.params.id),
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// The frontend's Suspend/Reinstate buttons call this generic endpoint, but
+// it never existed — only the specific /verify, /suspend, /activate actions
+// did, and none of those covers "reinstate to pending" (activate sets
+// verified, not pending). Every click 404'd.
+adminRouter.patch("/users/:id/status", requireAuth, requireAdmin(), async (req, res, next) => {
+  try {
+    const { verification_status } = z.object({
+      verification_status: z.enum(["pending", "verified", "rejected"]),
+    }).parse(req.body);
+    const targetUser = await queryOne<{ role: string }>(`SELECT role FROM users WHERE id = $1`, [req.params.id]);
+    if (!targetUser) return res.status(404).json({ error: "User not found" });
+    if (targetUser.role === "super_admin" && !isSuperAdmin(req.user!.role)) {
+      return res.status(403).json({ error: "Cannot modify super admin account" });
+    }
+    await query(`UPDATE users SET verification_status = $1 WHERE id = $2`, [verification_status, req.params.id]);
+    if (verification_status === "rejected") await revokeUserSessions(String(req.params.id));
+    await recordAudit({
+      adminId: req.user!.sub, action: "user.status", targetType: "user",
+      targetId: String(req.params.id), metadata: { verification_status },
     });
     res.json({ ok: true });
   } catch (err) {
@@ -310,6 +398,7 @@ adminRouter.post("/users/:id/suspend", requireAuth, requireAdmin(), async (req, 
       return res.status(403).json({ error: "Cannot suspend super admin" });
     }
     await query(`UPDATE users SET verification_status = 'rejected' WHERE id = $1`, [req.params.id]);
+    await revokeUserSessions(String(req.params.id));
     await recordAudit({
       adminId: req.user!.sub, action: "user.suspend", targetType: "user", targetId: String(req.params.id),
     });
@@ -345,9 +434,10 @@ adminRouter.post("/users/bulk-action", requireAuth, requireAdmin(), async (req, 
         if (action === "delete") {
           const target = await queryOne<{ role: string }>(`SELECT role FROM users WHERE id = $1`, [id]);
           if (target?.role === "super_admin") { results.failed++; continue; }
-          await query(`DELETE FROM users WHERE id = $1`, [id]);
+          await deleteUserAccount(id);
         } else if (action === "suspend") {
           await query(`UPDATE users SET verification_status = 'rejected' WHERE id = $1 AND role != 'super_admin'`, [id]);
+          await revokeUserSessions(id);
         } else if (action === "activate" || action === "verify") {
           await query(`UPDATE users SET verification_status = 'verified' WHERE id = $1`, [id]);
         }
@@ -507,6 +597,23 @@ adminRouter.post("/employer-verifications/:id/reject", requireAuth, requireAdmin
   }
 });
 
+// The frontend already called this endpoint (mirroring mentor-verifications'
+// reopen) but it never existed on the backend — every "Reopen" click 404'd.
+adminRouter.post("/employer-verifications/:id/reopen", requireAuth, requireAdmin(), async (req, res, next) => {
+  try {
+    await query(
+      `UPDATE users SET verification_status = 'pending' WHERE id = $1 AND role = 'employer'`,
+      [req.params.id]
+    );
+    await recordAudit({
+      adminId: req.user!.sub, action: "employer.reopen", targetType: "employer", targetId: String(req.params.id),
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ============================================================
 // CONTENT MODERATION
 // ============================================================
@@ -595,7 +702,16 @@ adminRouter.delete("/content/:type/:id", requireAuth, requireAdmin(), async (req
     const type = req.params.type as string;
     const id = req.params.id as string;
     if (type === "housing") await query(`DELETE FROM housing_listings WHERE id = $1`, [id]);
-    else if (type === "forum_post") await query(`DELETE FROM forum_posts WHERE id = $1`, [id]);
+    else if (type === "forum_post") {
+      // Mirror the increment in POST /api/forums/posts — otherwise the
+      // category's post_count only ever goes up, never down.
+      const deleted = await queryOne<{ category_id: string }>(
+        `DELETE FROM forum_posts WHERE id = $1 RETURNING category_id`, [id]
+      );
+      if (deleted) {
+        await query(`UPDATE forum_categories SET post_count = GREATEST(post_count - 1, 0) WHERE id = $1`, [deleted.category_id]);
+      }
+    }
     else if (type === "opportunity" || type === "job") await query(`DELETE FROM opportunities WHERE id = $1`, [id]);
     else if (type === "success_story") await query(`DELETE FROM success_stories WHERE id = $1`, [id]);
     await recordAudit({
@@ -648,10 +764,17 @@ adminRouter.patch("/reports/:id", requireAuth, requireAdmin(), async (req, res, 
       notes: z.string().optional(),
     }).parse(req.body);
 
-    await query(
-      `UPDATE reports SET status = $1, resolved_by = $2, resolved_at = NOW() WHERE id = $3`,
-      [status, req.user!.sub, req.params.id]
-    );
+    // "reviewing" is an in-progress marker, not a terminal resolution —
+    // resolved_by/resolved_at should only be stamped once it's actually
+    // resolved or dismissed by someone.
+    if (status === "reviewing") {
+      await query(`UPDATE reports SET status = $1 WHERE id = $2`, [status, req.params.id]);
+    } else {
+      await query(
+        `UPDATE reports SET status = $1, resolved_by = $2, resolved_at = NOW() WHERE id = $3`,
+        [status, req.user!.sub, req.params.id]
+      );
+    }
 
     await recordAudit({
       adminId: req.user!.sub, action: "report.resolve", targetType: "report",
@@ -999,7 +1122,7 @@ adminRouter.get("/knowledge", requireAuth, requireAdmin(), async (req, res, next
     const params: unknown[] = [];
     let idx = 1;
 
-    if (search) { conditions.push(`(title ILIKE $${idx} OR content ILIKE $${idx})`); params.push(`%${search}%`); idx++; }
+    if (search) { conditions.push(`(title ILIKE $${idx} OR content ILIKE $${idx})`); params.push(`%${escapeLike(String(search))}%`); idx++; }
     if (category && category !== "all") { conditions.push(`category = $${idx++}`); params.push(category); }
 
     const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";

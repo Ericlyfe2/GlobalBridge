@@ -153,7 +153,7 @@ export default function TimelinePage() {
           </ul>
 
           <p className="text-xs text-ink-500 mt-6 text-center">
-            We&apos;ll email you reminders 7 days + 24 hours before each milestone. Toggle in Settings.
+            This checklist recalculates from your arrival date — bookmark this page to check back before each milestone.
           </p>
         </div>
       </div>

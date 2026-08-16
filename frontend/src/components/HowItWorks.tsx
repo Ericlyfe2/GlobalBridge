@@ -36,7 +36,7 @@ export default function HowItWorks() {
           {STEPS.map((s, i) => (
             <li
               key={s.titleKey}
-              className="group relative flex flex-col gap-4 rounded-2xl border border-cream-200 bg-white p-6 transition-colors hover:border-clay-500/40"
+              className="group relative flex flex-col gap-4 rounded-2xl border border-cream-200 bg-white dark:bg-[var(--color-surface)] p-6 transition-colors hover:border-clay-500/40"
             >
               <div className="flex items-center justify-between">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-clay-500/10 text-clay-600">

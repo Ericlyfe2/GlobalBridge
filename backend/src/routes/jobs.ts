@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
-import { sanitizeAllStrings } from "../lib/sanitize";
+import { sanitizeAllStrings, escapeLike } from "../lib/sanitize";
 
 export const jobsRouter = Router();
 
@@ -27,11 +27,11 @@ jobsRouter.get("/", async (req, res, next) => {
       filters.push(`o.type = $${i++}`);
       values.push(type);
     }
-    if (country) { filters.push(`o.country ILIKE $${i++}`); values.push(`%${country}%`); }
+    if (country) { filters.push(`o.country ILIKE $${i++}`); values.push(`%${escapeLike(country)}%`); }
     if (sponsors_visa === "true") { filters.push(`o.sponsors_visa = TRUE`); }
     if (search) {
       filters.push(`(o.title ILIKE $${i} OR o.description ILIKE $${i} OR o.institution ILIKE $${i})`);
-      values.push(`%${search}%`);
+      values.push(`%${escapeLike(search)}%`);
       i++;
     }
 

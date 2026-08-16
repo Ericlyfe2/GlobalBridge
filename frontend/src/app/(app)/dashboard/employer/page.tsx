@@ -86,7 +86,7 @@ export default function EmployerDashboard() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {MANAGE.map((a) => (
             <Link key={a.label} href={a.href}
-              className="group flex flex-col items-start gap-2 rounded-xl border border-cream-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900">
+              className="group flex flex-col items-start gap-2 rounded-xl border border-cream-200 bg-white dark:bg-[var(--color-surface)] p-4 transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900">
               <span className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"><a.icon size={18} /></span>
               <span className="text-xs font-medium text-ink-800 dark:text-gray-200">{a.label}</span>
             </Link>
@@ -141,7 +141,7 @@ export default function EmployerDashboard() {
 
 function Stat({ icon: Icon, label, value }: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-cream-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+    <div className="rounded-xl border border-cream-200 bg-white dark:bg-[var(--color-surface)] p-4 dark:border-gray-800 dark:bg-gray-900">
       <Icon size={18} className="text-emerald-600 dark:text-emerald-400" />
       <p className="mt-3 text-2xl font-bold text-[#0A2540] dark:text-white">{value}</p>
       <p className="mt-0.5 text-xs text-ink-500 dark:text-gray-400">{label}</p>
@@ -164,7 +164,7 @@ function Ring({ value }: { value: number }) {
 
 function SectionCard({ title, href, className = "", children }: { title: string; href?: string; className?: string; children: React.ReactNode }) {
   return (
-    <section className={`rounded-2xl border border-cream-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900 ${className}`}>
+    <section className={`rounded-2xl border border-cream-200 bg-white dark:bg-[var(--color-surface)] p-5 dark:border-gray-800 dark:bg-gray-900 ${className}`}>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-ink-800 dark:text-gray-200">{title}</h2>
         {href && <Link href={href} className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700">View all <ArrowRight size={12} /></Link>}

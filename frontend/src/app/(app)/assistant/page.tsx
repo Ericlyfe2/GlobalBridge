@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Sparkles, FileCheck, Globe, Loader2, User, X, Download, Printer, History, CheckCircle, ShieldCheck } from "lucide-react";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
 import { getToken, getUser } from "@/lib/auth";
+import { useEscapeToClose } from "@/lib/useEscapeToClose";
 import { useMascot } from "@/mascot/MascotProvider";
 import { AtlasPortrait } from "@/components/mascot/AtlasPortrait";
 
@@ -168,7 +169,7 @@ export default function AssistantPage() {
                 className={`text-xs px-3 py-1.5 rounded-full border transition ${
                   c.id === conversationId
                     ? "bg-clay-500 text-white border-clay-500"
-                    : "bg-white text-ink-700 border-cream-300 hover:border-clay-300"
+                    : "bg-white dark:bg-[var(--color-surface)] text-ink-700 border-cream-300 hover:border-clay-300"
                 }`}
               >
                 {c.title?.slice(0, 40) || "Conversation"}
@@ -432,6 +433,7 @@ function ChecklistModal({ messages, onClose }: { messages: Msg[]; onClose: () =>
   const sections = buildChecklist(d);
   const totalItems = sections.reduce((a, s) => a + s.items.length, 0);
   const [done, setDone] = useState<Set<string>>(new Set());
+  useEscapeToClose(onClose);
 
   function toggle(key: string) {
     setDone((s) => {
@@ -468,6 +470,9 @@ function ChecklistModal({ messages, onClose }: { messages: Msg[]; onClose: () =>
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="checklist-title"
         className="w-full max-w-2xl rounded-xl border border-cream-200 bg-[var(--color-surface)] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
@@ -475,7 +480,7 @@ function ChecklistModal({ messages, onClose }: { messages: Msg[]; onClose: () =>
           <div>
             <div className="flex items-center gap-2">
               <FileCheck size={16} className="text-clay-500" />
-              <h2 className="font-display text-lg font-semibold text-ink-900">Personalized checklist</h2>
+              <h2 id="checklist-title" className="font-display text-lg font-semibold text-ink-900">Personalized checklist</h2>
             </div>
             <p className="text-xs text-ink-500 mt-1">
               {d.origin && d.destination ? (

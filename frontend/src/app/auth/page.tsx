@@ -7,7 +7,7 @@ import {
   ArrowRight, Mail, Lock, User, Globe, Eye, EyeOff, Loader2, Check, X,
   GraduationCap, Compass, Briefcase, ShieldCheck, Quote, BadgeCheck, Lock as LockIcon,
 } from "lucide-react";
-import { login, register, loginWithGoogle, PASSWORD_POLICY } from "@/lib/auth";
+import { login, register, loginWithGoogle, PASSWORD_POLICY, validatePassword } from "@/lib/auth";
 import { roleHome } from "@/lib/roles";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -38,6 +38,17 @@ function AuthContent() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    if (mode === "signup") {
+      // The PasswordStrength checklist below is only a visual hint — nothing
+      // upstream of this actually enforced it. Firebase's own minimum is just
+      // 6 characters, so without this check any password meeting only the
+      // HTML `minLength` attribute (length alone) would sail through signup.
+      const passwordErrors = validatePassword(password);
+      if (passwordErrors.length > 0) {
+        setError(`Password needs: ${passwordErrors.join(", ")}`);
+        return;
+      }
+    }
     setLoading(true);
     try {
       if (mode === "signup") {
@@ -94,7 +105,7 @@ function AuthContent() {
   const isSignup = mode === "signup";
 
   return (
-    <div className="min-h-screen grid md:grid-cols-2 bg-white dark:bg-gray-950">
+    <div className="min-h-screen grid md:grid-cols-2 bg-white dark:bg-[var(--color-surface)] dark:bg-gray-950">
       {/* ── Left: brand / trust panel ───────────────────────────── */}
       <aside className="relative hidden md:flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0B1F3A] via-[#0A2540] to-[#06121F] text-white p-8 lg:p-12">
         {/* Real footage (a public airport concourse), not a stock illustration —
@@ -226,7 +237,7 @@ function AuthContent() {
               type="button"
               onClick={handleGoogle}
               disabled={googleLoading || loading}
-              className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-cream-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 text-sm font-semibold text-ink-700 dark:text-gray-200 shadow-sm transition-colors hover:bg-cream-50 dark:hover:bg-gray-750 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-cream-200 dark:border-gray-700 bg-white dark:bg-[var(--color-surface)] dark:bg-gray-800 py-2.5 text-sm font-semibold text-ink-700 dark:text-gray-200 shadow-sm transition-colors hover:bg-cream-50 dark:hover:bg-gray-750 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {googleLoading ? (
                 <Loader2 size={16} className="animate-spin" />
@@ -342,7 +353,7 @@ function AuthContent() {
                     required minLength={isSignup ? PASSWORD_POLICY.minLength : undefined} maxLength={PASSWORD_POLICY.maxLength}
                     value={password} onChange={(e) => setPassword(e.target.value)}
                     autoComplete={isSignup ? "new-password" : "current-password"}
-                    className="w-full rounded-lg border border-cream-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-9 pr-10 text-sm text-ink-900 dark:text-white focus:border-transparent focus:ring-2 focus:ring-clay-500"
+                    className="w-full rounded-lg border border-cream-200 dark:border-gray-700 bg-white dark:bg-[var(--color-surface)] dark:bg-gray-800 py-2.5 pl-9 pr-10 text-sm text-ink-900 dark:text-white focus:border-transparent focus:ring-2 focus:ring-clay-500"
                     placeholder={isSignup ? t("auth.minChars") : t("auth.passwordPlaceholder")}
                   />
                   <button
@@ -425,7 +436,7 @@ function GoogleIcon({ size = 16 }: { size?: number }) {
 }
 
 const inputCls =
-  "w-full rounded-lg border border-cream-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-9 pr-4 text-sm text-ink-900 dark:text-white placeholder:text-ink-400 focus:border-transparent focus:ring-2 focus:ring-clay-500";
+  "w-full rounded-lg border border-cream-200 dark:border-gray-700 bg-white dark:bg-[var(--color-surface)] dark:bg-gray-800 py-2.5 pl-9 pr-4 text-sm text-ink-900 dark:text-white placeholder:text-ink-400 focus:border-transparent focus:ring-2 focus:ring-clay-500";
 
 function Field({
   label, htmlFor, icon: Icon, children,
@@ -497,7 +508,7 @@ function PasswordStrength({ password }: { password: string }) {
 export default function AuthPage() {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-gray-950">
+      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-[var(--color-surface)] dark:bg-gray-950">
         <Loader2 size={24} className="animate-spin text-clay-500" />
       </div>
     }>

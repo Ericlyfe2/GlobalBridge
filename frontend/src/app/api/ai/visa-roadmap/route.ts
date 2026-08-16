@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
 import { extractJson, mockFallback, type Roadmap } from "./logic";
+import { getAiConfig } from "@/lib/aiConfig";
 
 export const runtime = "nodejs";
 
@@ -39,7 +40,7 @@ type Body = { origin?: string; destination?: string; purpose?: string };
 export async function POST(req: Request) {
   const apiKey = process.env.OPENAI_API_KEY;
   const baseURL = process.env.OPENAI_BASE_URL;
-  const modelName = process.env.OPENAI_MODEL || "gpt-4o";
+  const aiConfig = await getAiConfig();
 
   let body: Body;
   try {
@@ -65,7 +66,7 @@ export async function POST(req: Request) {
 
   try {
     const completion = await client.chat.completions.create({
-      model: modelName,
+      model: aiConfig.ai_model,
       max_tokens: 1600,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },

@@ -25,6 +25,7 @@ const REWRITE_PATHS = API
       "/api/jobs/:path*",
       "/api/safe-space/:path*",
       "/api/library/:path*",
+      "/api/peer-review/:path*",
     ].map((source) => ({ source, destination: `${API}${source}` }))
   : [];
 

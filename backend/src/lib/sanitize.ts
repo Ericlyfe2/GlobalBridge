@@ -1,3 +1,11 @@
+// Escapes ILIKE/LIKE wildcard characters in user-supplied search text so a
+// literal "%" or "_" in a query (e.g. "100% funded", "under_grad") matches
+// itself instead of acting as a SQL wildcard. Callers still wrap the result
+// in their own %...% pattern.
+export function escapeLike(input: string): string {
+  return input.replace(/[\\%_]/g, (c) => `\\${c}`);
+}
+
 export function sanitize(input: string): string {
   return input
     .replace(/</g, "&lt;")

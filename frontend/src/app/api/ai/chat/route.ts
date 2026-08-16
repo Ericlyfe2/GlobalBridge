@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
+import { getAiConfig } from "@/lib/aiConfig";
 
 export const runtime = "nodejs";
 
@@ -128,12 +129,22 @@ async function saveMessage(token: string, conversationId: string, role: string, 
 export async function POST(req: Request) {
   const apiKey = process.env.OPENAI_API_KEY;
   const baseURL = process.env.OPENAI_BASE_URL;
-  const modelName = process.env.OPENAI_MODEL || "gpt-4o";
+  const aiConfig = await getAiConfig();
 
   if (!apiKey) {
     return Response.json(
       {
         reply: "AI is not configured yet. Ask the admin to add `OPENAI_API_KEY` to `frontend/.env.local` and restart the dev server.\n\nMeanwhile: you can still browse verified opportunities, check the document checklist, or read forum threads.",
+        sources: [],
+      },
+      { status: 200 },
+    );
+  }
+
+  if (!aiConfig.ai_chat_enabled) {
+    return Response.json(
+      {
+        reply: "The AI assistant has been turned off by an admin. Meanwhile: you can still browse verified opportunities, check the document checklist, or read forum threads.",
         sources: [],
       },
       { status: 200 },
@@ -226,7 +237,10 @@ export async function POST(req: Request) {
     ? `\n\n## Language requirement\nYou MUST respond entirely in ${langName}. The user's platform language is ${langName}. Every sentence must be in ${langName}. Only URLs, brand names (GlobalBridge), and untranslatable terms may remain in English.`
     : "";
 
-  const systemContent = BASE_SYSTEM + ragBlock + userBlock + langInstruction;
+  const adminGuidance = aiConfig.ai_system_prompt.trim()
+    ? `\n\n## Admin-configured guidance\n${aiConfig.ai_system_prompt.trim()}`
+    : "";
+  const systemContent = BASE_SYSTEM + adminGuidance + ragBlock + userBlock + langInstruction;
 
   // Combine history + current messages, remove dups
   const existingContents = new Set(historyMessages.map((m) => m.content));
@@ -244,9 +258,9 @@ export async function POST(req: Request) {
   try {
     const startTime = Date.now();
     const completion = await client.chat.completions.create({
-      model: modelName,
+      model: aiConfig.ai_model,
       max_tokens: 1024,
-      temperature: 0.3,
+      temperature: aiConfig.ai_temperature,
       messages: [
         { role: "system", content: systemContent },
         ...allMessages,

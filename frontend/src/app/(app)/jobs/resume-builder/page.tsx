@@ -164,7 +164,7 @@ export default function ResumeBuilder() {
 
         {/* Preview */}
         <div className="lg:sticky lg:top-20 self-start space-y-3">
-          <div className="card !bg-white !text-slate-900 dark:!bg-slate-100 shadow-md max-h-[calc(100vh-10rem)] overflow-y-auto print:shadow-none print:!bg-white">
+          <div className="card !bg-white dark:bg-[var(--color-surface)] !text-slate-900 dark:!bg-slate-100 shadow-md max-h-[calc(100vh-10rem)] overflow-y-auto print:shadow-none print:!bg-white dark:bg-[var(--color-surface)]">
             {/* Header */}
             {region === "de" ? (
               <DeHeader name={name} headline={headline} email={email} phone={phone} loc={loc} />

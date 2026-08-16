@@ -1,9 +1,11 @@
 import { Router } from "express";
+import { z } from "zod";
 import { query, queryOne } from "../db";
-import { requireAuth, requireRole } from "../middleware/auth";
-import { sanitizeObject } from "../lib/sanitize";
+import { requireAuth, requireRole, clearUserCache } from "../middleware/auth";
+import { sanitizeObject, sanitizeAllStrings, escapeLike } from "../lib/sanitize";
 import { buildDailySeries, clampDays } from "../lib/analytics";
 import { recordAudit } from "../lib/audit";
+import { adminAuth } from "../lib/firebase-admin";
 
 export const usersRouter = Router();
 
@@ -111,13 +113,13 @@ usersRouter.get("/mentor-dashboard", requireAuth, async (req, res, next) => {
          FROM forum_replies WHERE author_id = $1`, [uid]),
       queryOne<{ n: number }>(
         `SELECT COUNT(*)::int AS n FROM success_stories WHERE author_id = $1`, [uid]),
-      query<{ id: string; student_name: string | null; slot_date: string; slot_time: string; duration_min: number; goal: string | null; status: string }>(
-        `SELECT b.id, u.full_name AS student_name, b.slot_date, b.slot_time, b.duration_min, b.goal, b.status
+      query<{ id: string; student_name: string | null; slot_date: string; slot_time: string; duration_min: number; goal: string | null; status: string; student_timezone: string | null }>(
+        `SELECT b.id, u.full_name AS student_name, b.slot_date, b.slot_time, b.duration_min, b.goal, b.status, b.student_timezone
          FROM mentor_bookings b JOIN users u ON u.id = b.student_id
          WHERE b.mentor_id = $1 AND b.slot_date >= CURRENT_DATE AND b.status <> 'cancelled'
          ORDER BY b.slot_date ASC, b.slot_time ASC LIMIT 6`, [uid]),
-      query<{ id: string; student_name: string | null; slot_date: string; slot_time: string; goal: string | null }>(
-        `SELECT b.id, u.full_name AS student_name, b.slot_date, b.slot_time, b.goal
+      query<{ id: string; student_name: string | null; slot_date: string; slot_time: string; goal: string | null; student_timezone: string | null }>(
+        `SELECT b.id, u.full_name AS student_name, b.slot_date, b.slot_time, b.goal, b.student_timezone
          FROM mentor_bookings b JOIN users u ON u.id = b.student_id
          WHERE b.mentor_id = $1 AND b.status = 'pending'
          ORDER BY b.created_at DESC LIMIT 6`, [uid]),
@@ -212,6 +214,32 @@ usersRouter.get("/mentors", async (_req, res, next) => {
   }
 });
 
+// Single-mentor detail — the /community/mentors/:id booking page needs this
+// and previously had nothing to call, so it always rendered one hardcoded
+// sample mentor regardless of which real mentor was clicked.
+usersRouter.get("/mentors/:id", async (req, res, next) => {
+  try {
+    const mentor = await queryOne(
+      `SELECT u.id, u.full_name, u.avatar_url, u.country_of_residence, u.country_of_origin,
+              u.bio, u.trust_score, u.verification_status,
+              mp.expertise_areas, mp.years_abroad, mp.languages_spoken, mp.universities_attended
+       FROM users u
+       JOIN mentor_profiles mp ON mp.user_id = u.id
+       WHERE u.id = $1 AND u.role = 'mentor'`,
+      [req.params.id]
+    );
+    if (!mentor) return res.status(404).json({ error: "Mentor not found" });
+
+    const sessionsRow = await queryOne<{ n: number }>(
+      `SELECT COUNT(*)::int AS n FROM mentor_bookings WHERE mentor_id = $1`,
+      [req.params.id]
+    );
+    res.json({ mentor: { ...mentor, sessions: sessionsRow?.n ?? 0 } });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Admin: list all users with filters (must be before /:id)
 usersRouter.get("/", requireAuth, requireRole("admin"), async (req, res, next) => {
   try {
@@ -231,7 +259,7 @@ usersRouter.get("/", requireAuth, requireRole("admin"), async (req, res, next) =
       if (status === "suspended") conditions.push(`u.verification_status = 'rejected'`);
       else conditions.push(`u.verification_status = $${idx++}`); params.push(status);
     }
-    if (search) { conditions.push(`(u.full_name ILIKE $${idx} OR u.email ILIKE $${idx})`); params.push(`%${search}%`); idx++; }
+    if (search) { conditions.push(`(u.full_name ILIKE $${idx} OR u.email ILIKE $${idx})`); params.push(`%${escapeLike(search)}%`); idx++; }
 
     const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
@@ -332,8 +360,21 @@ usersRouter.get("/:id", async (req, res, next) => {
   }
 });
 
+// full_name/email are VARCHAR(255) in Postgres; without this cap an oversized
+// value fell through to a raw driver error ("value too long for type
+// character varying(255)") that the generic error handler surfaced as an
+// opaque 500, instead of a clean, actionable 400.
+const updateMeSchema = z.object({
+  full_name: z.string().min(1).max(255).optional(),
+  bio: z.string().max(2000).optional(),
+  country_of_residence: z.string().max(100).optional(),
+  avatar_url: z.string().max(2000).optional(),
+  preferred_language: z.string().max(10).optional(),
+});
+
 usersRouter.patch("/me", requireAuth, async (req, res, next) => {
   try {
+    updateMeSchema.parse(req.body);
     const allowed = ["full_name", "bio", "country_of_residence", "avatar_url", "preferred_language"];
     const safe = sanitizeObject(req.body, allowed);
     const updates: string[] = [];
@@ -359,6 +400,80 @@ usersRouter.patch("/me", requireAuth, async (req, res, next) => {
   }
 });
 
+const mentorProfileSchema = z.object({
+  expertise_areas: z.array(z.string().max(80)).max(20).optional(),
+  languages_spoken: z.array(z.string().max(50)).max(20).optional(),
+  years_abroad: z.number().int().min(0).max(80).optional(),
+  universities_attended: z.array(z.string().max(200)).max(20).optional(),
+  available_for_mentoring: z.boolean().optional(),
+});
+
+usersRouter.get("/me/mentor-profile", requireAuth, requireRole("mentor", "admin"), async (req, res, next) => {
+  try {
+    const profile = await queryOne(
+      `SELECT * FROM mentor_profiles WHERE user_id = $1`,
+      [req.user!.sub]
+    );
+    res.json({ profile });
+  } catch (err) { next(err); }
+});
+
+// Self-service mentor profile edit. mentor_profiles is what the public
+// mentor directory and admin verification queue both read from, so without
+// this a mentor has no way to ever fill in their own listing.
+usersRouter.patch("/me/mentor-profile", requireAuth, requireRole("mentor", "admin"), async (req, res, next) => {
+  try {
+    const b = sanitizeAllStrings(mentorProfileSchema.parse(req.body));
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    let i = 1;
+    for (const [k, v] of Object.entries(b)) {
+      if (v === undefined) continue;
+      fields.push(`${k} = $${i++}`);
+      values.push(v);
+    }
+    if (!fields.length) return res.json({ ok: true });
+
+    values.push(req.user!.sub);
+    const profile = await queryOne(
+      `INSERT INTO mentor_profiles (user_id) VALUES ($${i})
+       ON CONFLICT (user_id) DO UPDATE SET ${fields.join(", ")}
+       RETURNING *`,
+      values
+    );
+    res.json({ profile });
+  } catch (err) { next(err); }
+});
+
+// Self-service account deletion. A few relations don't cascade (moderation
+// reports/alerts, and mentor_profiles.verified_by if this user is an admin
+// who verified someone) — handled explicitly so the delete can't fail with
+// a raw FK violation partway through.
+usersRouter.delete("/me", requireAuth, async (req, res, next) => {
+  try {
+    const uid = req.user!.sub;
+    await query(`DELETE FROM reports WHERE reporter_id = $1`, [uid]);
+    await query(`UPDATE reports SET resolved_by = NULL WHERE resolved_by = $1`, [uid]);
+    await query(`DELETE FROM scam_alerts WHERE reported_by = $1`, [uid]);
+    await query(`UPDATE mentor_profiles SET verified_by = NULL WHERE verified_by = $1`, [uid]);
+
+    const deleted = await queryOne<{ firebase_uid: string }>(
+      `DELETE FROM users WHERE id = $1 RETURNING firebase_uid`,
+      [uid]
+    );
+    if (!deleted) return res.status(404).json({ error: "User not found" });
+
+    clearUserCache(deleted.firebase_uid);
+    try {
+      await adminAuth.deleteUser(deleted.firebase_uid);
+    } catch {
+      // Postgres row is already gone (the part that gates every route); a
+      // stray Firebase account with no app data is harmless.
+    }
+    res.json({ ok: true });
+  } catch (err) { next(err); }
+});
+
 usersRouter.post("/:id/verify", requireAuth, requireRole("admin"), async (req, res, next) => {
   try {
     await query(`UPDATE users SET verification_status = 'verified' WHERE id = $1`, [req.params.id]);
@@ -377,6 +492,17 @@ usersRouter.patch("/:id/status", requireAuth, requireRole("admin"), async (req, 
       return res.status(400).json({ error: "Invalid status. Use: pending, verified, rejected" });
     }
     await query(`UPDATE users SET verification_status = $1 WHERE id = $2`, [status, req.params.id]);
+    if (status === "rejected") {
+      // "Suspend" is presented to admins as blocking a user, but a Firebase ID
+      // token is a stateless JWT — flipping this flag alone does nothing to a
+      // session already in the user's hands. Revoking forces re-auth, and
+      // combined with requireAuth's checkRevoked=true, their very next request
+      // (and any open WebSocket) fails immediately.
+      const target = await queryOne<{ firebase_uid: string }>(`SELECT firebase_uid FROM users WHERE id = $1`, [req.params.id]);
+      if (target) {
+        try { await adminAuth.revokeRefreshTokens(target.firebase_uid); clearUserCache(target.firebase_uid); } catch { /* best-effort */ }
+      }
+    }
     await recordAudit({
       adminId: req.user!.sub,
       action: "user.status",

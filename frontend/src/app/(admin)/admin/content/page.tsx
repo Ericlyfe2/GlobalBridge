@@ -108,7 +108,7 @@ export default function ContentModerationPage() {
         <div className="ml-auto flex gap-1 bg-cream-100 rounded-lg p-0.5">
           {["all", "pending", "active"].map((s) => (
             <button key={s} onClick={() => setStatusFilter(s)}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium capitalize transition ${statusFilter === s ? "bg-white shadow-sm text-ink-900" : "text-ink-500 hover:text-ink-700"}`}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium capitalize transition ${statusFilter === s ? "bg-white dark:bg-[var(--color-surface)] shadow-sm text-ink-900" : "text-ink-500 hover:text-ink-700"}`}
             >{s === "pending" ? "Pending Review" : s === "all" ? "All" : "Active"}</button>
           ))}
         </div>

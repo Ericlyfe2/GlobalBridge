@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth } from "../middleware/auth";
-import { sanitizeAllStrings } from "../lib/sanitize";
+import { sanitizeAllStrings, escapeLike } from "../lib/sanitize";
 
 export const forumsRouter = Router();
 
@@ -20,7 +20,7 @@ forumsRouter.get("/posts", async (req, res, next) => {
     const values: unknown[] = [];
     let i = 1;
     if (category) { filters.push(`fc.slug = $${i++}`); values.push(category); }
-    if (search) { filters.push(`fp.title ILIKE $${i++}`); values.push(`%${search}%`); }
+    if (search) { filters.push(`fp.title ILIKE $${i++}`); values.push(`%${escapeLike(String(search))}%`); }
     const where = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
     res.set("Cache-Control", "public, max-age=30");

@@ -5,6 +5,7 @@ import {
   ShieldAlert, ShieldCheck, AlertTriangle, Loader2, Bot, Flag, Sparkles,
 } from "lucide-react";
 import { useMascot } from "@/mascot/MascotProvider";
+import { authFetch, getToken } from "@/lib/auth";
 
 type Severity = "low" | "med" | "high";
 type ScamFlag = { phrase: string; category: string; why: string; severity: Severity };
@@ -79,23 +80,21 @@ export default function ScamShieldPage() {
   }
 
   async function report() {
-    setReported(true); // optimistic — this is protective, never blocking
+    if (!getToken()) { setError("Sign in to submit this as a public scam alert."); return; }
     try {
-      const token = (() => { try { return localStorage.getItem("gb-token"); } catch { return null; } })();
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? ""}/api/moderation/reports`, {
+      const res = await authFetch("/api/moderation/scam-alerts", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
         body: JSON.stringify({
-          type: "scam",
-          target: kind,
-          reason: `Scam Shield flagged this ${kind} (risk ${result?.score ?? "?"}/100).`,
-          content: text.slice(0, 2000),
+          title: `Scam Shield flagged a ${kinds.find((k) => k.value === kind)?.label.toLowerCase() ?? kind} (risk score ${result?.score ?? "?"} of 100)`,
+          description: text.slice(0, 5000),
+          scam_type: kind,
         }),
-      }).catch(() => {});
-    } catch { /* best-effort; UI already confirmed */ }
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || "Couldn't submit report");
+      setReported(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't submit report");
+    }
   }
 
   const tone = result ? toneFor(result.score) : null;

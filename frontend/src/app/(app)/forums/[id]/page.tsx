@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import {
-  ArrowLeft, ArrowUp, ArrowDown, ShieldCheck, MessageSquare, Flag, Share2, Bookmark, Pin, Flame, Award, Loader2,
+  ArrowLeft, ArrowUp, ArrowDown, ShieldCheck, MessageSquare, Flag, Share2, Pin, Flame, Award, Loader2,
 } from "lucide-react";
 import { authFetch, getToken } from "@/lib/auth";
 
@@ -85,6 +85,8 @@ export default function ForumThread({ params }: { params: Promise<{ id: string }
   const [reply, setReply] = useState("");
   const [replies, setReplies] = useState<Reply[]>([]);
   const [posting, setPosting] = useState(false);
+  const [postErr, setPostErr] = useState<string | null>(null);
+  const [reportedIds, setReportedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -107,28 +109,47 @@ export default function ForumThread({ params }: { params: Promise<{ id: string }
   async function onPost() {
     if (!reply.trim()) return;
     if (!getToken()) {
-      // Optimistic local add when not signed in
-      setReplies((arr) => [...arr, { id: `local_${Date.now()}`, author: "You", initials: "?", verified: false, posted: "now", upvotes: 0, body: reply }]);
-      setReply("");
+      setPostErr("Sign in to reply.");
       return;
     }
     setPosting(true);
+    setPostErr(null);
     try {
       const res = await authFetch(`/api/forums/posts/${id}/replies`, {
         method: "POST",
         body: JSON.stringify({ body: reply }),
       });
       const data = await res.json();
-      if (res.ok) {
-        setReplies((arr) => [...arr, {
-          id: data.reply.id, author: "You", initials: "?", verified: false,
-          posted: "now", upvotes: 0, body: reply,
-        }]);
-        setReply("");
-      }
+      if (!res.ok) throw new Error(data?.error || "Couldn't post reply");
+      setReplies((arr) => [...arr, {
+        id: data.reply.id, author: "You", initials: "?", verified: false,
+        posted: "now", upvotes: 0, body: reply,
+      }]);
+      setReply("");
+    } catch (e) {
+      setPostErr(e instanceof Error ? e.message : "Couldn't post reply");
     } finally {
       setPosting(false);
     }
+  }
+
+  async function report(targetType: "post" | "reply", targetId: string) {
+    if (!getToken()) { setPostErr("Sign in to report."); return; }
+    try {
+      const res = await authFetch("/api/moderation/report", {
+        method: "POST",
+        body: JSON.stringify({ target_type: targetType, target_id: targetId, reason: "Reported from forum thread" }),
+      });
+      if (res.ok) setReportedIds((s) => new Set(s).add(targetId));
+    } catch { /* best-effort */ }
+  }
+
+  async function share() {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try { await navigator.share({ title: t?.title, url }); return; } catch { /* user cancelled */ }
+    }
+    try { await navigator.clipboard.writeText(url); } catch { /* clipboard unavailable */ }
   }
 
   if (err) {
@@ -185,9 +206,12 @@ export default function ForumThread({ params }: { params: Promise<{ id: string }
             <div className="mt-5 text-sm text-ink-800 leading-relaxed whitespace-pre-wrap">{t.body}</div>
 
             <div className="mt-5 flex items-center gap-3 text-xs text-ink-500">
-              <button className="hover:text-clay-600 inline-flex items-center gap-1"><Share2 size={12} /> Share</button>
-              <button className="hover:text-clay-600 inline-flex items-center gap-1"><Bookmark size={12} /> Save</button>
-              <button className="hover:text-red-600 inline-flex items-center gap-1"><Flag size={12} /> Report</button>
+              <button onClick={share} className="hover:text-clay-600 inline-flex items-center gap-1"><Share2 size={12} /> Share</button>
+              {reportedIds.has(t.id) ? (
+                <span className="text-ink-400">Reported</span>
+              ) : (
+                <button onClick={() => report("post", t.id)} className="hover:text-red-600 inline-flex items-center gap-1"><Flag size={12} /> Report</button>
+              )}
             </div>
           </div>
         </div>
@@ -226,8 +250,11 @@ export default function ForumThread({ params }: { params: Promise<{ id: string }
                   <div className="mt-3 text-sm text-ink-800 leading-relaxed whitespace-pre-wrap">{r.body}</div>
 
                   <div className="mt-3 flex items-center gap-3 text-xs text-ink-500">
-                    <button className="hover:text-clay-600 inline-flex items-center gap-1"><MessageSquare size={11} /> Reply</button>
-                    <button className="hover:text-red-600 inline-flex items-center gap-1"><Flag size={11} /> Report</button>
+                    {reportedIds.has(r.id) ? (
+                      <span className="text-ink-400">Reported</span>
+                    ) : (
+                      <button onClick={() => report("reply", r.id)} className="hover:text-red-600 inline-flex items-center gap-1"><Flag size={11} /> Report</button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -251,6 +278,7 @@ export default function ForumThread({ params }: { params: Promise<{ id: string }
             {posting ? <><Loader2 size={13} className="animate-spin" /> Posting...</> : "Post reply"}
           </button>
         </div>
+        {postErr && <p className="text-xs text-red-600 mt-2">{postErr}</p>}
       </div>
     </div>
   );

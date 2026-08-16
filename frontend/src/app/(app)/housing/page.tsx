@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useMascot } from "@/mascot/MascotProvider";
-import { MapPin, Bed, Bath, ShieldCheck, Star, Search, SlidersHorizontal, Loader2, Plus } from "lucide-react";
+import { MapPin, Bed, Bath, ShieldCheck, Star, Search, Loader2, Plus } from "lucide-react";
 import { SaveButton } from "@/components/SaveButton";
 import { useDebounce } from "@/lib/useDebounce";
 
@@ -66,8 +66,8 @@ export default function HousingPage() {
       try {
         const params = new URLSearchParams();
         if (debouncedCity) params.set("city", debouncedCity);
-        if (maxRent)  params.set("max_rent", maxRent);
         if (currency) params.set("currency", currency);
+        if (maxRent && currency) params.set("max_rent", maxRent);
         const res = await fetch(`/api/housing?${params}`, { signal: ctrl.signal });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
@@ -108,34 +108,39 @@ export default function HousingPage() {
         </Link>
       </div>
 
-      <div className="card !p-4 flex flex-wrap gap-3 items-center">
-        <div className="flex-1 min-w-[240px] relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-500" />
-          <input
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="City, university, or neighborhood..."
-            className="input pl-10"
-          />
+      <div className="card !p-4 space-y-2">
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="flex-1 min-w-[240px] relative">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-500" />
+            <input
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              placeholder="City, university, or neighborhood..."
+              className="input pl-10"
+            />
+          </div>
+          <select value={maxRent} onChange={(e) => setMaxRent(e.target.value)} className="input w-auto">
+            <option value="">Any budget</option>
+            <option value="500">Under 500</option>
+            <option value="1000">Under 1,000</option>
+            <option value="1500">Under 1,500</option>
+            <option value="2500">Under 2,500</option>
+          </select>
+          <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="input w-auto">
+            <option value="">Any currency</option>
+            <option value="CAD">CAD</option>
+            <option value="GBP">GBP</option>
+            <option value="EUR">EUR</option>
+            <option value="USD">USD</option>
+            <option value="AUD">AUD</option>
+          </select>
         </div>
-        <select value={maxRent} onChange={(e) => setMaxRent(e.target.value)} className="input w-auto">
-          <option value="">Any budget</option>
-          <option value="500">Under 500</option>
-          <option value="1000">Under 1,000</option>
-          <option value="1500">Under 1,500</option>
-          <option value="2500">Under 2,500</option>
-        </select>
-        <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="input w-auto">
-          <option value="">Any currency</option>
-          <option value="CAD">CAD</option>
-          <option value="GBP">GBP</option>
-          <option value="EUR">EUR</option>
-          <option value="USD">USD</option>
-          <option value="AUD">AUD</option>
-        </select>
-        <button className="btn-ghost border border-cream-300">
-          <SlidersHorizontal size={14} /> Filters
-        </button>
+        {maxRent && !currency && (
+          // Listings are priced in whatever currency the landlord set — a budget
+          // number alone means nothing without pinning it to one currency, so
+          // the request below doesn't send max_rent until a currency is picked.
+          <p className="text-xs text-amber-600">Pick a currency to filter by budget — rents are in different currencies.</p>
+        )}
       </div>
 
       {err && (

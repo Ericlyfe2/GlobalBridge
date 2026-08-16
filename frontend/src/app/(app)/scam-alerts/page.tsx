@@ -5,6 +5,7 @@ import {
   AlertTriangle, Shield, Flag, Search, ArrowUp, ShieldCheck, Bot, Loader2, X,
 } from "lucide-react";
 import { authFetch, getToken } from "@/lib/auth";
+import { useEscapeToClose } from "@/lib/useEscapeToClose";
 
 type Severity = "high" | "med" | "low";
 type Kind = "visa" | "housing" | "job" | "scholarship" | "phishing";
@@ -259,6 +260,7 @@ function ReportScamModal({ onClose, onPosted }: { onClose: () => void; onPosted:
   const [scamType, setScamType] = useState<Kind>("visa");
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  useEscapeToClose(onClose);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -281,9 +283,9 @@ function ReportScamModal({ onClose, onPosted }: { onClose: () => void; onPosted:
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
-      <form onClick={(e) => e.stopPropagation()} onSubmit={submit} className="card w-full max-w-lg space-y-4">
+      <form role="dialog" aria-modal="true" aria-labelledby="report-scam-title" onClick={(e) => e.stopPropagation()} onSubmit={submit} className="card w-full max-w-lg space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-lg font-semibold text-ink-900 flex items-center gap-2">
+          <h2 id="report-scam-title" className="font-display text-lg font-semibold text-ink-900 flex items-center gap-2">
             <Flag size={16} className="text-red-600" /> Report a scam
           </h2>
           <button type="button" onClick={onClose} className="p-1 rounded-md hover:bg-cream-200"><X size={16} /></button>

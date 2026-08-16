@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { requireAuth, clearUserCache } from "../middleware/auth";
 import { adminAuth } from "../lib/firebase-admin";
-import { queryOne } from "../db";
+import { query, queryOne } from "../db";
 
 export const authRouter = Router();
 
@@ -40,6 +40,26 @@ authRouter.post("/register-profile", requireAuth, async (req, res, next) => {
        RETURNING ${PROFILE_COLUMNS}`,
       [firebaseUid, req.user!.email, body.full_name, safeRole, body.country_of_origin],
     );
+
+    // A mentor with no mentor_profiles row is invisible everywhere that
+    // matters — the admin verification queue and the public mentor
+    // directory both INNER JOIN this table. Nothing else creates it, so it
+    // has to happen here or every new mentor silently vanishes from the app.
+    if (safeRole === "mentor" && user) {
+      await query(
+        `INSERT INTO mentor_profiles (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`,
+        [(user as { id: string }).id],
+      );
+    }
+    // Same bug, same fix, for employers — the admin employer-verification
+    // queue also INNER JOINs employer_profiles. company_name is NOT NULL
+    // there, so seed a placeholder the employer can rename later.
+    if (safeRole === "employer" && user) {
+      await query(
+        `INSERT INTO employer_profiles (user_id, company_name) VALUES ($1, $2) ON CONFLICT (user_id) DO NOTHING`,
+        [(user as { id: string }).id, `${body.full_name}'s company`],
+      );
+    }
 
     await adminAuth.setCustomUserClaims(firebaseUid, { role: safeRole });
     clearUserCache(firebaseUid); // role may have changed

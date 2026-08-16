@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Bell, Lock, Globe, Trash2, Moon, User, Check, Loader2, Camera } from "lucide-react";
+import { Bell, Lock, Globe, Trash2, Moon, User, Check, Loader2, Camera, Users, X, Mail } from "lucide-react";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NotificationToggle } from "@/components/pwa/NotificationToggle";
-import { authFetch } from "@/lib/auth";
+import { authFetch, getUser, logout, resetPassword } from "@/lib/auth";
 
 type Profile = {
   id: string; email: string; full_name: string; avatar_url: string | null;
@@ -22,9 +23,8 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-function ProfileSection() {
+function ProfileSection({ profile, setProfile }: { profile: Profile | null; setProfile: (p: Profile) => void }) {
   const { t } = useTranslation();
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [fullName, setFullName] = useState("");
   const [bio, setBio] = useState("");
   const [country, setCountry] = useState("");
@@ -35,25 +35,12 @@ function ProfileSection() {
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    const ctrl = new AbortController();
-    (async () => {
-      try {
-        const res = await authFetch("/api/auth/me", { signal: ctrl.signal });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || "Failed to load profile");
-        const p = data.user as Profile;
-        setProfile(p);
-        setFullName(p.full_name ?? "");
-        setBio(p.bio ?? "");
-        setCountry(p.country_of_residence ?? "");
-        setAvatarUrl(p.avatar_url);
-      } catch (e) {
-        if ((e as Error).name === "AbortError") return;
-        setErr(e instanceof Error ? e.message : "Network error");
-      }
-    })();
-    return () => ctrl.abort();
-  }, []);
+    if (!profile) return;
+    setFullName(profile.full_name ?? "");
+    setBio(profile.bio ?? "");
+    setCountry(profile.country_of_residence ?? "");
+    setAvatarUrl(profile.avatar_url);
+  }, [profile]);
 
   async function onAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -88,6 +75,7 @@ function ProfileSection() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Failed to save");
+      setProfile(data.user as Profile);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (e) {
@@ -132,7 +120,7 @@ function ProfileSection() {
 
           <label className="block">
             <span className="block text-xs font-medium text-ink-600 mb-1.5">{t("auth.fullName")}</span>
-            <input value={fullName} onChange={(e) => setFullName(e.target.value)} className="input" />
+            <input value={fullName} onChange={(e) => setFullName(e.target.value)} className="input" maxLength={255} />
           </label>
 
           <label className="block">
@@ -158,10 +146,173 @@ function ProfileSection() {
   );
 }
 
+type MentorProfile = {
+  expertise_areas: string[] | null;
+  languages_spoken: string[] | null;
+  years_abroad: number | null;
+  universities_attended: string[] | null;
+  available_for_mentoring: boolean;
+};
+
+// Feeds the public mentor directory and the admin verification queue —
+// without filling this in, a mentor shows up nowhere for students to find.
+function MentorProfileSection() {
+  const [expertise, setExpertise] = useState("");
+  const [languages, setLanguages] = useState("");
+  const [universities, setUniversities] = useState("");
+  const [yearsAbroad, setYearsAbroad] = useState("");
+  const [available, setAvailable] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    (async () => {
+      try {
+        const res = await authFetch("/api/users/me/mentor-profile", { signal: ctrl.signal });
+        const data = await res.json();
+        const p = data.profile as MentorProfile | undefined;
+        if (p) {
+          setExpertise((p.expertise_areas ?? []).join(", "));
+          setLanguages((p.languages_spoken ?? []).join(", "));
+          setUniversities((p.universities_attended ?? []).join(", "));
+          setYearsAbroad(p.years_abroad != null ? String(p.years_abroad) : "");
+          setAvailable(p.available_for_mentoring ?? true);
+        }
+      } catch { /* leave fields blank */ } finally {
+        setLoaded(true);
+      }
+    })();
+    return () => ctrl.abort();
+  }, []);
+
+  async function save() {
+    setSaving(true);
+    setSaved(false);
+    setErr(null);
+    try {
+      const toList = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
+      const res = await authFetch("/api/users/me/mentor-profile", {
+        method: "PATCH",
+        body: JSON.stringify({
+          expertise_areas: toList(expertise),
+          languages_spoken: toList(languages),
+          universities_attended: toList(universities),
+          years_abroad: yearsAbroad ? Number(yearsAbroad) : undefined,
+          available_for_mentoring: available,
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || "Failed to save");
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!loaded) {
+    return (
+      <div className="card flex items-center justify-center py-10">
+        <Loader2 size={20} className="animate-spin text-ink-400" />
+      </div>
+    );
+  }
+
+  return (
+    <Section icon={<Users size={16} />} title="Mentor profile">
+      <p className="text-xs text-ink-500 -mt-1">
+        This is what students see in the mentor directory and what admins review to verify you.
+      </p>
+      {err && <p className="text-xs text-red-600">{err}</p>}
+
+      <label className="block">
+        <span className="block text-xs font-medium text-ink-600 mb-1.5">Expertise areas (comma-separated)</span>
+        <input value={expertise} onChange={(e) => setExpertise(e.target.value)} className="input" placeholder="Visa applications, Scholarship essays" />
+      </label>
+      <label className="block">
+        <span className="block text-xs font-medium text-ink-600 mb-1.5">Languages spoken (comma-separated)</span>
+        <input value={languages} onChange={(e) => setLanguages(e.target.value)} className="input" placeholder="English, French" />
+      </label>
+      <label className="block">
+        <span className="block text-xs font-medium text-ink-600 mb-1.5">Universities attended (comma-separated)</span>
+        <input value={universities} onChange={(e) => setUniversities(e.target.value)} className="input" placeholder="University of Toronto" />
+      </label>
+      <label className="block max-w-[160px]">
+        <span className="block text-xs font-medium text-ink-600 mb-1.5">Years abroad</span>
+        <input type="number" min={0} max={80} value={yearsAbroad} onChange={(e) => setYearsAbroad(e.target.value)} className="input" />
+      </label>
+      <label className="flex items-center gap-2 text-sm text-ink-700">
+        <input type="checkbox" checked={available} onChange={(e) => setAvailable(e.target.checked)} className="accent-clay-500" />
+        Available for mentoring
+      </label>
+
+      <div className="flex items-center gap-3">
+        <button onClick={save} disabled={saving} className="btn-accent text-sm disabled:opacity-50">
+          {saving ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+          Save mentor profile
+        </button>
+        {saved && <span className="text-xs text-leaf-600">Saved</span>}
+      </div>
+    </Section>
+  );
+}
+
 export default function SettingsPage() {
   const { t } = useTranslation();
-  const [emailNotif, setEmailNotif] = useState(true);
-  const [smsNotif, setSmsNotif] = useState(false);
+  const router = useRouter();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isMentor, setIsMentor] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const [resetErr, setResetErr] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteErr, setDeleteErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Starts false to match the server (no localStorage there); resolved
+    // after mount so the mentor section doesn't cause a hydration mismatch.
+    setIsMentor(getUser()?.role === "mentor");
+    const ctrl = new AbortController();
+    (async () => {
+      try {
+        const res = await authFetch("/api/auth/me", { signal: ctrl.signal });
+        const data = await res.json();
+        if (res.ok) setProfile(data.user as Profile);
+      } catch { /* ProfileSection shows its own error state */ }
+    })();
+    return () => ctrl.abort();
+  }, []);
+
+  async function onUpdatePassword() {
+    if (!profile) return;
+    setResetErr(null);
+    try {
+      await resetPassword(profile.email);
+      setResetSent(true);
+      setTimeout(() => setResetSent(false), 6000);
+    } catch (e) {
+      setResetErr(e instanceof Error ? e.message : "Couldn't send reset email");
+    }
+  }
+
+  async function onDeleteAccount() {
+    setDeleting(true);
+    setDeleteErr(null);
+    try {
+      const res = await authFetch("/api/users/me", { method: "DELETE" });
+      if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || "Couldn't delete account");
+      await logout();
+      router.push("/");
+    } catch (e) {
+      setDeleteErr(e instanceof Error ? e.message : "Couldn't delete account");
+      setDeleting(false);
+    }
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">
@@ -171,14 +322,14 @@ export default function SettingsPage() {
       </header>
 
       <div className="space-y-6">
-        <ProfileSection />
+        <ProfileSection profile={profile} setProfile={setProfile} />
+        {isMentor && <MentorProfileSection />}
 
         <Section icon={<Bell size={16} />} title={t("settings.notifications")}>
-          <Toggle label={t("settings.emailNotifications")} sub={t("notifications.types.deadline", { title: "" }).trim() || "Application deadlines, mentor replies, verified opportunities."} value={emailNotif} onChange={setEmailNotif} />
-          <Toggle label={t("settings.smsNotifications")} sub="Critical reminders only (visa deadlines, scam alerts)." value={smsNotif} onChange={setSmsNotif} />
-          {/* Real browser push, replacing a toggle that only set local state.
-              This is the one place permission is ever requested, and only on
-              an explicit click — see usePushNotifications. */}
+          <p className="text-xs text-ink-500 -mt-1 mb-1">
+            Push notifications (below) are the only delivery channel live right now — email and SMS delivery aren't built yet.
+          </p>
+          {/* Real browser push — the one notification channel that's actually wired end to end. */}
           <NotificationToggle />
         </Section>
 
@@ -197,9 +348,16 @@ export default function SettingsPage() {
         </Section>
 
         <Section icon={<Lock size={16} />} title={t("settings.security")}>
-          <button className="btn-ghost border border-cream-300 text-sm">{t("settings.updatePassword")}</button>
-          <button className="btn-ghost border border-cream-300 text-sm">{t("settings.enableTwoFactor") || "Enable two-factor authentication"}</button>
-          <button className="btn-ghost border border-cream-300 text-sm">{t("settings.sessions")}</button>
+          <div className="flex items-center gap-3">
+            <button onClick={onUpdatePassword} disabled={!profile} className="btn-ghost border border-cream-300 text-sm disabled:opacity-50">
+              <Mail size={13} /> {t("settings.updatePassword")}
+            </button>
+            {resetSent && <span className="text-xs text-leaf-600">Reset link sent to {profile?.email}</span>}
+          </div>
+          {resetErr && <p className="text-xs text-red-600">{resetErr}</p>}
+          <p className="text-xs text-ink-500">
+            Two-factor authentication and session management aren&apos;t available yet.
+          </p>
         </Section>
 
         <div className="card border-red-200 dark:border-red-900/40">
@@ -209,9 +367,45 @@ export default function SettingsPage() {
           <p className="text-sm text-ink-600 mb-4">
             {t("settings.deleteWarning")}
           </p>
-          <button className="px-4 py-2 rounded-md text-sm font-medium border border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition">
-            {t("settings.deleteAccount")}
-          </button>
+          {!deleteOpen ? (
+            <button
+              onClick={() => setDeleteOpen(true)}
+              className="px-4 py-2 rounded-md text-sm font-medium border border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition"
+            >
+              {t("settings.deleteAccount")}
+            </button>
+          ) : (
+            <div className="space-y-3">
+              <label className="block">
+                <span className="block text-xs font-medium text-ink-600 mb-1.5">
+                  Type <span className="font-mono font-semibold">DELETE</span> to confirm — this permanently removes your account and all your data.
+                </span>
+                <input
+                  value={deleteConfirm}
+                  onChange={(e) => setDeleteConfirm(e.target.value)}
+                  className="input max-w-xs"
+                  placeholder="DELETE"
+                />
+              </label>
+              {deleteErr && <p className="text-xs text-red-600">{deleteErr}</p>}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={onDeleteAccount}
+                  disabled={deleteConfirm !== "DELETE" || deleting}
+                  className="px-4 py-2 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition disabled:opacity-50"
+                >
+                  {deleting ? <Loader2 size={13} className="animate-spin inline mr-1.5" /> : null}
+                  Permanently delete my account
+                </button>
+                <button
+                  onClick={() => { setDeleteOpen(false); setDeleteConfirm(""); setDeleteErr(null); }}
+                  className="btn-ghost border border-cream-300 text-sm"
+                >
+                  <X size={13} /> Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -225,28 +419,6 @@ function Section({ icon, title, children }: { icon: React.ReactNode; title: stri
         <span className="text-clay-500">{icon}</span> {title}
       </h2>
       <div className="space-y-3">{children}</div>
-    </div>
-  );
-}
-
-function Toggle({
-  label, sub, value, onChange,
-}: { label: string; sub?: string; value: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <div className="flex items-start justify-between gap-4 py-2">
-      <div>
-        <p className="text-sm font-medium text-ink-900 dark:text-white">{label}</p>
-        {sub && <p className="text-xs text-ink-500 mt-0.5">{sub}</p>}
-      </div>
-      <button
-        type="button"
-        onClick={() => onChange(!value)}
-        role="switch"
-        aria-checked={value}
-        className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${value ? "bg-clay-500" : "bg-cream-300"}`}
-      >
-        <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${value ? "left-5" : "left-0.5"}`} />
-      </button>
     </div>
   );
 }

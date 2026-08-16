@@ -3,6 +3,7 @@ import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
 import { getEmbedding } from "../lib/embeddings";
+import { escapeLike } from "../lib/sanitize";
 
 export const knowledgeRouter = Router();
 
@@ -58,7 +59,7 @@ knowledgeRouter.get("/", async (req, res, next) => {
     }
     if (search) {
       filters.push(`(title ILIKE $${i} OR content ILIKE $${i})`);
-      values.push(`%${search}%`);
+      values.push(`%${escapeLike(search)}%`);
       i++;
     }
     const where = `WHERE ${filters.join(" AND ")}`;

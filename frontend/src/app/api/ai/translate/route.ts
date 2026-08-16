@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
+import { getAiConfig } from "@/lib/aiConfig";
 
 export const runtime = "nodejs";
 
@@ -30,9 +31,10 @@ export async function POST(req: Request) {
 
   const apiKey = process.env.OPENAI_API_KEY;
   const baseURL = process.env.OPENAI_BASE_URL;
-  const modelName = process.env.OPENAI_MODEL || "gpt-4o";
-  // Graceful fallback: echo source (so UI still works without a key)
-  if (!apiKey) {
+  const aiConfig = await getAiConfig();
+  // Graceful fallback: echo source (so UI still works without a key, or when
+  // an admin has turned translation off)
+  if (!apiKey || !aiConfig.ai_translation_enabled) {
     return Response.json({ translations: texts, note: "translation-disabled" });
   }
 
@@ -48,7 +50,7 @@ export async function POST(req: Request) {
     // Batch: number each string, ask for a JSON array back to preserve order + count.
     const numbered = texts.map((t, i) => `${i}: ${t}`).join("\n");
     const msg = await client.chat.completions.create({
-      model: modelName,
+      model: aiConfig.ai_model,
       max_tokens: 4096,
       messages: [
         {

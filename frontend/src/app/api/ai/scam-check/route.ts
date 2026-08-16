@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
 import { extractJson, normalize, mockFallback, type ScamResult } from "./logic";
+import { getAiConfig } from "@/lib/aiConfig";
 
 export const runtime = "nodejs";
 
@@ -49,7 +50,7 @@ type Body = { text?: string; kind?: string };
 export async function POST(req: Request) {
   const apiKey = process.env.OPENAI_API_KEY;
   const baseURL = process.env.OPENAI_BASE_URL;
-  const modelName = process.env.OPENAI_MODEL || "gpt-4o";
+  const aiConfig = await getAiConfig();
 
   let body: Body;
   try {
@@ -65,6 +66,20 @@ export async function POST(req: Request) {
     return Response.json({ error: "Text too long (max 6000 chars)" }, { status: 400 });
   }
 
+  if (!aiConfig.ai_scam_detection_enabled) {
+    // A safety tool going silent must never look like "safe" — default to
+    // the cautious middle band rather than a fake specific analysis.
+    return Response.json(
+      {
+        score: 50, verdict: "Be cautious" as const,
+        summary: "Scam Shield has been turned off by an admin — we can't analyze this right now.",
+        flags: [], advice: ["Use your own judgement and the safety tips on the Scam Alerts page."],
+        disabled: true,
+      },
+      { status: 200 },
+    );
+  }
+
   if (!apiKey) {
     return Response.json(mockFallback(text), { status: 200 });
   }
@@ -77,7 +92,7 @@ export async function POST(req: Request) {
 
   try {
     const completion = await client.chat.completions.create({
-      model: modelName,
+      model: aiConfig.ai_model,
       max_tokens: 1200,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },

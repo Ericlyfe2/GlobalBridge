@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useMascot } from "@/mascot/MascotProvider";
-import { Briefcase, MapPin, ShieldCheck, DollarSign, Search, Filter, Loader2 } from "lucide-react";
+import { Briefcase, MapPin, ShieldCheck, DollarSign, Search, Loader2 } from "lucide-react";
 import { SaveButton } from "@/components/SaveButton";
 import { useDebounce } from "@/lib/useDebounce";
 
@@ -19,12 +19,18 @@ type Job = {
   sponsors_visa: boolean;
 };
 
+const PAGE_SIZE = 20;
+
 export default function JobsPage() {
+  // Raw, unfiltered accumulated results — sponsorOnly is applied at render time
+  // (see `visibleJobs`) so toggling it doesn't need a refetch or its own cursor.
   const [jobs, setJobs] = useState<Job[] | null>(null);
   const [err, setErr]   = useState<string | null>(null);
   const [q, setQ]       = useState("");
   const [sponsorOnly, setSponsorOnly] = useState(true);
   const [type, setType] = useState<"job" | "internship" | "all">("all");
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const debouncedQ = useDebounce(q, 300);
 
   // Held in a ref so `emit` isn't an effect dependency — otherwise a locale
@@ -33,29 +39,36 @@ export default function JobsPage() {
   const emitRef = useRef(emit);
   useEffect(() => { emitRef.current = emit; }, [emit]);
 
+  // Backend filters one type at a time; for "all jobs+internships" we ask for both
+  // separately and merge — so with type "all", each stream gets its own PAGE_SIZE
+  // page and its own offset cursor when loading more.
+  const fetchType = async (t: "job" | "internship", offset: number, signal?: AbortSignal) => {
+    const p = new URLSearchParams();
+    if (debouncedQ) p.set("search", debouncedQ);
+    p.set("type", t);
+    p.set("limit", String(PAGE_SIZE));
+    p.set("offset", String(offset));
+    const res = await fetch(`/api/opportunities?${p}`, { signal });
+    const data = await res.json();
+    return (data.opportunities ?? []) as Job[];
+  };
+
   useEffect(() => {
     const ctrl = new AbortController();
     (async () => {
       try {
-        const params = new URLSearchParams();
-        if (debouncedQ) params.set("search", debouncedQ);
-        // Backend filters one type at a time; for "all jobs+internships" we ask for both separately.
-        const fetchType = async (t: "job" | "internship") => {
-          const p = new URLSearchParams(params);
-          p.set("type", t);
-          const res = await fetch(`/api/opportunities?${p}`, { signal: ctrl.signal });
-          const data = await res.json();
-          return (data.opportunities ?? []) as Job[];
-        };
         let list: Job[];
+        let more: boolean;
         if (type === "all") {
-          const [a, b] = await Promise.all([fetchType("job"), fetchType("internship")]);
+          const [a, b] = await Promise.all([fetchType("job", 0, ctrl.signal), fetchType("internship", 0, ctrl.signal)]);
           list = [...a, ...b];
+          more = a.length === PAGE_SIZE || b.length === PAGE_SIZE;
         } else {
-          list = await fetchType(type);
+          list = await fetchType(type, 0, ctrl.signal);
+          more = list.length === PAGE_SIZE;
         }
-        if (sponsorOnly) list = list.filter((j) => j.sponsors_visa);
         setJobs(list);
+        setHasMore(more);
         setErr(null);
 
         // Atlas gets excited about real finds, and specifically flags visa
@@ -73,7 +86,34 @@ export default function JobsPage() {
       }
     })();
     return () => ctrl.abort();
-  }, [debouncedQ, sponsorOnly, type]);
+  }, [debouncedQ, type]);
+
+  async function loadMore() {
+    if (loadingMore || !jobs) return;
+    setLoadingMore(true);
+    try {
+      let more: Job[];
+      let hasMoreNext: boolean;
+      if (type === "all") {
+        const jobOffset = jobs.filter((j) => j.type === "job").length;
+        const internshipOffset = jobs.filter((j) => j.type === "internship").length;
+        const [a, b] = await Promise.all([fetchType("job", jobOffset), fetchType("internship", internshipOffset)]);
+        more = [...a, ...b];
+        hasMoreNext = a.length === PAGE_SIZE || b.length === PAGE_SIZE;
+      } else {
+        more = await fetchType(type, jobs.length);
+        hasMoreNext = more.length === PAGE_SIZE;
+      }
+      setJobs((prev) => [...(prev ?? []), ...more]);
+      setHasMore(hasMoreNext);
+    } catch {
+      // best-effort; leave the existing list as-is
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
+  const visibleJobs = jobs && (sponsorOnly ? jobs.filter((j) => j.sponsors_visa) : jobs);
 
   return (
     <div className="max-w-7xl mx-auto p-6 lg:p-10 space-y-8">
@@ -127,9 +167,6 @@ export default function JobsPage() {
           />
           <ShieldCheck size={13} className="text-leaf-600" /> Visa sponsors only
         </label>
-        <button className="btn-ghost border border-cream-300">
-          <Filter size={14} /> More filters
-        </button>
       </div>
 
       {err && (
@@ -145,15 +182,15 @@ export default function JobsPage() {
         </div>
       )}
 
-      {jobs && jobs.length === 0 && (
+      {visibleJobs && visibleJobs.length === 0 && (
         <div className="card text-center py-12 text-ink-500">
           No jobs match these filters. {sponsorOnly && "Try unchecking 'Visa sponsors only'."}
         </div>
       )}
 
-      {jobs && jobs.length > 0 && (
+      {visibleJobs && visibleJobs.length > 0 && (
         <div className="space-y-3">
-          {jobs.map((j) => {
+          {visibleJobs.map((j) => {
             const initials = (j.institution ?? j.title).slice(0, 2).toUpperCase();
             const salary = j.funding_amount
               ? `${j.currency ?? ""} ${Number(j.funding_amount).toLocaleString()}`.trim()
@@ -190,6 +227,18 @@ export default function JobsPage() {
               </Link>
             );
           })}
+        </div>
+      )}
+
+      {hasMore && visibleJobs && visibleJobs.length > 0 && (
+        <div className="flex justify-center pt-2">
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="btn-ghost border border-cream-300 disabled:opacity-60"
+          >
+            {loadingMore ? <><Loader2 size={14} className="animate-spin" /> Loading...</> : "Load more"}
+          </button>
         </div>
       )}
     </div>

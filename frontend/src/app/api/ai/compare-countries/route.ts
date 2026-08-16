@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
+import { getAiConfig } from "@/lib/aiConfig";
 
 export const runtime = "nodejs";
 
@@ -37,7 +38,7 @@ type ComparisonResult = {
 export async function POST(req: Request) {
   const apiKey = process.env.OPENAI_API_KEY;
   const baseURL = process.env.OPENAI_BASE_URL;
-  const modelName = process.env.OPENAI_MODEL || "gpt-4o";
+  const aiConfig = await getAiConfig();
   if (!apiKey) {
     return Response.json(
       { error: "AI comparison is not configured yet. Add OPENAI_API_KEY to .env.local" },
@@ -137,7 +138,7 @@ Rules:
 
   try {
     const msg = await client.chat.completions.create({
-      model: modelName,
+      model: aiConfig.ai_model,
       max_tokens: 2048,
       messages: [
         { role: "system", content: system },

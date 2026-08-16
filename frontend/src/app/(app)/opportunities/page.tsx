@@ -5,11 +5,12 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMascot } from "@/mascot/MascotProvider";
 import {
-  Calendar, MapPin, TrendingUp, Filter, Search, BookmarkPlus, ShieldCheck, Loader2, Globe2,
+  Calendar, MapPin, TrendingUp, Search, BookmarkPlus, ShieldCheck, Loader2, Globe2,
 } from "lucide-react";
 import { authFetch, getToken } from "@/lib/auth";
 import { useDebounce } from "@/lib/useDebounce";
 import { coordsForCountry } from "@/data/countryCoordinates";
+import { formatDateOnly } from "@/lib/utils";
 import type { CountryMarker } from "@/components/globe/GlobeScene";
 
 // Three.js globe is heavy and browser-only — load it lazily, client-side only.
@@ -74,6 +75,8 @@ const TYPE_TABS: { value: string; label: string }[] = [
   { value: "job", label: "Jobs" },
 ];
 
+const PAGE_SIZE = 24;
+
 export default function OpportunitiesPage() {
   const [opps, setOpps] = useState<Opp[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -81,6 +84,8 @@ export default function OpportunitiesPage() {
   const [type, setType] = useState<string>("");
   const [country, setCountry] = useState<string>("");
   const [saved, setSaved] = useState<Set<string>>(new Set());
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const debouncedQ = useDebounce(q, 300);
 
   // Ref-held so `emit` stays out of the search effect's dependencies.
@@ -122,24 +127,31 @@ export default function OpportunitiesPage() {
     }
   }
 
+  function buildParams(offset: number) {
+    const params = new URLSearchParams();
+    if (type) params.set("type", type);
+    if (country) params.set("country", country);
+    if (debouncedQ) params.set("search", debouncedQ);
+    params.set("limit", String(PAGE_SIZE));
+    params.set("offset", String(offset));
+    return params;
+  }
+
   useEffect(() => {
     const ctrl = new AbortController();
     (async () => {
       try {
-        const params = new URLSearchParams();
-        if (type) params.set("type", type);
-        if (country) params.set("country", country);
-        if (debouncedQ) params.set("search", debouncedQ);
-        const res = await fetch(`/api/opportunities?${params}`, { signal: ctrl.signal });
+        const res = await fetch(`/api/opportunities?${buildParams(0)}`, { signal: ctrl.signal });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
-        setOpps(data.opportunities);
+        const list = (data.opportunities ?? []) as Opp[];
+        setOpps(list);
+        setHasMore(list.length === PAGE_SIZE);
         setErr(null);
 
         // SURPRISED is reserved for genuinely rare finds — a funded scholarship
         // that also sponsors a visa. If everything is amazing, nothing is
         // (docs/MASCOT.md Part 10).
-        const list = (data.opportunities ?? []) as Opp[];
         const standout = list.filter(
           (o) => o.type === "scholarship" && o.sponsors_visa && Number(o.funding_amount) > 0,
         );
@@ -156,6 +168,23 @@ export default function OpportunitiesPage() {
     return () => ctrl.abort();
   }, [debouncedQ, type, country]);
 
+  async function loadMore() {
+    if (loadingMore || !opps) return;
+    setLoadingMore(true);
+    try {
+      const res = await fetch(`/api/opportunities?${buildParams(opps.length)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
+      const list = (data.opportunities ?? []) as Opp[];
+      setOpps((prev) => [...(prev ?? []), ...list]);
+      setHasMore(list.length === PAGE_SIZE);
+    } catch {
+      // best-effort; leave the existing list as-is
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
   const fmtFunding = useMemo(() => (o: Opp) => {
     if (!o.funding_amount) return "Funding details on application";
     const amt = Number(o.funding_amount).toLocaleString();
@@ -164,8 +193,8 @@ export default function OpportunitiesPage() {
 
   const fmtDeadline = useMemo(() => (deadline: string | null) => {
     if (!deadline) return "Rolling";
-    const date = new Date(deadline);
-    return Number.isNaN(date.getTime()) ? "Rolling" : date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+    const formatted = formatDateOnly(deadline, { month: "short", day: "numeric", year: "numeric" });
+    return formatted === "—" ? "Rolling" : formatted;
   }, []);
 
   // Aggregate the currently-filtered opportunities by country into globe markers.
@@ -245,9 +274,6 @@ export default function OpportunitiesPage() {
           <option>Germany</option>
           <option>Australia</option>
         </select>
-        <button className="btn-ghost border border-cream-300">
-          <Filter size={14} /> More filters
-        </button>
       </div>
 
       {globeMarkers.length > 0 && (
@@ -337,6 +363,18 @@ export default function OpportunitiesPage() {
               </div>
             </Link>
           ))}
+        </div>
+      )}
+
+      {hasMore && opps && opps.length > 0 && (
+        <div className="flex justify-center pt-2">
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="btn-ghost border border-cream-300 disabled:opacity-60"
+          >
+            {loadingMore ? <><Loader2 size={14} className="animate-spin" /> Loading...</> : "Load more"}
+          </button>
         </div>
       )}
     </div>

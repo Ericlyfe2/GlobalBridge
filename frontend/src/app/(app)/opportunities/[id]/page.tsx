@@ -6,6 +6,7 @@ import {
   ArrowLeft, ShieldCheck, Calendar, Globe, DollarSign, GraduationCap, ExternalLink, Bookmark, Share2, Check, AlertTriangle, Award, Loader2,
 } from "lucide-react";
 import { SaveButton } from "@/components/SaveButton";
+import { formatDateOnly } from "@/lib/utils";
 
 async function shareOpportunity(title: string, url: string) {
   if (navigator.share) {
@@ -21,7 +22,7 @@ type Opportunity = {
   id: string; title: string; type: OppType;
   provider: string; country: string; flag: string;
   amount: string; deadline: string; deadlineRaw: string | null; level: string;
-  verified: boolean; matchPct: number;
+  verified: boolean;
   description: string;
   eligibility: string[]; docs: string[];
   fields: string[]; benefits: string[];
@@ -30,8 +31,8 @@ type Opportunity = {
 
 function fmtDeadline(deadline: string | null): string {
   if (!deadline) return "Rolling";
-  const date = new Date(deadline);
-  return Number.isNaN(date.getTime()) ? "Rolling" : date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  const formatted = formatDateOnly(deadline, { month: "short", day: "numeric", year: "numeric" });
+  return formatted === "—" ? "Rolling" : formatted;
 }
 
 type RawOpp = {
@@ -65,7 +66,6 @@ function mapOpp(r: RawOpp): Opportunity {
     deadlineRaw: r.deadline,
     level: r.field_of_study ?? "All levels",
     verified: r.is_verified,
-    matchPct: 85,
     description: r.description,
     eligibility,
     docs: [
@@ -181,13 +181,13 @@ export default function OpportunityDetail({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        {/* Match + deadline banner */}
+        {/* Verification + deadline banner */}
         <div className="mt-4 grid sm:grid-cols-2 gap-3">
-          <div className="px-4 py-3 rounded-md bg-leaf-500/10 border border-leaf-500/25 flex items-center gap-3">
-            <ShieldCheck size={16} className="text-leaf-600 shrink-0" />
+          <div className={`px-4 py-3 rounded-md flex items-center gap-3 ${o.verified ? "bg-leaf-500/10 border border-leaf-500/25" : "bg-cream-100 border border-cream-200"}`}>
+            <ShieldCheck size={16} className={o.verified ? "text-leaf-600 shrink-0" : "text-ink-500 shrink-0"} />
             <div className="flex-1 text-sm">
-              <p className="font-medium text-leaf-600">{o.matchPct}% profile match</p>
-              <p className="text-xs text-ink-700 mt-0.5">Based on your country, level, and field of study.</p>
+              <p className={`font-medium ${o.verified ? "text-leaf-600" : "text-ink-700"}`}>{o.verified ? "Verified listing" : "Not yet verified"}</p>
+              <p className="text-xs text-ink-700 mt-0.5">{o.verified ? "Reviewed by the GlobalBridge team." : "Awaiting admin review."}</p>
             </div>
           </div>
           <div className={`px-4 py-3 rounded-md flex items-center gap-3 ${

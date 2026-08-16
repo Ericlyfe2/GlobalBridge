@@ -40,8 +40,14 @@ messagesRouter.get("/conversations/:id", requireAuth, async (req, res, next) => 
     );
     if (!convo) return res.status(404).json({ error: "Conversation not found" });
 
+    // DESC+LIMIT then re-sort ASC: the most recent 200 messages, in chronological
+    // order. Plain "ORDER BY created_at ASC LIMIT 200" would instead pin the
+    // conversation to its oldest 200 messages forever once it grows past that —
+    // any new message becomes permanently invisible on the next fetch.
     const messages = await query(
-      `SELECT * FROM messages WHERE conversation_id = $1 ORDER BY created_at ASC LIMIT 200`,
+      `SELECT * FROM (
+         SELECT * FROM messages WHERE conversation_id = $1 ORDER BY created_at DESC LIMIT 200
+       ) recent ORDER BY created_at ASC`,
       [req.params.id]
     );
     res.json({ messages });
@@ -50,7 +56,7 @@ messagesRouter.get("/conversations/:id", requireAuth, async (req, res, next) => 
 
 const sendSchema = z.object({
   recipient_id: z.string().uuid(),
-  body: z.string().min(1),
+  body: z.string().min(1).max(5000),
 });
 
 messagesRouter.post("/send", requireAuth, async (req, res, next) => {

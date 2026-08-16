@@ -10,6 +10,7 @@ import {
 import { authFetch, getUser } from "@/lib/auth";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
 import { useMascot } from "@/mascot/MascotProvider";
+import { formatDateOnly } from "@/lib/utils";
 import { AtlasPortrait } from "@/components/mascot/AtlasPortrait";
 
 type Dashboard = {
@@ -176,7 +177,7 @@ export default function StudentDashboard() {
           {QUICK_ACTIONS.map((a) => (
             <Link
               key={a.href} href={a.href}
-              className="group flex flex-col items-start gap-2 rounded-xl border border-cream-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-clay-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900"
+              className="group flex flex-col items-start gap-2 rounded-xl border border-cream-200 bg-white dark:bg-[var(--color-surface)] p-4 transition-all hover:-translate-y-0.5 hover:border-clay-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900"
             >
               <span className="grid h-9 w-9 place-items-center rounded-lg bg-clay-500/10 text-clay-600">
                 <a.icon size={18} />
@@ -282,15 +283,11 @@ export default function StudentDashboard() {
 
 /* ── small building blocks ──────────────────────────────── */
 
-function fmtDate(d: string | null): string {
-  if (!d) return "—";
-  const date = new Date(d);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
+const fmtDate = formatDateOnly;
 
 function Stat({ icon: Icon, label, value }: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; value: number | string }) {
   return (
-    <div className="rounded-xl border border-cream-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+    <div className="rounded-xl border border-cream-200 bg-white dark:bg-[var(--color-surface)] p-4 dark:border-gray-800 dark:bg-gray-900">
       <Icon size={18} className="text-clay-600" />
       <p className="mt-3 text-2xl font-bold text-ink-900 dark:text-white">{value}</p>
       <p className="mt-0.5 text-xs text-ink-500 dark:text-gray-400">{label}</p>
@@ -302,7 +299,7 @@ function ProfileCard({ completion, missing }: { completion: number; missing: str
   const { t } = useTranslation();
   const r = 34, c = 2 * Math.PI * r, offset = c - (completion / 100) * c;
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-cream-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+    <div className="flex items-center gap-4 rounded-xl border border-cream-200 bg-white dark:bg-[var(--color-surface)] p-5 dark:border-gray-800 dark:bg-gray-900">
       <div className="relative grid h-20 w-20 shrink-0 place-items-center">
         <svg className="h-20 w-20 -rotate-90" viewBox="0 0 80 80">
           <circle cx="40" cy="40" r={r} fill="none" strokeWidth="7" className="stroke-cream-200 dark:stroke-gray-700" />
@@ -349,7 +346,7 @@ function Tracker({
 
 function SectionCard({ title, href, className = "", children }: { title: string; href?: string; className?: string; children: React.ReactNode }) {
   return (
-    <section className={`rounded-2xl border border-cream-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900 ${className}`}>
+    <section className={`rounded-2xl border border-cream-200 bg-white dark:bg-[var(--color-surface)] p-5 dark:border-gray-800 dark:bg-gray-900 ${className}`}>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-ink-800 dark:text-gray-200">{title}</h2>
         {href && (
@@ -492,7 +489,7 @@ function VisaRoadmapCard({ visa }: { visa: Dashboard["visa"] }) {
                       isDone
                         ? "bg-leaf-500 text-white"
                         : isCurrent
-                          ? "bg-white text-clay-600 ring-2 ring-clay-500 dark:bg-gray-900"
+                          ? "bg-white dark:bg-[var(--color-surface)] text-clay-600 ring-2 ring-clay-500 dark:bg-gray-900"
                           : "bg-cream-200 text-ink-400 dark:bg-gray-700"
                     }`}
                   >

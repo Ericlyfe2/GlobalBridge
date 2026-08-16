@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Search, ShieldCheck, MoreVertical, Ban, CheckCircle2, Loader2, Trash2, UserCog, Mail, Globe, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 import { authFetch } from "@/lib/auth";
+import { useEscapeToClose } from "@/lib/useEscapeToClose";
 
 type Role = "super_admin" | "admin" | "student" | "mentor" | "employer";
 type StatusFilter = "all" | "pending" | "verified" | "suspended" | "active";
@@ -25,9 +26,9 @@ export default function UsersPage() {
   const [page, setPage] = useState(1);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [selectAll, setSelectAll] = useState(false);
   const [bulkAction, setBulkAction] = useState<string | null>(null);
   const [editUser, setEditUser] = useState<User | null>(null);
+  useEscapeToClose(() => setEditUser(null), !!editUser);
   const [editForm, setEditForm] = useState({ full_name: "", email: "", role: "" as Role | "", verification_status: "" });
 
   const limit = 20;
@@ -125,9 +126,24 @@ export default function UsersPage() {
     setSelected((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   }
 
+  // Derived fresh from the current page's rows every render, rather than a
+  // separately-tracked boolean — a stale flag left over from checking "all"
+  // on a previous page would still read as checked after paginating, even
+  // though `selected` no longer contains any of the now-visible rows. For a
+  // destructive bulk action (suspend/delete) that mismatch is dangerous: the
+  // checkbox would visually claim rows are selected that aren't, and vice versa.
+  const allPageSelected = users.length > 0 && users.every((u) => selected.has(u.id));
+
   function toggleSelectAll() {
-    if (selectAll) { setSelected(new Set()); setSelectAll(false); }
-    else { setSelected(new Set(users.map((u) => u.id))); setSelectAll(true); }
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allPageSelected) {
+        for (const u of users) next.delete(u.id);
+      } else {
+        for (const u of users) next.add(u.id);
+      }
+      return next;
+    });
   }
 
   return (
@@ -183,7 +199,7 @@ export default function UsersPage() {
           <table className="w-full">
             <thead className="bg-cream-100 border-b border-cream-200">
               <tr className="text-left text-xs font-semibold uppercase tracking-wider text-ink-600">
-                <th className="px-4 py-3 w-8"><input type="checkbox" checked={selectAll && users.length > 0} onChange={toggleSelectAll} className="w-4 h-4 accent-clay-500" /></th>
+                <th className="px-4 py-3 w-8"><input type="checkbox" checked={allPageSelected} onChange={toggleSelectAll} className="w-4 h-4 accent-clay-500" /></th>
                 <th className="px-4 py-3">User</th>
                 <th className="px-4 py-3 hidden sm:table-cell">Role</th>
                 <th className="px-4 py-3 hidden lg:table-cell">Country</th>
@@ -258,8 +274,8 @@ export default function UsersPage() {
 
       {editUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm" onClick={() => setEditUser(null)}>
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
-            <h2 className="font-display text-lg font-semibold text-ink-900">Edit User</h2>
+          <div role="dialog" aria-modal="true" aria-labelledby="edit-user-title" className="bg-white dark:bg-[var(--color-surface)] rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+            <h2 id="edit-user-title" className="font-display text-lg font-semibold text-ink-900">Edit User</h2>
             <div className="space-y-3">
               <label className="block text-xs font-medium text-ink-600">Full Name</label>
               <input value={editForm.full_name || editUser.full_name} onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}

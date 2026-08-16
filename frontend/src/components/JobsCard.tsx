@@ -56,7 +56,7 @@ export default function JobsCard() {
         </div>
       </div>
 
-      <div className="resume-card bg-white p-4 rounded-xl border border-cream-200 shadow-xl shadow-clay-500/10 origin-bottom-left">
+      <div className="resume-card bg-white dark:bg-[var(--color-surface)] p-4 rounded-xl border border-cream-200 shadow-xl shadow-clay-500/10 origin-bottom-left">
         <div className="w-10 h-10 rounded-full bg-cream-100 mb-4" />
         <div className="space-y-2">
           <div className="w-3/4 h-2 bg-cream-200 rounded" />

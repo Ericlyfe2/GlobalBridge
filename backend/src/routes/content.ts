@@ -8,6 +8,35 @@ import { pushEnabled } from "../lib/push";
 export const contentRouter = Router();
 
 // ===== Success stories =====
+// Public, unauthenticated: the frontend's own /api/ai/* route handlers call
+// this on every request to pick up the admin-configured model/prompt/
+// temperature/feature-toggles from platform_settings. None of these values
+// are secret — they're the same things shown in the admin Settings UI.
+const AI_DEFAULTS = {
+  ai_model: "gpt-4o",
+  ai_temperature: 0.3,
+  ai_system_prompt: "",
+  ai_chat_enabled: true,
+  ai_doc_check_enabled: true,
+  ai_scam_detection_enabled: true,
+  ai_translation_enabled: true,
+};
+
+contentRouter.get("/ai-config", async (_req, res, next) => {
+  try {
+    const rows = await query<{ key: string; value: unknown }>(
+      `SELECT key, value FROM platform_settings WHERE key = ANY($1)`,
+      [Object.keys(AI_DEFAULTS)]
+    );
+    const config = { ...AI_DEFAULTS };
+    for (const r of rows) {
+      if (r.key in config) (config as Record<string, unknown>)[r.key] = r.value;
+    }
+    res.set("Cache-Control", "public, max-age=15");
+    res.json(config);
+  } catch (err) { next(err); }
+});
+
 contentRouter.get("/stories", async (_req, res, next) => {
   try {
     const stories = await query(
@@ -54,6 +83,25 @@ contentRouter.post("/contact", async (req, res, next) => {
       [`New contact message: ${b.topic}`, `${b.name} <${b.email}>: ${b.message.slice(0, 140)}`]
     );
     res.status(201).json({ ok: true, id: saved?.id });
+  } catch (err) { next(err); }
+});
+
+// ===== Newsletter signup (footer) =====
+// There's no email-sending infrastructure in this app (no SendGrid/SMTP wired
+// up anywhere), so this can't actually deliver anything by email. The footer
+// form instead triggers an immediate real client-side checklist download —
+// this endpoint's only job is to capture the address for genuine future
+// outreach, same pattern as /contact.
+const newsletterSchema = z.object({ email: z.string().email() });
+
+contentRouter.post("/newsletter", async (req, res, next) => {
+  try {
+    const { email } = newsletterSchema.parse(req.body);
+    await query(
+      `INSERT INTO newsletter_subscribers (email) VALUES ($1) ON CONFLICT (email) DO NOTHING`,
+      [email]
+    );
+    res.status(201).json({ ok: true });
   } catch (err) { next(err); }
 });
 
@@ -178,13 +226,18 @@ contentRouter.delete("/saved", requireAuth, async (req, res, next) => {
   slot_time: z.string(),
   duration_min: z.number().int().optional(),
   goal: z.string().max(500).optional(),
+  // IANA zone (e.g. "Africa/Accra"), captured client-side from the student's
+  // browser. slot_time alone is ambiguous the moment mentor and student are
+  // in different timezones — without this, "3:00 PM" on a mentor's dashboard
+  // has no way of saying whose 3pm it is.
+  student_timezone: z.string().max(100).optional(),
 });
 
 contentRouter.get("/bookings", requireAuth, async (req, res, next) => {
   try {
     const { limit: bookingLimit } = z.object({ limit: z.coerce.number().int().min(1).max(100).default(50) }).parse(req.query);
     const bookings = await query(
-      `SELECT b.id, b.mentor_id, b.slot_date, b.slot_time, b.duration_min, b.goal, b.created_at,
+      `SELECT b.id, b.mentor_id, b.slot_date, b.slot_time, b.duration_min, b.goal, b.created_at, b.student_timezone,
               m.full_name AS mentor_name
        FROM mentor_bookings b
        JOIN users m ON m.id = b.mentor_id
@@ -198,7 +251,11 @@ contentRouter.get("/bookings", requireAuth, async (req, res, next) => {
 contentRouter.post("/bookings", requireAuth, async (req, res, next) => {
   try {
     const b = bookingSchema.parse(req.body);
-    const safe = sanitizeAllStrings(b);
+    // student_timezone deliberately excluded from sanitizeAllStrings: it's an
+    // IANA zone id like "Africa/Accra", not rich text, and sanitize() HTML-
+    // escapes "/" to "&#x2F;" — which would silently corrupt every zone name
+    // into something Intl can no longer parse back out.
+    const safe = sanitizeAllStrings({ ...b, student_timezone: undefined });
     const mentor = await queryOne<{ id: string }>(
       `SELECT id FROM users WHERE id = $1 AND role = 'mentor'`,
       [safe.mentor_id]
@@ -206,15 +263,17 @@ contentRouter.post("/bookings", requireAuth, async (req, res, next) => {
     if (!mentor) return res.status(404).json({ error: "Mentor not found" });
 
     const booking = await queryOne(
-      `INSERT INTO mentor_bookings (mentor_id, student_id, slot_date, slot_time, duration_min, goal)
-       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-      [safe.mentor_id, req.user!.sub, safe.slot_date, safe.slot_time, safe.duration_min ?? 30, safe.goal]
+      `INSERT INTO mentor_bookings (mentor_id, student_id, slot_date, slot_time, duration_min, goal, student_timezone)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+      [safe.mentor_id, req.user!.sub, safe.slot_date, safe.slot_time, safe.duration_min ?? 30, safe.goal, b.student_timezone ?? null]
     );
-    // Notify the mentor
+    // Notify the mentor — include the zone explicitly so "3:00 PM" isn't left
+    // ambiguous between two people who may not share a timezone.
+    const tzSuffix = b.student_timezone ? ` (${b.student_timezone}, student's local time)` : "";
     await query(
       `INSERT INTO notifications (user_id, kind, title, body, href)
        VALUES ($1, 'message', 'New mentorship booking', $2, '/messages?tab=bookings')`,
-      [b.mentor_id, `A student booked a ${b.duration_min ?? 30}-min session on ${b.slot_date} at ${b.slot_time}.`]
+      [b.mentor_id, `A student booked a ${b.duration_min ?? 30}-min session on ${b.slot_date} at ${b.slot_time}${tzSuffix}.`]
     );
     res.status(201).json({ booking });
   } catch (err) { next(err); }

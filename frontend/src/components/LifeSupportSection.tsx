@@ -76,8 +76,8 @@ export default function LifeSupportSection() {
                 key={i}
                 className={`life-tile flex flex-col gap-4 p-5 md:p-6 rounded-xl border transition-colors ${
                   tool.sos
-                    ? "sos-tile bg-white border-amber-500/30 shadow-[0_0_0_0_rgba(217,119,6,0.3)] hover:border-amber-500"
-                    : "bg-white border-slate-200 hover:border-clay-500/40"
+                    ? "sos-tile bg-white dark:bg-[var(--color-surface)] border-amber-500/30 shadow-[0_0_0_0_rgba(217,119,6,0.3)] hover:border-amber-500"
+                    : "bg-white dark:bg-[var(--color-surface)] border-slate-200 hover:border-clay-500/40"
                 }`}
               >
                 <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${tool.sos ? "bg-amber-500/10 text-amber-500" : "bg-clay-500/10 text-clay-600"}`}>

@@ -47,13 +47,21 @@ moderationRouter.get("/reports", requireAuth, requireRole("admin"), async (_req,
 moderationRouter.patch("/reports/:id", requireAuth, requireRole("admin"), async (req, res, next) => {
   try {
     const { status } = req.body;
-    if (!["resolved", "dismissed"].includes(status)) {
-      return res.status(400).json({ error: "Invalid status. Use: resolved, dismissed" });
+    // Matches the real report_status enum. "reviewing" is a real intermediate
+    // state the admin UI uses — the previous allowlist rejected it, so every
+    // "Mark as reviewing" click 400'd.
+    if (!["reviewing", "resolved", "dismissed"].includes(status)) {
+      return res.status(400).json({ error: "Invalid status. Use: reviewing, resolved, dismissed" });
     }
-    await query(
-      `UPDATE reports SET status = $1, resolved_by = $2, resolved_at = NOW() WHERE id = $3`,
-      [status, req.user!.sub, req.params.id]
-    );
+    if (status === "reviewing") {
+      // Just marks it in progress — not resolved by anyone yet.
+      await query(`UPDATE reports SET status = $1 WHERE id = $2`, [status, req.params.id]);
+    } else {
+      await query(
+        `UPDATE reports SET status = $1, resolved_by = $2, resolved_at = NOW() WHERE id = $3`,
+        [status, req.user!.sub, req.params.id]
+      );
+    }
     await recordAudit({
       adminId: req.user!.sub,
       action: "report.resolve",

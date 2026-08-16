@@ -1,84 +1,92 @@
 "use client";
 
 import Link from "next/link";
-import { use, useMemo, useState } from "react";
+import { use, useEffect, useState } from "react";
 import {
-  ArrowLeft, ShieldCheck, Star, Video, Calendar, Clock, Globe, GraduationCap, MessageCircle, MapPin, Award, Sparkles, Loader2,
+  ArrowLeft, ShieldCheck, Video, Calendar, Clock, Globe, MessageCircle, MapPin, Award, Loader2,
 } from "lucide-react";
 import { authFetch, getToken } from "@/lib/auth";
 
-type Slot = { date: string; time: string };
-
 type Mentor = {
-  id: string; name: string; initials: string;
-  origin: string; originFlag: string; destination: string; destFlag: string;
-  bio: string; areas: string[]; languages: string[];
-  rating: number; sessions: number; replies: string;
-  verified: boolean; price: string;
-  university: string; field: string; graduated: string;
-  availability: Slot[];
+  id: string; full_name: string; avatar_url: string | null;
+  country_of_origin: string | null; country_of_residence: string | null;
+  bio: string | null; trust_score: number; verification_status: string;
+  expertise_areas: string[] | null; years_abroad: number | null;
+  languages_spoken: string[] | null; universities_attended: string[] | null;
+  sessions: number;
 };
 
-const sample: Record<string, Mentor> = {
-  "m_ama": {
-    id: "m_ama",
-    name: "Ama Owusu", initials: "AO",
-    origin: "Ghana", originFlag: "gh",
-    destination: "Canada", destFlag: "ca",
-    bio: "5 years in Toronto. Walked 200+ Ghanaian students through Canada study permit, GIC funding, and PR pathways. Software engineer at Shopify.",
-    areas: ["Canada Study Permit", "GIC + proof of funds", "PGWP → PR pathway", "Job hunting (tech)"],
-    languages: ["English", "Twi", "French (basic)"],
-    rating: 4.9, sessions: 184, replies: "Usually within 2h",
-    verified: true, price: "Free",
-    university: "University of Toronto", field: "Computer Science", graduated: "2023",
-    availability: [
-      { date: "2026-05-26", time: "18:00" },
-      { date: "2026-05-26", time: "19:00" },
-      { date: "2026-05-27", time: "17:30" },
-      { date: "2026-05-27", time: "20:00" },
-      { date: "2026-05-28", time: "19:00" },
-      { date: "2026-05-30", time: "11:00" },
-      { date: "2026-05-30", time: "14:00" },
-    ],
-  },
-};
+function initialsOf(name: string): string {
+  return name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "?";
+}
 
 export default function MentorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const m = sample[id] ?? sample["m_ama"];
+  const [m, setM] = useState<Mentor | null>(null);
+  const [notFound, setNotFound] = useState(false);
 
-  const [duration, setDuration]   = useState<30 | 60>(30);
-  const [selected, setSelected]   = useState<Slot | null>(null);
-  const [goal, setGoal]           = useState("");
-  const [confirmed, setConfirmed] = useState<Slot | null>(null);
-  const [booking, setBooking]     = useState(false);
+  const [duration, setDuration] = useState<30 | 60>(30);
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [goal, setGoal] = useState("");
+  const [confirmed, setConfirmed] = useState<{ date: string; time: string } | null>(null);
+  const [booking, setBooking] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
-  const grouped = useMemo(() => {
-    const map: Record<string, Slot[]> = {};
-    m.availability.forEach((s) => { (map[s.date] ??= []).push(s); });
-    return map;
-  }, [m.availability]);
+  useEffect(() => {
+    const ctrl = new AbortController();
+    (async () => {
+      try {
+        const res = await fetch(`/api/users/mentors/${id}`, { signal: ctrl.signal });
+        const data = await res.json();
+        if (!res.ok) { setNotFound(true); return; }
+        setM(data.mentor as Mentor);
+      } catch (e) {
+        if ((e as Error).name === "AbortError") return;
+        setNotFound(true);
+      }
+    })();
+    return () => ctrl.abort();
+  }, [id]);
 
   async function book() {
-    if (!selected) return;
-    // Persist to backend if signed in; otherwise still show local confirmation.
-    if (getToken()) {
-      setBooking(true);
-      try {
-        await authFetch("/api/content/bookings", {
-          method: "POST",
-          body: JSON.stringify({
-            mentor_id: id,
-            slot_date: selected.date,
-            slot_time: selected.time,
-            duration_min: duration,
-            goal,
-          }),
-        });
-      } catch { /* fall through to local confirmation */ }
-      finally { setBooking(false); }
+    if (!date || !time) return;
+    if (!getToken()) { setErr("Sign in to book a session."); return; }
+    setBooking(true);
+    setErr(null);
+    try {
+      const res = await authFetch("/api/content/bookings", {
+        method: "POST",
+        body: JSON.stringify({
+          mentor_id: id, slot_date: date, slot_time: time, duration_min: duration, goal,
+          student_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Couldn't book this session");
+      setConfirmed({ date, time });
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Couldn't book this session");
+    } finally {
+      setBooking(false);
     }
-    setConfirmed(selected);
+  }
+
+  if (notFound) {
+    return (
+      <div className="max-w-2xl mx-auto px-6 py-16 text-center">
+        <p className="text-ink-600">This mentor couldn&apos;t be found.</p>
+        <Link href="/community" className="text-sm text-clay-600 hover:underline mt-2 inline-block">Back to community</Link>
+      </div>
+    );
+  }
+
+  if (!m) {
+    return (
+      <div className="max-w-2xl mx-auto px-6 py-16 text-center text-ink-500">
+        <Loader2 size={22} className="animate-spin mx-auto mb-2" /> Loading mentor...
+      </div>
+    );
   }
 
   return (
@@ -92,59 +100,63 @@ export default function MentorPage({ params }: { params: Promise<{ id: string }>
         <aside className="lg:col-span-1 space-y-4 lg:sticky lg:top-20 self-start">
           <div className="card text-center">
             <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-clay-500 to-clay-700 text-white flex items-center justify-center text-2xl font-display font-semibold">
-              {m.initials}
+              {initialsOf(m.full_name)}
             </div>
             <h1 className="mt-4 text-xl font-display font-semibold text-ink-900 flex items-center justify-center gap-1.5">
-              {m.name}
-              {m.verified && <ShieldCheck size={14} className="text-leaf-600" />}
+              {m.full_name}
+              {m.verification_status === "verified" && <ShieldCheck size={14} className="text-leaf-600" />}
             </h1>
 
-            <div className="mt-1 flex items-center justify-center gap-2 text-sm text-ink-600">
-              <span className={`fi fi-${m.originFlag}`} aria-hidden="true" />
-              <span>→</span>
-              <span className={`fi fi-${m.destFlag}`} aria-hidden="true" />
-              <span className="text-xs text-ink-500">{m.origin} → {m.destination}</span>
-            </div>
+            {(m.country_of_origin || m.country_of_residence) && (
+              <p className="mt-1 text-xs text-ink-500">
+                {m.country_of_origin} {m.country_of_origin && m.country_of_residence && "→"} {m.country_of_residence}
+              </p>
+            )}
 
             <div className="mt-4 flex items-center justify-center gap-4 text-sm">
-              <span className="flex items-center gap-1 text-ink-700">
-                <Star size={13} className="fill-amber-500 text-amber-500" /> {m.rating}
-              </span>
-              <span className="text-ink-500">·</span>
-              <span className="text-ink-700">{m.sessions} sessions</span>
-            </div>
-
-            <p className="mt-4 text-xs text-leaf-600">{m.replies}</p>
-          </div>
-
-          <div className="card">
-            <p className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-3">About</p>
-            <p className="text-sm text-ink-700 leading-relaxed">{m.bio}</p>
-          </div>
-
-          <div className="card">
-            <p className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-2 flex items-center gap-1">
-              <GraduationCap size={11} /> Education
-            </p>
-            <p className="text-sm text-ink-700">{m.field} · {m.university}</p>
-            <p className="text-xs text-ink-500">Graduated {m.graduated}</p>
-          </div>
-
-          <div className="card">
-            <p className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-2 flex items-center gap-1">
-              <Award size={11} /> Areas of expertise
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {m.areas.map((a) => <span key={a} className="badge badge-clay text-[10px]">{a}</span>)}
+              <span className="text-ink-700">{m.sessions} session{m.sessions === 1 ? "" : "s"} booked</span>
+              {m.years_abroad != null && (
+                <>
+                  <span className="text-ink-500">·</span>
+                  <span className="text-ink-700">{m.years_abroad}y abroad</span>
+                </>
+              )}
             </div>
           </div>
 
-          <div className="card">
-            <p className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-2 flex items-center gap-1">
-              <Globe size={11} /> Languages
-            </p>
-            <p className="text-sm text-ink-700">{m.languages.join(" · ")}</p>
-          </div>
+          {m.bio && (
+            <div className="card">
+              <p className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-3">About</p>
+              <p className="text-sm text-ink-700 leading-relaxed">{m.bio}</p>
+            </div>
+          )}
+
+          {m.universities_attended && m.universities_attended.length > 0 && (
+            <div className="card">
+              <p className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-2">Education</p>
+              <p className="text-sm text-ink-700">{m.universities_attended.join(", ")}</p>
+            </div>
+          )}
+
+          {m.expertise_areas && m.expertise_areas.length > 0 && (
+            <div className="card">
+              <p className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-2 flex items-center gap-1">
+                <Award size={11} /> Areas of expertise
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {m.expertise_areas.map((a) => <span key={a} className="badge badge-clay text-[10px]">{a}</span>)}
+              </div>
+            </div>
+          )}
+
+          {m.languages_spoken && m.languages_spoken.length > 0 && (
+            <div className="card">
+              <p className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-2 flex items-center gap-1">
+                <Globe size={11} /> Languages
+              </p>
+              <p className="text-sm text-ink-700">{m.languages_spoken.join(" · ")}</p>
+            </div>
+          )}
 
           <Link href={`/messages?to=${m.id}`} className="btn-ghost border border-cream-300 w-full text-sm">
             <MessageCircle size={13} /> Send a message instead
@@ -154,11 +166,11 @@ export default function MentorPage({ params }: { params: Promise<{ id: string }>
         {/* Booking */}
         <div className="lg:col-span-2">
           {confirmed ? (
-            <ConfirmCard mentor={m} slot={confirmed} duration={duration} onReset={() => { setConfirmed(null); setSelected(null); }} />
+            <ConfirmCard mentor={m} date={confirmed.date} time={confirmed.time} duration={duration} onReset={() => { setConfirmed(null); setDate(""); setTime(""); }} />
           ) : (
             <div className="card">
-              <h2 className="font-display text-xl font-semibold text-ink-900">Book a 1:1 with {m.name.split(" ")[0]}</h2>
-              <p className="text-sm text-ink-600 mt-1">{m.price} for verified students. Video call via GlobalBridge meeting.</p>
+              <h2 className="font-display text-xl font-semibold text-ink-900">Book a 1:1 with {m.full_name.split(" ")[0]}</h2>
+              <p className="text-sm text-ink-600 mt-1">Free for verified students. GlobalBridge mentors don&apos;t charge for sessions.</p>
 
               {/* Duration */}
               <div className="mt-5">
@@ -178,41 +190,27 @@ export default function MentorPage({ params }: { params: Promise<{ id: string }>
                 </div>
               </div>
 
-              {/* Slots */}
-              <div className="mt-6">
-                <p className="text-xs font-medium text-ink-600 mb-3 flex items-center gap-1">
-                  <Calendar size={12} /> Available times (your timezone)
-                </p>
-
-                <div className="space-y-4">
-                  {Object.entries(grouped).map(([date, slots]) => (
-                    <div key={date}>
-                      <p className="text-xs font-semibold text-ink-700 mb-2">{formatDate(date)}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {slots.map((s) => {
-                          const isSel = selected?.date === s.date && selected.time === s.time;
-                          return (
-                            <button
-                              key={`${s.date}-${s.time}`}
-                              onClick={() => setSelected(s)}
-                              className={`px-3 py-1.5 rounded-md text-sm font-medium transition border ${
-                                isSel ? "bg-clay-500 text-white border-clay-500" : "bg-cream-100 text-ink-700 border-cream-200 hover:border-clay-300"
-                              }`}
-                            >
-                              <Clock size={11} className="inline mr-1 -mt-0.5" /> {s.time}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              {/* Date + time — this is a booking request, not a live calendar:
+                  the mentor gets notified and confirms via Messages. */}
+              <div className="mt-6 grid sm:grid-cols-2 gap-4">
+                <label className="block">
+                  <span className="block text-xs font-medium text-ink-600 mb-1.5 flex items-center gap-1">
+                    <Calendar size={12} /> Preferred date
+                  </span>
+                  <input type="date" value={date} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setDate(e.target.value)} className="input" />
+                </label>
+                <label className="block">
+                  <span className="block text-xs font-medium text-ink-600 mb-1.5 flex items-center gap-1">
+                    <Clock size={12} /> Preferred time
+                  </span>
+                  <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="input" />
+                </label>
               </div>
 
               {/* Goal */}
               <div className="mt-6">
                 <label className="block">
-                  <span className="block text-xs font-medium text-ink-600 mb-1.5">What do you want to cover? (helps {m.name.split(" ")[0]} prep)</span>
+                  <span className="block text-xs font-medium text-ink-600 mb-1.5">What do you want to cover? (helps {m.full_name.split(" ")[0]} prep)</span>
                   <textarea
                     value={goal}
                     onChange={(e) => setGoal(e.target.value)}
@@ -222,33 +220,25 @@ export default function MentorPage({ params }: { params: Promise<{ id: string }>
                 </label>
               </div>
 
+              {err && <p className="text-sm text-red-600 mt-4">{err}</p>}
+
               {/* Confirm */}
               <div className="mt-6 pt-5 border-t border-cream-200 flex items-center justify-between gap-4 flex-wrap">
                 <div className="text-sm text-ink-600">
-                  {selected ? (
-                    <>Selected: <span className="font-medium text-ink-900">{formatDate(selected.date)} · {selected.time} ({duration} min)</span></>
+                  {date && time ? (
+                    <>Requesting: <span className="font-medium text-ink-900">{formatDate(date)} · {time} ({duration} min)</span></>
                   ) : (
-                    <span className="text-ink-500">Pick a time above</span>
+                    <span className="text-ink-500">Pick a date and time above</span>
                   )}
                 </div>
                 <button
                   onClick={book}
-                  disabled={!selected || booking}
+                  disabled={!date || !time || booking}
                   className="btn-accent text-sm disabled:opacity-50"
                 >
-                  {booking ? <><Loader2 size={13} className="animate-spin" /> Booking...</> : <><Video size={13} /> Book session</>}
+                  {booking ? <><Loader2 size={13} className="animate-spin" /> Requesting...</> : <><Video size={13} /> Request session</>}
                 </button>
               </div>
-            </div>
-          )}
-
-          {!confirmed && (
-            <div className="card mt-4 text-xs text-ink-600 flex items-start gap-2">
-              <Sparkles size={13} className="text-clay-500 mt-0.5 shrink-0" />
-              <span>
-                Sessions auto-record (with both consents) so you can review later.
-                Cancellations &gt; 4 hours before are free; otherwise mentor keeps the slot.
-              </span>
             </div>
           )}
         </div>
@@ -257,7 +247,7 @@ export default function MentorPage({ params }: { params: Promise<{ id: string }>
   );
 }
 
-function ConfirmCard({ mentor, slot, duration, onReset }: { mentor: Mentor; slot: Slot; duration: number; onReset: () => void }) {
+function ConfirmCard({ mentor, date, time, duration, onReset }: { mentor: Mentor; date: string; time: string; duration: number; onReset: () => void }) {
   return (
     <div className="card border-leaf-300">
       <div className="flex items-start gap-3">
@@ -265,21 +255,22 @@ function ConfirmCard({ mentor, slot, duration, onReset }: { mentor: Mentor; slot
           <ShieldCheck size={20} />
         </div>
         <div>
-          <h2 className="font-display text-xl font-semibold text-ink-900">Session booked</h2>
-          <p className="text-sm text-ink-600 mt-1">Calendar invite + GlobalBridge meeting link sent to your email.</p>
+          <h2 className="font-display text-xl font-semibold text-ink-900">Session requested</h2>
+          <p className="text-sm text-ink-600 mt-1">{mentor.full_name.split(" ")[0]} has been notified — coordinate the meeting link in Messages once they confirm.</p>
         </div>
       </div>
 
       <div className="mt-5 grid sm:grid-cols-2 gap-3 text-sm">
-        <DetailRow label="With"      value={mentor.name} icon={<MapPin size={12} className="text-clay-500" />} />
+        <DetailRow label="With"      value={mentor.full_name} icon={<MapPin size={12} className="text-clay-500" />} />
         <DetailRow label="Duration"  value={`${duration} min`} icon={<Clock size={12} className="text-clay-500" />} />
-        <DetailRow label="Date"      value={formatDate(slot.date)} icon={<Calendar size={12} className="text-clay-500" />} />
-        <DetailRow label="Time"      value={slot.time} icon={<Clock size={12} className="text-clay-500" />} />
+        <DetailRow label="Date"      value={formatDate(date)} icon={<Calendar size={12} className="text-clay-500" />} />
+        <DetailRow label="Time"      value={time} icon={<Clock size={12} className="text-clay-500" />} />
       </div>
+      <p className="mt-3 text-xs text-ink-500">Times are shown in your local timezone — {mentor.full_name.split(" ")[0]} will see this labeled with your timezone so there's no mix-up.</p>
 
       <div className="mt-5 flex items-center gap-2 flex-wrap">
-        <button onClick={onReset} className="btn-ghost border border-cream-300 text-sm">Book another time</button>
-        <Link href="/messages" className="btn-accent text-sm"><MessageCircle size={13} /> Message {mentor.name.split(" ")[0]}</Link>
+        <button onClick={onReset} className="btn-ghost border border-cream-300 text-sm">Request another time</button>
+        <Link href={`/messages?to=${mentor.id}`} className="btn-accent text-sm"><MessageCircle size={13} /> Message {mentor.full_name.split(" ")[0]}</Link>
       </div>
     </div>
   );
@@ -295,6 +286,6 @@ function DetailRow({ label, value, icon }: { label: string; value: string; icon:
 }
 
 function formatDate(iso: string) {
-  const d = new Date(iso);
+  const d = new Date(`${iso}T00:00:00`);
   return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
