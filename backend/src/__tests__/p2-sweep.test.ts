@@ -327,3 +327,28 @@ describe("GB-18 — forum voting has real persistence", () => {
     expect(res._status).toBe(404);
   });
 });
+
+// ── found during the final-gate re-audit ────────────────────────────────────
+describe("final-gate findings", () => {
+  it("answers 400, not 500, for a malformed JSON body", () => {
+    // body-parser raises this before any handler, so no route's own validation
+    // ever saw it and it surfaced as a server error — telling the client its
+    // bad request was our fault.
+    const res = mockRes();
+    errorHandler(
+      Object.assign(new SyntaxError("Unexpected token"), { type: "entity.parse.failed" }),
+      {} as Request, res as unknown as Response, vi.fn() as unknown as NextFunction,
+    );
+    expect(res._status).toBe(400);
+    expect(res._json).toMatchObject({ error: expect.stringMatching(/valid JSON/i) });
+  });
+
+  it("still answers 413 for an oversized body", () => {
+    const res = mockRes();
+    errorHandler(
+      Object.assign(new Error("too large"), { type: "entity.too.large" }),
+      {} as Request, res as unknown as Response, vi.fn() as unknown as NextFunction,
+    );
+    expect(res._status).toBe(413);
+  });
+});

@@ -21,6 +21,13 @@ export function errorHandler(err: Error, _req: Request, res: Response, _next: Ne
   if ((err as { type?: string }).type === "entity.too.large") {
     return res.status(413).json({ error: "Request body too large" });
   }
+
+  // Malformed JSON body. body-parser raises this before any handler, so no
+  // route's own validation ever sees it — it was surfacing as a 500, which
+  // told a client its request was our fault rather than theirs.
+  if ((err as { type?: string }).type === "entity.parse.failed") {
+    return res.status(400).json({ error: "Request body is not valid JSON." });
+  }
   // 22P02 = invalid_text_representation. Postgres raises it when a malformed
   // UUID or number reaches a typed column. That is a bad request, not a server
   // fault, and returning 500 both misled clients and buried real failures.

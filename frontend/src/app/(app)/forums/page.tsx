@@ -24,7 +24,7 @@ const SLUG_TO_KEY: Record<string, Category> = {
 
 type Thread = {
   id: string; title: string; cat: Category; pinned?: boolean; hot?: boolean;
-  author: string; verified: boolean; replies: number; views: number; upvotes: number;
+  author: string; verified: boolean; replies: number; upvotes: number;
   last: string; preview: string;
 };
 
@@ -60,7 +60,6 @@ function mapPost(p: RawPost): Thread {
     author: p.author_name,
     verified: p.author_role === "mentor" || p.author_role === "admin",
     replies: p.answer_count,
-    views: p.upvotes * 30,   // rough estimate until view tracking lands
     upvotes: p.upvotes,
     last: relativeTime(p.created_at),
     preview: p.body.length > 220 ? p.body.slice(0, 220) + "..." : p.body,
@@ -208,7 +207,6 @@ export default function ForumsPage() {
                     {t.verified && <ShieldCheck size={11} className="text-leaf-600" />}
                   </span>
                   <span className="flex items-center gap-1"><MessageSquare size={11} /> {t.replies}</span>
-                  <span className="flex items-center gap-1"><TrendingUp size={11} /> {t.views} views</span>
                   <span>Last reply {t.last}</span>
                 </div>
               </div>
