@@ -1,8 +1,11 @@
 import OpenAI from "openai";
-import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
+import { requireAiUser, tooLarge, totalChars } from "@/lib/ai-auth";
 import { getAiConfig } from "@/lib/aiConfig";
 
 export const runtime = "nodejs";
+
+const MAX_TRANSLATE_CHARS = 20_000;
+const MAX_TRANSLATE_ITEMS = 200;
 
 const LANG_NAMES: Record<string, string> = {
   en: "English", fr: "French", es: "Spanish", ar: "Arabic", zh: "Chinese (Simplified)",
@@ -38,10 +41,18 @@ export async function POST(req: Request) {
     return Response.json({ translations: texts, note: "translation-disabled" });
   }
 
-  // Cost-drain guard. Public (used for UI translation on logged-out pages) and
-  // batched, so allow more than the per-user tools: 60 calls / minute / IP.
-  const rl = rateLimit(`translate:${clientIp(req)}`, 60, 60_000);
-  if (!rl.ok) return tooMany(rl.retryAfter);
+  if (texts.length > MAX_TRANSLATE_ITEMS) {
+    return Response.json(
+      { error: `Too many strings in one request (max ${MAX_TRANSLATE_ITEMS}).` },
+      { status: 400 },
+    );
+  }
+  if (totalChars(texts) > MAX_TRANSLATE_CHARS) {
+    return tooLarge(MAX_TRANSLATE_CHARS);
+  }
+  // Authenticated + per-user rate limited: this call spends OpenAI credits.
+  const gate = await requireAiUser(req, { feature: "translate", limit: 60, body });
+  if ("response" in gate) return gate.response;
 
   const langName = LANG_NAMES[target] ?? target;
 
@@ -61,6 +72,14 @@ export async function POST(req: Request) {
         },
         { role: "user", content: numbered },
       ],
+    });
+
+    // Book this call against the caller's daily budget. ai_usage_log is
+    // what the admin AI console reads and what the ceiling is computed from.
+    await gate.record({
+      model: aiConfig.ai_model,
+      input_tokens: msg.usage?.prompt_tokens ?? 0,
+      output_tokens: msg.usage?.completion_tokens ?? 0,
     });
 
     const raw = msg.choices[0]?.message?.content?.trim() || "[]";

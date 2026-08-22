@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
+import { requireAiUser, tooLarge, totalChars } from "@/lib/ai-auth";
 import { extractJson, normalize, mockFallback, type ScamResult } from "./logic";
 import { getAiConfig } from "@/lib/aiConfig";
 
@@ -84,9 +84,9 @@ export async function POST(req: Request) {
     return Response.json(mockFallback(text), { status: 200 });
   }
 
-  // Cost-drain guard: 10 scam checks / minute / IP.
-  const rl = rateLimit(`scam-check:${clientIp(req)}`, 10, 60_000);
-  if (!rl.ok) return tooMany(rl.retryAfter);
+  // Authenticated + per-user rate limited: this call spends OpenAI credits.
+  const gate = await requireAiUser(req, { feature: "scam-check", limit: 10, body });
+  if ("response" in gate) return gate.response;
 
   const client = new OpenAI({ apiKey, baseURL });
 
@@ -101,6 +101,14 @@ export async function POST(req: Request) {
           content: `Analyze this ${body.kind ?? "message"} for scam risk. Return strict JSON per the schema.\n\n"""\n${text}\n"""`,
         },
       ],
+    });
+
+    // Book this call against the caller's daily budget. ai_usage_log is
+    // what the admin AI console reads and what the ceiling is computed from.
+    await gate.record({
+      model: aiConfig.ai_model,
+      input_tokens: completion.usage?.prompt_tokens ?? 0,
+      output_tokens: completion.usage?.completion_tokens ?? 0,
     });
 
     const raw = completion.choices[0]?.message?.content?.trim() || "";

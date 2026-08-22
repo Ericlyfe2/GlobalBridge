@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { FlagSelect, type FlagOption } from "@/components/FlagSelect";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
+import { authFetch } from "@/lib/auth";
 
 type ComparisonCategory = {
   label: string;
@@ -90,7 +91,7 @@ export default function CountryComparePage() {
     setResult(null);
     setError(null);
     try {
-      const res = await fetch("/api/ai/compare-countries", {
+      const res = await authFetch("/api/ai/compare-countries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ country1, country2 }),

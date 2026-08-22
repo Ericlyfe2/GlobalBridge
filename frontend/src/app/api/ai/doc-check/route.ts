@@ -1,8 +1,10 @@
 import OpenAI from "openai";
-import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
+import { requireAiUser, tooLarge, totalChars } from "@/lib/ai-auth";
 import { getAiConfig } from "@/lib/aiConfig";
 
 export const runtime = "nodejs";
+
+const MAX_DOC_CHARS = 30_000;
 
 const SYSTEM_PROMPT = `You are GlobalBridge's document validity checker.
 
@@ -104,9 +106,12 @@ export async function POST(req: Request) {
     2,
   );
 
-  // Cost-drain guard: 10 doc-checks / minute / IP.
-  const rl = rateLimit(`doc-check:${clientIp(req)}`, 10, 60_000);
-  if (!rl.ok) return tooMany(rl.retryAfter);
+  if (totalChars(body.docType, body.fileName, body.notes, body.meta?.name, body.meta?.expiry, body.meta?.country) > MAX_DOC_CHARS) {
+    return tooLarge(MAX_DOC_CHARS);
+  }
+  // Authenticated + per-user rate limited: this call spends OpenAI credits.
+  const gate = await requireAiUser(req, { feature: "doc-check", limit: 10, body });
+  if ("response" in gate) return gate.response;
 
   const client = new OpenAI({ apiKey, baseURL });
 
@@ -121,6 +126,14 @@ export async function POST(req: Request) {
           content: `Run validity checks for this document. Return strict JSON per the schema.\n\n${userPrompt}`,
         },
       ],
+    });
+
+    // Book this call against the caller's daily budget. ai_usage_log is
+    // what the admin AI console reads and what the ceiling is computed from.
+    await gate.record({
+      model: aiConfig.ai_model,
+      input_tokens: completion.usage?.prompt_tokens ?? 0,
+      output_tokens: completion.usage?.completion_tokens ?? 0,
     });
 
     const text = completion.choices[0]?.message?.content?.trim() || "";

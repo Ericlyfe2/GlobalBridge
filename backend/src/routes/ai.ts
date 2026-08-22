@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth } from "../middleware/auth";
+import { costUsd, DAILY_CEILING_USD } from "../lib/ai-pricing";
 
 export const aiRouter = Router();
 
@@ -104,6 +105,86 @@ aiRouter.delete("/conversations/:id", requireAuth, async (req, res, next) => {
       [req.params.id, req.user!.sub],
     );
     res.json({ deleted: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ====================
+// USAGE LEDGER + DAILY SPEND CEILING
+// ====================
+// ai_usage_log had nine read sites in routes/admin.ts and zero write sites
+// anywhere, so the admin AI observability console reported zeros forever and
+// nothing capped what a single account could spend. These two endpoints are the
+// write side and the enforcement point.
+
+/** Today's spend for the caller, and whether they have hit the ceiling. */
+aiRouter.get("/usage/today", requireAuth, async (req, res, next) => {
+  try {
+    // Grouped by model because each model has its own price; summing tokens
+    // across models first would apply one price to all of them.
+    const rows = await query<{ model: string | null; in_tok: string; out_tok: string; calls: string }>(
+      `SELECT model,
+              COALESCE(SUM(input_tokens), 0)::text  AS in_tok,
+              COALESCE(SUM(output_tokens), 0)::text AS out_tok,
+              COUNT(*)::text                        AS calls
+         FROM ai_usage_log
+        WHERE user_id = $1
+          AND created_at >= date_trunc('day', NOW() AT TIME ZONE 'utc')
+        GROUP BY model`,
+      [req.user!.sub],
+    );
+
+    let spent = 0;
+    let calls = 0;
+    for (const r of rows) {
+      spent += costUsd(r.model, Number(r.in_tok), Number(r.out_tok));
+      calls += Number(r.calls);
+    }
+    const spentUsd = Math.round(spent * 1e6) / 1e6;
+
+    res.json({
+      spent_usd: spentUsd,
+      limit_usd: DAILY_CEILING_USD,
+      exceeded: spentUsd >= DAILY_CEILING_USD,
+      calls,
+      // UTC midnight, so the client can say when the budget resets.
+      resets_at: new Date(Date.UTC(
+        new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate() + 1,
+      )).toISOString(),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const usageSchema = z.object({
+  feature: z.string().min(1).max(100),
+  model: z.string().max(100).optional(),
+  input_tokens: z.number().int().min(0).max(10_000_000).default(0),
+  output_tokens: z.number().int().min(0).max(10_000_000).default(0),
+  cache_hit: z.boolean().optional(),
+  response_time_ms: z.number().int().min(0).max(600_000).optional(),
+  error: z.string().max(500).optional(),
+});
+
+/** Record one completed (or failed) AI call against the caller's ledger. */
+aiRouter.post("/usage", requireAuth, async (req, res, next) => {
+  try {
+    const b = usageSchema.parse(req.body);
+    // user_id comes from the verified token, never from the body — otherwise a
+    // caller could bill their spend to somebody else's daily budget.
+    await query(
+      `INSERT INTO ai_usage_log
+         (user_id, feature, model, input_tokens, output_tokens, cache_hit, response_time_ms, error)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+      [
+        req.user!.sub, b.feature, b.model ?? null,
+        b.input_tokens, b.output_tokens, b.cache_hit ?? false,
+        b.response_time_ms ?? null, b.error ?? null,
+      ],
+    );
+    res.status(201).json({ ok: true });
   } catch (err) {
     next(err);
   }

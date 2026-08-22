@@ -1,6 +1,11 @@
 import OpenAI from "openai";
-import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
+import { requireAiUser, tooLarge, totalChars, extractToken } from "@/lib/ai-auth";
 import { getAiConfig } from "@/lib/aiConfig";
+
+/** Ceiling on prompt text per request. max_tokens only caps the reply. */
+const MAX_INPUT_CHARS = 24_000;
+/** Guards against a huge array of tiny messages slipping under the char cap. */
+const MAX_MESSAGES = 40;
 
 export const runtime = "nodejs";
 
@@ -62,11 +67,13 @@ You know every feature of GlobalBridge: AI tools (Country Comparison, Document C
 - If user mentions self-harm, abuse, exploitation, trafficking, or fraud victimization, surface crisis resources.
 - If user reports being scammed, direct them to report on GlobalBridge's scam alert page and link relevant authority.`;
 
-async function fetchRAG(query: string, category?: string): Promise<RAGResult> {
+async function fetchRAG(query: string, token: string, category?: string): Promise<RAGResult> {
   try {
+    // /api/rag/search now requires auth — it spends OpenAI embedding credits on
+    // every unique query, so it can no longer be called anonymously.
     const res = await fetch(`${API_BASE}/api/rag/search`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ query, category, limit: 5, min_score: 0.5 }),
     });
     if (!res.ok) return { results: [] };
@@ -163,29 +170,40 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  if (!body?.messages?.length) {
+  if (!Array.isArray(body?.messages) || body.messages.length === 0) {
     return Response.json({ error: "messages[] required" }, { status: 400 });
   }
+  if (body.messages.length > MAX_MESSAGES) {
+    return Response.json(
+      { error: `Too many messages in one request (max ${MAX_MESSAGES}).` },
+      { status: 400 },
+    );
+  }
+  if (totalChars(body.messages.map((m) => m?.content ?? "")) > MAX_INPUT_CHARS) {
+    return tooLarge(MAX_INPUT_CHARS);
+  }
+
+  // Authenticate before spending anything. Rate limit is keyed on the verified
+  // user id, so the budget follows the account rather than a shared campus IP.
+  const gate = await requireAiUser(req, { feature: "chat", limit: 20, body });
+  if ("response" in gate) return gate.response;
+  const authToken = extractToken(req, body)!;
 
   const targetLang = body.lang || "en";
   const langName = LANG_NAMES[targetLang] ?? "English";
-  const authToken = body.token || "";
-
-  const rl = rateLimit(`chat:${clientIp(req)}`, 20, 60_000);
-  if (!rl.ok) return tooMany(rl.retryAfter);
 
   // =====================
   // 1. RAG: Retrieve relevant platform knowledge
   // =====================
   const userQuery = body.messages[body.messages.length - 1]?.content || "";
-  const ragResult = await fetchRAG(userQuery);
+  const ragResult = await fetchRAG(userQuery, authToken);
 
   // =====================
-  // 2. User Context (if authenticated)
+  // 2. User Context
   // =====================
   let userProfile: UserProfile | null = null;
   let userBlock = "";
-  if (authToken) {
+  {
     userProfile = await fetchUserProfile(authToken);
     if (userProfile) {
       const roleDescriptions: Record<string, string> = {
@@ -307,6 +325,15 @@ export async function POST(req: Request) {
     // =====================
     const inputTokens = completion.usage?.prompt_tokens ?? 0;
     const outputTokens = completion.usage?.completion_tokens ?? 0;
+
+    // Book this call against the caller's daily budget. ai_usage_log is what
+    // the admin AI console reads and what the ceiling is computed from.
+    await gate.record({
+      model: aiConfig.ai_model,
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
+      response_time_ms: responseTime,
+    });
 
     return Response.json({
       reply: text || "I couldn't generate a response. Try rephrasing.",

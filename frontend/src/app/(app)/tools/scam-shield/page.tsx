@@ -49,7 +49,7 @@ export default function ScamShieldPage() {
     // Atlas visibly reads the listing while the check runs.
     emit("DOCUMENT_SCANNING");
     try {
-      const res = await fetch("/api/ai/scam-check", {
+      const res = await authFetch("/api/ai/scam-check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text, kind }),

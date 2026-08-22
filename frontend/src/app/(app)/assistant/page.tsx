@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Sparkles, FileCheck, Globe, Loader2, User, X, Download, Printer, History, CheckCircle, ShieldCheck } from "lucide-react";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
-import { getToken, getUser } from "@/lib/auth";
+import { authFetch, getToken, getUser } from "@/lib/auth";
 import { useEscapeToClose } from "@/lib/useEscapeToClose";
 import { useMascot } from "@/mascot/MascotProvider";
 import { AtlasPortrait } from "@/components/mascot/AtlasPortrait";
@@ -59,7 +59,7 @@ export default function AssistantPage() {
     emit("THINKING");
 
     try {
-      const res = await fetch("/api/ai/chat", {
+      const res = await authFetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

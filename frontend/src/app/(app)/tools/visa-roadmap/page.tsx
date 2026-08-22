@@ -6,6 +6,7 @@ import {
   Map, Loader2, Bot, Milestone, CalendarClock, Coins, FileText, Lightbulb, AlertTriangle, Route,
   Fingerprint, PlaneTakeoff, Stamp, MessageSquare, FolderOpen, ArrowRight, ShieldCheck,
 } from "lucide-react";
+import { authFetch } from "@/lib/auth";
 
 /** Best-effort icon per phase, matched on real phase.title keywords — purely
  * cosmetic, never used to imply a phase is "current" or "done" since the
@@ -43,7 +44,7 @@ export default function VisaRoadmapPage() {
     setRoadmap(null);
     setError(null);
     try {
-      const res = await fetch("/api/ai/visa-roadmap", {
+      const res = await authFetch("/api/ai/visa-roadmap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ origin, destination, purpose }),
