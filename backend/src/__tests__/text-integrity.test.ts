@@ -116,7 +116,14 @@ function boundStrings(): string[] {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  queryOne.mockResolvedValue({ id: "row-1", user_id: "someone-else" });
+  // Fields for every handler this file drives. The booking route now resolves
+  // the mentor, converts the slot to an instant and checks availability before
+  // inserting, so a bare { id } no longer reaches the INSERT.
+  queryOne.mockResolvedValue({
+    id: "row-1", user_id: "someone-else",
+    available: true, timezone: "UTC",
+    starts_at: "2027-01-15T15:00:00.000Z", is_past: false, n: 0,
+  });
   query.mockResolvedValue([]);
 });
 
@@ -275,7 +282,11 @@ describe("user text reaches the database verbatim (GB-01 blast radius)", () => {
   for (const c of CASES) {
     it(c.entity, async () => {
       // library/POST checks the contributor is a verified mentor before writing.
-      queryOne.mockResolvedValue({ id: "row-1", user_id: "someone-else", verification_status: "verified" });
+      queryOne.mockResolvedValue({
+        id: "row-1", user_id: "someone-else", verification_status: "verified",
+        available: true, timezone: "UTC",
+        starts_at: "2027-01-15T15:00:00.000Z", is_past: false, n: 0,
+      });
 
       await callRoute(c.router, c.method, c.path, {
         user: { ...AUTH_USER, role: (c.role ?? AUTH_USER.role) as typeof AUTH_USER.role },

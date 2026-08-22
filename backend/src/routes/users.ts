@@ -569,3 +569,84 @@ usersRouter.patch("/:id/status", requireAuth, requireRole("admin"), async (req, 
     next(err);
   }
 });
+
+// ── Mentor availability (GB-08) ─────────────────────────────────────────────
+// Before this there was no availability model at all — only a single
+// available_for_mentoring boolean — so "book a mentor" meant "insert any time
+// you like into their calendar".
+//
+// Windows are recurring weekly and declared in the mentor's own timezone;
+// weekday follows Postgres EXTRACT(DOW), 0 = Sunday.
+
+const availabilitySchema = z.object({
+  timezone: z.string().min(1).max(100),
+  windows: z
+    .array(
+      z.object({
+        weekday: z.number().int().min(0).max(6),
+        start_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "start_time must be HH:MM (24h)"),
+        end_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "end_time must be HH:MM (24h)"),
+      }),
+    )
+    .max(50),
+});
+
+/** A mentor's published windows. Students need this to pick a slot at all. */
+usersRouter.get("/mentors/:id/availability", requireAuth, async (req, res, next) => {
+  try {
+    const mentor = await queryOne<{ timezone: string }>(
+      `SELECT COALESCE(mp.timezone, 'UTC') AS timezone
+         FROM users u JOIN mentor_profiles mp ON mp.user_id = u.id
+        WHERE u.id = $1 AND u.role = 'mentor' AND u.verification_status = 'verified'`,
+      [req.params.id],
+    );
+    if (!mentor) return res.status(404).json({ error: "Mentor not found" });
+
+    const windows = await query(
+      `SELECT weekday, to_char(start_time, 'HH24:MI') AS start_time,
+              to_char(end_time, 'HH24:MI') AS end_time
+         FROM mentor_availability WHERE mentor_id = $1
+        ORDER BY weekday, start_time`,
+      [req.params.id],
+    );
+    res.json({
+      timezone: mentor.timezone,
+      windows,
+      // An empty schedule means "no declared hours", which the booking endpoint
+      // treats as open rather than closed. Say so, so the UI can too.
+      unrestricted: windows.length === 0,
+    });
+  } catch (err) { next(err); }
+});
+
+/** Replace the caller's own availability. */
+usersRouter.put("/me/availability", requireAuth, requireRole("mentor"), async (req, res, next) => {
+  try {
+    const b = availabilitySchema.parse(req.body);
+    for (const w of b.windows) {
+      if (w.end_time <= w.start_time) {
+        return res.status(400).json({ error: `A window must end after it starts (${w.start_time}–${w.end_time}).` });
+      }
+    }
+
+    await query(`UPDATE mentor_profiles SET timezone = $2 WHERE user_id = $1`, [req.user!.sub, b.timezone]);
+    // Replace wholesale inside one statement pair so a partial write cannot
+    // leave a mentor with half a schedule published.
+    await query(`DELETE FROM mentor_availability WHERE mentor_id = $1`, [req.user!.sub]);
+    for (const w of b.windows) {
+      await query(
+        `INSERT INTO mentor_availability (mentor_id, weekday, start_time, end_time)
+         VALUES ($1,$2,$3,$4) ON CONFLICT (mentor_id, weekday, start_time) DO NOTHING`,
+        [req.user!.sub, w.weekday, w.start_time, w.end_time],
+      );
+    }
+
+    const windows = await query(
+      `SELECT weekday, to_char(start_time, 'HH24:MI') AS start_time,
+              to_char(end_time, 'HH24:MI') AS end_time
+         FROM mentor_availability WHERE mentor_id = $1 ORDER BY weekday, start_time`,
+      [req.user!.sub],
+    );
+    res.json({ timezone: b.timezone, windows });
+  } catch (err) { next(err); }
+});

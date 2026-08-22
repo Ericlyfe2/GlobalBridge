@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth } from "../middleware/auth";
-import { pushEnabled } from "../lib/push";
+import { pushEnabled, dispatchNotification } from "../lib/push";
 
 export const contentRouter = Router();
 
@@ -231,17 +231,22 @@ contentRouter.delete("/saved", requireAuth, async (req, res, next) => {
 });
 
 // ===== Mentor bookings =====
-  const bookingSchema = z.object({
+const IANA_ZONE = /^[A-Za-z]+(?:[_+-][A-Za-z0-9]+)*(?:\/[A-Za-z0-9]+(?:[_+-][A-Za-z0-9]+)*)*$/;
+
+const bookingSchema = z.object({
   mentor_id: z.string().uuid(),
-  slot_date: z.string(),
-  slot_time: z.string(),
-  duration_min: z.number().int().optional(),
+  // slot_date/slot_time were bare z.string(). The live column was VARCHAR(10),
+  // not TIME, so "25:99" and "not-time" were stored verbatim rather than
+  // rejected. Both the column type and this schema now refuse them.
+  slot_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "slot_date must be YYYY-MM-DD"),
+  slot_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "slot_time must be HH:MM (24h)"),
+  duration_min: z.number().int().min(15).max(240).optional(),
   goal: z.string().max(500).optional(),
   // IANA zone (e.g. "Africa/Accra"), captured client-side from the student's
   // browser. slot_time alone is ambiguous the moment mentor and student are
   // in different timezones — without this, "3:00 PM" on a mentor's dashboard
   // has no way of saying whose 3pm it is.
-  student_timezone: z.string().max(100).optional(),
+  student_timezone: z.string().max(100).regex(IANA_ZONE, "student_timezone must be an IANA zone").optional(),
 });
 
 contentRouter.get("/bookings", requireAuth, async (req, res, next) => {
@@ -262,25 +267,169 @@ contentRouter.get("/bookings", requireAuth, async (req, res, next) => {
 contentRouter.post("/bookings", requireAuth, async (req, res, next) => {
   try {
     const b = bookingSchema.parse(req.body);
-    const mentor = await queryOne<{ id: string }>(
-      `SELECT id FROM users WHERE id = $1 AND role = 'mentor'`,
+    const tz = b.student_timezone ?? "UTC";
+    const duration = b.duration_min ?? 30;
+
+    const mentor = await queryOne<{ id: string; available: boolean; timezone: string }>(
+      `SELECT u.id, COALESCE(mp.available_for_mentoring, TRUE) AS available,
+              COALESCE(mp.timezone, 'UTC') AS timezone
+         FROM users u LEFT JOIN mentor_profiles mp ON mp.user_id = u.id
+        WHERE u.id = $1 AND u.role = 'mentor'`,
       [b.mentor_id]
     );
     if (!mentor) return res.status(404).json({ error: "Mentor not found" });
 
-    const booking = await queryOne(
-      `INSERT INTO mentor_bookings (mentor_id, student_id, slot_date, slot_time, duration_min, goal, student_timezone)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [b.mentor_id, req.user!.sub, b.slot_date, b.slot_time, b.duration_min ?? 30, b.goal, b.student_timezone ?? null]
+    // A mentor who had switched themselves off was still receiving bookings.
+    if (!mentor.available) {
+      return res.status(409).json({ error: "This mentor isn't taking bookings right now." });
+    }
+
+    // Resolve the wall-clock request to an instant, in the student's zone.
+    // Everything downstream — the past check, the availability window, and the
+    // overlap constraint — reasons about instants, not about "3 PM" in nobody's
+    // particular timezone.
+    const startsRow = await queryOne<{ starts_at: string; is_past: boolean }>(
+      `SELECT ts AS starts_at, ts < NOW() AS is_past
+         FROM (SELECT ($1::date + $2::time) AT TIME ZONE $3 AS ts) q`,
+      [b.slot_date, b.slot_time, tz]
     );
-    // Notify the mentor — include the zone explicitly so "3:00 PM" isn't left
-    // ambiguous between two people who may not share a timezone.
+    if (!startsRow) return res.status(400).json({ error: "Could not interpret that date and time." });
+    if (startsRow.is_past) {
+      return res.status(400).json({ error: "That time has already passed — pick a future slot." });
+    }
+
+    // Availability is declared in the mentor's own timezone, so compare there.
+    const declared = await queryOne<{ n: number }>(
+      `SELECT COUNT(*)::int AS n FROM mentor_availability WHERE mentor_id = $1`,
+      [b.mentor_id]
+    );
+    if ((declared?.n ?? 0) > 0) {
+      const fits = await queryOne<{ n: number }>(
+        `SELECT COUNT(*)::int AS n
+           FROM mentor_availability a
+          WHERE a.mentor_id = $1
+            AND a.weekday = EXTRACT(DOW FROM ($2::timestamptz AT TIME ZONE $4))::int
+            AND ($2::timestamptz AT TIME ZONE $4)::time >= a.start_time
+            AND (($2::timestamptz + make_interval(mins => $3)) AT TIME ZONE $4)::time <= a.end_time`,
+        [b.mentor_id, startsRow.starts_at, duration, mentor.timezone]
+      );
+      // A mentor who has published no windows keeps the previous open-booking
+      // behaviour; treating an empty schedule as "closed" would silently take
+      // every mentor offline until they filled one in.
+      if ((fits?.n ?? 0) === 0) {
+        return res.status(409).json({
+          error: "That time is outside this mentor's available hours.",
+          mentor_timezone: mentor.timezone,
+        });
+      }
+    }
+
+    let booking;
+    try {
+      booking = await queryOne(
+        `INSERT INTO mentor_bookings
+           (mentor_id, student_id, slot_date, slot_time, duration_min, goal, student_timezone, starts_at, status)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pending') RETURNING *`,
+        [b.mentor_id, req.user!.sub, b.slot_date, b.slot_time, duration, b.goal ?? null, b.student_timezone ?? null, startsRow.starts_at]
+      );
+    } catch (e) {
+      // 23P01 = exclusion_violation. The database is the arbiter: two concurrent
+      // requests for the same slot both pass every check above, and exactly one
+      // survives the constraint. A read-then-write in application code cannot
+      // give that guarantee.
+      if ((e as { code?: string }).code === "23P01") {
+        return res.status(409).json({ error: "That slot was just taken. Please pick another time." });
+      }
+      throw e;
+    }
+
     const tzSuffix = b.student_timezone ? ` (${b.student_timezone}, student's local time)` : "";
-    await query(
-      `INSERT INTO notifications (user_id, kind, title, body, href)
-       VALUES ($1, 'message', 'New mentorship booking', $2, '/messages?tab=bookings')`,
-      [b.mentor_id, `A student booked a ${b.duration_min ?? 30}-min session on ${b.slot_date} at ${b.slot_time}${tzSuffix}.`]
-    );
+    await dispatchNotification({
+      userId: b.mentor_id,
+      kind: "mentor",
+      title: "New mentorship booking",
+      body: `A student booked a ${duration}-min session on ${b.slot_date} at ${b.slot_time}${tzSuffix}.`,
+      href: "/dashboard/mentor",
+    });
+
     res.status(201).json({ booking });
   } catch (err) { next(err); }
 });
+
+// ── Booking lifecycle ───────────────────────────────────────────────────────
+// mentor_bookings.status supported pending/confirmed/cancelled/completed and the
+// mentor dashboard rendered a "pending requests" list, but no endpoint anywhere
+// could move a booking out of pending. Journey 3 — receive booking, confirm
+// booking — was not implementable.
+//
+// "confirmed" rather than "accepted" because that is the vocabulary already in
+// the table and in every mentor-dashboard query.
+const TRANSITIONS = {
+  confirmed: { from: ["pending"], actor: "mentor" },
+  declined: { from: ["pending"], actor: "mentor" },
+  cancelled: { from: ["pending", "confirmed"], actor: "either" },
+  completed: { from: ["confirmed"], actor: "mentor" },
+} as const;
+
+type NextStatus = keyof typeof TRANSITIONS;
+
+const COPY: Record<NextStatus, (d: string, t: string) => { title: string; body: string }> = {
+  confirmed: (d, t) => ({ title: "Your session is confirmed", body: `Your mentor confirmed ${d} at ${t}.` }),
+  declined: (d, t) => ({ title: "Session request declined", body: `Your mentor can't make ${d} at ${t}. Try another slot.` }),
+  cancelled: (d, t) => ({ title: "Session cancelled", body: `The session on ${d} at ${t} was cancelled.` }),
+  completed: (d) => ({ title: "Session marked complete", body: `Your session on ${d} is marked complete.` }),
+};
+
+contentRouter.patch("/bookings/:id", requireAuth, async (req, res, next) => {
+  try {
+    const { status } = z
+      .object({ status: z.enum(["confirmed", "declined", "cancelled", "completed"]) })
+      .parse(req.body);
+    const rule = TRANSITIONS[status as NextStatus];
+
+    const booking = await queryOne<{
+      id: string; mentor_id: string; student_id: string; status: string;
+      slot_date: string; slot_time: string;
+    }>(
+      `SELECT id, mentor_id, student_id, status, slot_date, slot_time
+         FROM mentor_bookings WHERE id = $1`,
+      [req.params.id]
+    );
+    // 404 rather than 403 for a stranger: whether a booking exists is itself
+    // information about two other people's calendars.
+    if (!booking) return res.status(404).json({ error: "Booking not found" });
+
+    const me = req.user!.sub;
+    const isMentor = booking.mentor_id === me;
+    const isStudent = booking.student_id === me;
+    if (!isMentor && !isStudent) return res.status(404).json({ error: "Booking not found" });
+
+    if (rule.actor === "mentor" && !isMentor) {
+      return res.status(403).json({ error: "Only the mentor can do that." });
+    }
+    if (!(rule.from as readonly string[]).includes(booking.status)) {
+      return res.status(409).json({
+        error: `A ${booking.status} booking can't be marked ${status}.`,
+        current_status: booking.status,
+      });
+    }
+
+    const updated = await queryOne(
+      `UPDATE mentor_bookings SET status = $1 WHERE id = $2 RETURNING *`,
+      [status, req.params.id]
+    );
+
+    // Tell the other party, through the existing notification contract.
+    const copy = COPY[status as NextStatus](booking.slot_date, booking.slot_time);
+    await dispatchNotification({
+      userId: isMentor ? booking.student_id : booking.mentor_id,
+      kind: "mentor",
+      title: copy.title,
+      body: copy.body,
+      href: isMentor ? "/dashboard/student" : "/dashboard/mentor",
+    });
+
+    res.json({ booking: updated });
+  } catch (err) { next(err); }
+});
+

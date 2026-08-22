@@ -792,3 +792,106 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS share_country_of_origin BOOLEAN NOT N
 -- first registration from a replay — which is what let any account re-POST
 -- /api/auth/register-profile to reassign its own role.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_completed_at TIMESTAMPTZ;
+
+-- =====================
+-- MENTORSHIP: AVAILABILITY, CONFLICTS, LIFECYCLE (GB-08)
+-- =====================
+-- Booking accepted anything: two students could hold the same mentor at the same
+-- moment, a mentor who had switched themselves off still received bookings, and
+-- no endpoint could ever move a booking out of 'pending'.
+
+-- Needed to combine an equality column (mentor_id) with a range operator in one
+-- exclusion constraint.
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+-- The live database had slot_time as VARCHAR(10) while this file declared TIME,
+-- so "25:99", "99:99" and "not-time" were all stored silently rather than
+-- rejected. Column-level drift the Phase 3 guard did not catch, since it only
+-- compared table presence. Cast rather than recreate, so existing values survive.
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_name = 'mentor_bookings' AND column_name = 'slot_time'
+       AND data_type <> 'time without time zone'
+  ) THEN
+    ALTER TABLE mentor_bookings
+      ALTER COLUMN slot_time TYPE TIME USING slot_time::time;
+  END IF;
+END $$;
+
+-- Mentors declare availability in their own timezone; without it a weekday and a
+-- wall-clock window are meaningless.
+ALTER TABLE mentor_profiles ADD COLUMN IF NOT EXISTS timezone TEXT NOT NULL DEFAULT 'UTC';
+
+-- Recurring weekly windows. weekday follows Postgres EXTRACT(DOW): 0 = Sunday.
+CREATE TABLE IF NOT EXISTS mentor_availability (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    mentor_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    weekday SMALLINT NOT NULL CHECK (weekday BETWEEN 0 AND 6),
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT mentor_availability_range CHECK (end_time > start_time),
+    UNIQUE (mentor_id, weekday, start_time)
+);
+CREATE INDEX IF NOT EXISTS idx_mentor_availability_mentor ON mentor_availability(mentor_id, weekday);
+
+-- slot_date + slot_time are wall-clock in the STUDENT's timezone, which is
+-- ambiguous the moment two parties are in different zones — and useless for
+-- overlap detection. starts_at is the resolved instant, and is what the
+-- exclusion constraint and every availability check work from.
+ALTER TABLE mentor_bookings ADD COLUMN IF NOT EXISTS starts_at TIMESTAMPTZ;
+ALTER TABLE mentor_bookings ADD COLUMN IF NOT EXISTS ends_at TIMESTAMPTZ;
+
+UPDATE mentor_bookings
+   SET starts_at = (slot_date + slot_time) AT TIME ZONE COALESCE(student_timezone, 'UTC')
+ WHERE starts_at IS NULL;
+
+-- ends_at is a stored column rather than an expression in the constraint below,
+-- because `timestamptz + interval` is STABLE (it depends on the session
+-- timezone for calendar arithmetic) and an index expression must be IMMUTABLE.
+-- A trigger keeps it correct no matter who writes the row, so the invariant
+-- does not depend on application code remembering to set it.
+CREATE OR REPLACE FUNCTION mentor_bookings_set_ends_at() RETURNS trigger AS $fn$
+BEGIN
+  -- Derive the instant here too, so a caller that forgets starts_at cannot
+  -- silently opt out of the overlap constraint: tstzrange(NULL, NULL) conflicts
+  -- with nothing, which would disable the guarantee exactly when it matters.
+  IF NEW.starts_at IS NULL THEN
+    NEW.starts_at := (NEW.slot_date + NEW.slot_time)
+                     AT TIME ZONE COALESCE(NEW.student_timezone, 'UTC');
+  END IF;
+  NEW.ends_at := NEW.starts_at + make_interval(mins => COALESCE(NEW.duration_min, 30));
+  RETURN NEW;
+END;
+$fn$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_mentor_bookings_ends_at ON mentor_bookings;
+CREATE TRIGGER trg_mentor_bookings_ends_at
+  BEFORE INSERT OR UPDATE OF starts_at, duration_min, slot_date, slot_time, student_timezone
+  ON mentor_bookings
+  FOR EACH ROW EXECUTE FUNCTION mentor_bookings_set_ends_at();
+
+UPDATE mentor_bookings
+   SET ends_at = starts_at + make_interval(mins => COALESCE(duration_min, 30))
+ WHERE ends_at IS NULL AND starts_at IS NOT NULL;
+
+-- The constraint the audit asked for: enforced by the database, not by a
+-- read-then-write in application code that two concurrent requests can both win.
+-- Scoped to live bookings, so a cancelled or declined slot frees up again.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'mentor_bookings_no_overlap'
+  ) THEN
+    ALTER TABLE mentor_bookings ADD CONSTRAINT mentor_bookings_no_overlap
+      EXCLUDE USING gist (
+        mentor_id WITH =,
+        tstzrange(starts_at, ends_at) WITH &&
+      ) WHERE (status IN ('pending', 'confirmed'));
+  END IF;
+END $$;
+
+ALTER TABLE mentor_bookings ALTER COLUMN starts_at SET NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_mentor_bookings_mentor_start ON mentor_bookings(mentor_id, starts_at);
+CREATE INDEX IF NOT EXISTS idx_mentor_bookings_student ON mentor_bookings(student_id, starts_at);
