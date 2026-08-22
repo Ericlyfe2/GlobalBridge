@@ -41,7 +41,8 @@ Full setup, environment variables and deployment: **[docs/ARCHITECTURE.md §18�
 
 | Document | Covers |
 |---|---|
-| **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** | **Start here.** System architecture, backend, data model, auth, frontend, design system, animation, AI stack, i18n, security, accessibility, testing, deployment, known gaps |
+| **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** | **Start here.** System architecture (with a full traced request example), backend, data model, auth, frontend, design system & landing-page animation spec, AI stack (incl. the admin-configurable AI Control Center), i18n, security, accessibility, testing, deployment, known gaps |
+| [docs/DESIGN.md](docs/DESIGN.md) | Design-system audit — tokens, components, and where the implementation drifts from its own spec. Folded into ARCHITECTURE.md §9 too; kept standalone so a token change can update just this file |
 | [docs/MASCOT.md](docs/MASCOT.md) | Atlas — character design, personality, dialogue, full interaction spec |
 | [docs/admin.md](docs/admin.md) | Admin console — roles, endpoints, page inventory |
 | [ENV.md](ENV.md) | Environment variables |
@@ -54,7 +55,7 @@ Full setup, environment variables and deployment: **[docs/ARCHITECTURE.md §18�
 **Stack.** Next.js 15 (App Router) · React 19 · TypeScript · Tailwind 4 · Express · PostgreSQL 16 +
 pgvector · Firebase Auth · OpenAI · GSAP + Lenis.
 
-**Scale.** 82 pages · 112 API endpoints across 14 routers · 31 tables · 14 languages · 81 tests.
+**Scale.** 82 pages · 112 API endpoints across 14 routers · 35 tables · 14 languages · 81 tests.
 
 **Features.** AI Visa Assistant (RAG-grounded, cites sources) · Scam Shield · Visa Roadmap ·
 Document Checker · Readiness Score · verified housing · jobs with sponsorship filtering ·

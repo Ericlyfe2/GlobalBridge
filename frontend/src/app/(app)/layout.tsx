@@ -32,6 +32,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { AuthGuard } from "@/components/AuthGuard";
 import { SkipLink } from "@/components/SkipLink";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
+import { authFetch, getToken } from "@/lib/auth";
 
 const CommandPalette = dynamic(() => import("@/components/CommandPalette").then((m) => m.CommandPalette), { ssr: false });
 const CommandTrigger = dynamic(() => import("@/components/CommandPalette").then((m) => m.CommandTrigger), { ssr: false });
@@ -48,10 +49,30 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<Role>(null);
   // Lifted so the bottom bar's "More" and the header button open the same drawer.
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
 
   useEffect(() => {
     try { setRole(localStorage.getItem("user-role") as Role); } catch { setRole(null); }
   }, []);
+
+  // The bell's red dot used to be a static element with no data behind it —
+  // always on, for every user, regardless of whether they had anything
+  // unread. Refetch on mount, on tab focus, and whenever the route changes
+  // (covers navigating away from /notifications after reading things there).
+  useEffect(() => {
+    if (!getToken()) { setHasUnread(false); return; }
+    let cancelled = false;
+    async function checkUnread() {
+      try {
+        const res = await authFetch("/api/content/notifications/unread-count");
+        const data = await res.json();
+        if (!cancelled) setHasUnread(res.ok && (data?.count ?? 0) > 0);
+      } catch { /* leave last known state */ }
+    }
+    checkUnread();
+    window.addEventListener("focus", checkUnread);
+    return () => { cancelled = true; window.removeEventListener("focus", checkUnread); };
+  }, [pathname]);
 
   const navItems =
     role === "mentor"
@@ -153,7 +174,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <ThemeToggle />
             <Link href="/notifications" aria-label="Notifications" className="relative p-2 rounded-md hover:bg-cream-200">
               <Bell size={16} />
-              <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full" />
+              {hasUnread && <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full" />}
             </Link>
             <UserMenu />
           </div>

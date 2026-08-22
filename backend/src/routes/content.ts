@@ -117,6 +117,18 @@ contentRouter.get("/notifications", requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// Lightweight — the app shell polls this on every page to light the navbar
+// bell, so it deliberately doesn't pull the full notification rows.
+contentRouter.get("/notifications/unread-count", requireAuth, async (req, res, next) => {
+  try {
+    const row = await queryOne<{ n: number }>(
+      `SELECT COUNT(*)::int AS n FROM notifications WHERE user_id = $1 AND read = FALSE`,
+      [req.user!.sub]
+    );
+    res.json({ count: row?.n ?? 0 });
+  } catch (err) { next(err); }
+});
+
 contentRouter.post("/notifications/read", requireAuth, async (req, res, next) => {
   try {
     const { id } = z.object({ id: z.string().uuid().optional() }).parse(req.body);
