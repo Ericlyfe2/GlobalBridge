@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { requireAiUser, tooLarge, totalChars, extractToken } from "@/lib/ai-auth";
 import { getAiConfig } from "@/lib/aiConfig";
+import { buildCitations } from "@/lib/citations";
 
 /** Ceiling on prompt text per request. max_tokens only caps the reply. */
 const MAX_INPUT_CHARS = 24_000;
@@ -291,21 +292,16 @@ export async function POST(req: Request) {
     // =====================
     // 6. Extract & structure sources
     // =====================
-    const sources: { title: string; url: string; confidence: string }[] = [];
-    const urlMatches = text.match(/https?:\/\/[^\s)]+/g) ?? [];
-    for (const url of urlMatches.slice(0, 5)) {
-      const hostname = (() => {
-        try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return url; }
-      })();
-      const confidence = ragResult.results.some((r) => r.source_url === url) ? "verified" : "web";
-      sources.push({ title: hostname, url, confidence });
+    // Every https:// URL in the reply used to be pushed straight into `sources`
+    // with confidence "web" and nothing checked whether it existed, so an
+    // invented canada.ca path rendered as a citation indistinguishable from a
+    // real one. buildCitations shows only retrieved sources and reachable URLs
+    // on allow-listed official hosts, and drops everything else. (GB-14)
+    const { citations, dropped } = await buildCitations(text, ragResult.results);
+    if (dropped.length > 0) {
+      console.warn(`[/api/ai/chat] dropped ${dropped.length} unverifiable citation(s):`, dropped.slice(0, 5));
     }
-    // Add RAG sources that aren't already in text
-    for (const r of ragResult.results) {
-      if (r.source_url && !sources.some((s) => s.url === r.source_url)) {
-        sources.push({ title: r.title, url: r.source_url, confidence: "knowledge_base" });
-      }
-    }
+    const sources = citations;
 
     // =====================
     // 7. Persist conversation

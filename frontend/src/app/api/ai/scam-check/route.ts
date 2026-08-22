@@ -74,6 +74,7 @@ export async function POST(req: Request) {
         score: 50, verdict: "Be cautious" as const,
         summary: "Scam Shield has been turned off by an admin — we can't analyze this right now.",
         flags: [], advice: ["Use your own judgement and the safety tips on the Scam Alerts page."],
+        engine: "disabled" as const,
         disabled: true,
       },
       { status: 200 },
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
   }
 
   if (!apiKey) {
-    return Response.json(mockFallback(text), { status: 200 });
+    return Response.json({ ...mockFallback(text), engine: "heuristic" as const }, { status: 200 });
   }
 
   // Authenticated + per-user rate limited: this call spends OpenAI credits.
@@ -115,11 +116,12 @@ export async function POST(req: Request) {
     const json = extractJson(raw) as ScamResult | null;
     if (!json || typeof json.score !== "number") {
       console.error("[/api/ai/scam-check] non-JSON response:", raw.slice(0, 200));
-      return Response.json(mockFallback(text), { status: 200 });
+      return Response.json({ ...mockFallback(text), engine: "heuristic" as const }, { status: 200 });
     }
 
     return Response.json({
       ...normalize(json),
+      engine: "ai" as const,
       usage: {
         input_tokens: completion.usage?.prompt_tokens ?? 0,
         output_tokens: completion.usage?.completion_tokens ?? 0,
@@ -128,6 +130,6 @@ export async function POST(req: Request) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     console.error("[/api/ai/scam-check] OpenAI error:", msg);
-    return Response.json(mockFallback(text), { status: 200 });
+    return Response.json({ ...mockFallback(text), engine: "heuristic" as const }, { status: 200 });
   }
 }

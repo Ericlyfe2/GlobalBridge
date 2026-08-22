@@ -8,7 +8,23 @@ import { useEscapeToClose } from "@/lib/useEscapeToClose";
 import { useMascot } from "@/mascot/MascotProvider";
 import { AtlasPortrait } from "@/components/mascot/AtlasPortrait";
 
-type Source = { title: string; url: string; confidence?: string };
+/**
+ * A citation the server was willing to stand behind (GB-14).
+ *
+ * `confidence` is the old field: every URL the model emitted arrived here,
+ * with anything unrecognised labelled "Web source" — including invented
+ * links. Unverifiable URLs are now dropped server-side and never reach this
+ * component, so the only question left is which kind of vouched-for source
+ * it is. Kept optional so conversations saved before the change still render.
+ */
+type Source = {
+  title: string;
+  url: string;
+  provenance?: "retrieved" | "official";
+  label?: string;
+  /** @deprecated pre-GB-14 conversations only. */
+  confidence?: string;
+};
 type Msg = { role: "user" | "assistant"; content: string; sources?: Source[] };
 
 export default function AssistantPage() {
@@ -260,20 +276,24 @@ export default function AssistantPage() {
   );
 }
 
-function confidenceIcon(confidence?: string) {
-  switch (confidence) {
-    case "verified": return <ShieldCheck size={10} className="text-leaf-600" />;
-    case "knowledge_base": return <CheckCircle size={10} className="text-clay-600" />;
-    default: return <Globe size={10} className="text-ink-500" />;
+function sourceIcon(s: Source) {
+  // "web" only appears on conversations saved before GB-14, when unverified
+  // model URLs were still rendered. Mark those as unverified rather than
+  // silently upgrading them to look checked.
+  if (s.confidence === "web") return <Globe size={10} className="text-ink-500" />;
+  if (s.provenance === "retrieved" || s.confidence === "knowledge_base" || s.confidence === "verified") {
+    return <CheckCircle size={10} className="text-clay-600" />;
   }
+  return <ShieldCheck size={10} className="text-leaf-600" />;
 }
 
-function confidenceLabel(confidence?: string) {
-  switch (confidence) {
-    case "verified": return "Verified source";
-    case "knowledge_base": return "Platform knowledge";
-    default: return "Web source";
+function sourceLabel(s: Source) {
+  if (s.label) return s.label;
+  if (s.confidence === "web") return "Unverified link from an older conversation";
+  if (s.confidence === "knowledge_base" || s.confidence === "verified") {
+    return "From GlobalBridge's verified knowledge base";
   }
+  return "Official source, link checked";
 }
 
 function Message({ msg }: { msg: Msg }) {
@@ -305,10 +325,10 @@ function Message({ msg }: { msg: Msg }) {
                 href={s.url}
                 target="_blank"
                 rel="noreferrer"
-                title={confidenceLabel(s.confidence)}
+                title={sourceLabel(s)}
                 className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-cream-100 text-ink-700 hover:bg-cream-200 border border-cream-200"
               >
-                {confidenceIcon(s.confidence)}
+                {sourceIcon(s)}
                 {s.title}
               </a>
             ))}

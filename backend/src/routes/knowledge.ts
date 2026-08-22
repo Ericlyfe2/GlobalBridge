@@ -80,6 +80,27 @@ knowledgeRouter.get("/", async (req, res, next) => {
   }
 });
 
+knowledgeRouter.get("/trusted-sources", async (_req, res, next) => {
+  try {
+    const sources = await query<{ name: string; type: string; base_url: string; confidence_weight: string }>(
+      `SELECT name, type, base_url, confidence_weight
+         FROM trusted_sources WHERE is_active = TRUE
+        ORDER BY confidence_weight DESC, name`,
+    );
+    res.set("Cache-Control", "public, max-age=300");
+    res.json({
+      sources: sources.map((s) => ({
+        name: s.name,
+        type: s.type,
+        base_url: s.base_url,
+        // Hostname is what a citation check actually compares against.
+        host: (() => { try { return new URL(s.base_url).hostname.replace(/^www\./, ""); } catch { return null; } })(),
+        confidence_weight: Number(s.confidence_weight),
+      })).filter((s) => s.host),
+    });
+  } catch (err) { next(err); }
+});
+
 knowledgeRouter.get("/:id", async (req, res, next) => {
   try {
     const row = await queryOne(
@@ -144,3 +165,12 @@ knowledgeRouter.delete("/:id", requireAuth, requireRole("admin"), async (req, re
     next(err);
   }
 });
+
+/**
+ * Active trusted sources (GB-14).
+ *
+ * The AI route handlers use this to decide which model-produced URLs may be
+ * shown to a user as a citation. Public and cacheable: these are the same
+ * official domains listed in the assistant's own system prompt, and nothing
+ * here is secret.
+ */

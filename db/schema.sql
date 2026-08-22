@@ -895,3 +895,36 @@ ALTER TABLE mentor_bookings ALTER COLUMN starts_at SET NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_mentor_bookings_mentor_start ON mentor_bookings(mentor_id, starts_at);
 CREATE INDEX IF NOT EXISTS idx_mentor_bookings_student ON mentor_bookings(student_id, starts_at);
+
+-- =====================
+-- TRUSTED SOURCES (GB-14)
+-- =====================
+-- The table existed from the beginning with a type, an is_active flag and a
+-- confidence_weight, and was referenced by exactly zero lines of code — the
+-- "trusted source preference" the docs describe was never implemented. It is
+-- now the allow-list that decides which model-produced URLs may be shown to a
+-- user as a citation at all.
+ALTER TABLE trusted_sources ADD CONSTRAINT trusted_sources_base_url_key UNIQUE (base_url);
+
+INSERT INTO trusted_sources (name, type, base_url, confidence_weight) VALUES
+  ('Government of Canada',                         'gov', 'https://www.canada.ca',            1.00),
+  ('Immigration, Refugees and Citizenship Canada', 'gov', 'https://ircc.canada.ca',           1.00),
+  ('UK Government',                                'gov', 'https://www.gov.uk',               1.00),
+  ('US Citizenship and Immigration Services',      'gov', 'https://www.uscis.gov',            1.00),
+  ('US Department of State — Travel',              'gov', 'https://travel.state.gov',         1.00),
+  ('Study in the States (US ICE/SEVP)',            'gov', 'https://studyinthestates.dhs.gov', 1.00),
+  ('German Federal Office for Migration (BAMF)',   'gov', 'https://www.bamf.de',              1.00),
+  ('German Federal Foreign Office',                'gov', 'https://www.auswaertiges-amt.de',  1.00),
+  ('Make it in Germany',                           'gov', 'https://www.make-it-in-germany.com', 1.00),
+  ('Australian Department of Home Affairs',        'gov', 'https://immi.homeaffairs.gov.au',  1.00),
+  ('Study Australia',                              'gov', 'https://www.studyaustralia.gov.au', 1.00),
+  ('Ireland Immigration Service',                  'gov', 'https://www.irishimmigration.ie',  1.00),
+  ('Immigration New Zealand',                      'gov', 'https://www.immigration.govt.nz',  1.00),
+  ('Netherlands IND',                              'gov', 'https://ind.nl',                   1.00),
+  ('Campus France',                                'gov', 'https://www.campusfrance.org',     0.95),
+  ('DAAD (German Academic Exchange Service)',      'ngo', 'https://www.daad.de',              0.95),
+  ('British Council',                              'ngo', 'https://www.britishcouncil.org',   0.90),
+  ('EducationUSA',                                 'gov', 'https://educationusa.state.gov',   0.95),
+  ('UNHCR',                                        'ngo', 'https://www.unhcr.org',            0.90),
+  ('EU Immigration Portal',                        'gov', 'https://immigration-portal.ec.europa.eu', 1.00)
+ON CONFLICT (base_url) DO NOTHING;
