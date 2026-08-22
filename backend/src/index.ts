@@ -45,7 +45,10 @@ app.use(
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://images.unsplash.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        connectSrc: ["'self'", process.env.AI_SERVICE_URL || "http://localhost:8000"],
+        // Was ["'self'", AI_SERVICE_URL || "http://localhost:8000"] — a leftover
+        // from the removed Python AI service, which baked a localhost origin
+        // into the production policy.
+        connectSrc: ["'self'"],
         frameSrc: ["'none'"],
         objectSrc: ["'none'"],
       },
@@ -58,7 +61,26 @@ app.use(
 );
 app.use(compression());
 app.use(morgan("dev"));
-app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:3000", credentials: true }));
+// CORS_ORIGIN is a comma-separated list, and middleware/csrf.ts already splits it
+// that way. Passing the raw string to cors() emitted a single malformed header —
+// "Access-Control-Allow-Origin: http://a.com,http://b.com" — which no browser
+// accepts, so multi-origin CORS silently failed for every origin.
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGIN || "http://localhost:3000")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, cb) {
+      // No Origin header = same-origin or a server-to-server call (the Next BFF
+      // layer). Those are not CORS requests and still have to pass Bearer auth.
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+      cb(null, false);
+    },
+    credentials: true,
+  }),
+);
 
 // Rate limiter before body parsers to avoid parsing large bodies on rejected requests.
 // Keyed by IP (express-rate-limit default) with no per-user carve-out, so this budget
