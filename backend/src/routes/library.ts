@@ -2,7 +2,6 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth } from "../middleware/auth";
-import { sanitizeAllStrings } from "../lib/sanitize";
 
 export const libraryRouter = Router();
 
@@ -49,7 +48,7 @@ libraryRouter.post("/items", requireAuth, async (req, res, next) => {
     if (contributor?.verification_status !== "verified") {
       return res.status(403).json({ error: "Verify your mentor profile before contributing" });
     }
-    const b = sanitizeAllStrings(itemSchema.parse(req.body));
+    const b = itemSchema.parse(req.body);
     const row = await queryOne<{ id: string }>(
       `INSERT INTO library_items
         (contributor_id, title, type, topic, duration_min, origin, origin_flag, destination, dest_flag, media_url)

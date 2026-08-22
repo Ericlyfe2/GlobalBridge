@@ -2,7 +2,6 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth } from "../middleware/auth";
-import { sanitizeAllStrings } from "../lib/sanitize";
 
 export const safeSpaceRouter = Router();
 
@@ -44,7 +43,7 @@ const postSchema = z.object({
 
 safeSpaceRouter.post("/posts", requireAuth, async (req, res, next) => {
   try {
-    const b = sanitizeAllStrings(postSchema.parse(req.body));
+    const b = postSchema.parse(req.body);
     const { alias, color } = randomAlias();
     const post = await queryOne(
       `INSERT INTO safe_space_posts (user_id, topic, alias, alias_color, title, body)
@@ -103,7 +102,7 @@ const replySchema = z.object({ body: z.string().min(2).max(2000) });
 
 safeSpaceRouter.post("/posts/:id/replies", requireAuth, async (req, res, next) => {
   try {
-    const b = sanitizeAllStrings(replySchema.parse(req.body));
+    const b = replySchema.parse(req.body);
     const { alias, color } = randomAlias();
     const reply = await queryOne(
       `INSERT INTO safe_space_replies (post_id, user_id, alias, alias_color, body)

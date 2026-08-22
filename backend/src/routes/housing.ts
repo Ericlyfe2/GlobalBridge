@@ -3,7 +3,6 @@ import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
 import { recordAudit } from "../lib/audit";
-import { sanitizeAllStrings } from "../lib/sanitize";
 
 export const housingRouter = Router();
 
@@ -71,7 +70,7 @@ const createSchema = z.object({
 // through admin moderation via GET /admin/pending before appearing publicly.
 housingRouter.post("/", requireAuth, async (req, res, next) => {
   try {
-    const b = sanitizeAllStrings(createSchema.parse(req.body));
+    const b = createSchema.parse(req.body);
     const listing = await queryOne(
       `INSERT INTO housing_listings
         (landlord_id, title, description, city, country, address, rent_amount, currency,
@@ -103,7 +102,7 @@ housingRouter.patch("/:id", requireAuth, async (req, res, next) => {
       return res.status(403).json({ error: "Not your listing" });
     }
 
-    const b = sanitizeAllStrings(updateSchema.parse(req.body));
+    const b = updateSchema.parse(req.body);
     const fields: string[] = [];
     const values: unknown[] = [];
     let i = 1;

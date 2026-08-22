@@ -2,7 +2,6 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth } from "../middleware/auth";
-import { sanitizeAllStrings } from "../lib/sanitize";
 import { dispatchNotification } from "../lib/push";
 
 export const messagesRouter = Router();
@@ -61,8 +60,7 @@ const sendSchema = z.object({
 
 messagesRouter.post("/send", requireAuth, async (req, res, next) => {
   try {
-    const body = sendSchema.parse(req.body);
-    const safe = sanitizeAllStrings(body);
+    const safe = sendSchema.parse(req.body);
     const me = req.user!.sub;
     if (safe.recipient_id === me) {
       return res.status(400).json({ error: "You can't message yourself" });

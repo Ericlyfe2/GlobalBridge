@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth } from "../middleware/auth";
-import { sanitizeAllStrings, escapeLike } from "../lib/sanitize";
+import { escapeLike } from "../lib/sanitize";
 
 export const forumsRouter = Router();
 
@@ -67,8 +67,7 @@ const postSchema = z.object({
 
 forumsRouter.post("/posts", requireAuth, async (req, res, next) => {
   try {
-    const b = postSchema.parse(req.body);
-    const safe = sanitizeAllStrings(b);
+    const safe = postSchema.parse(req.body);
     const post = await queryOne(
       `INSERT INTO forum_posts (category_id, author_id, title, body, tags)
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
@@ -81,8 +80,7 @@ forumsRouter.post("/posts", requireAuth, async (req, res, next) => {
 
 forumsRouter.post("/posts/:id/replies", requireAuth, async (req, res, next) => {
   try {
-    const parsed = z.object({ body: z.string().min(2).max(5000) }).parse(req.body);
-    const safe = sanitizeAllStrings(parsed);
+    const safe = z.object({ body: z.string().min(2).max(5000) }).parse(req.body);
     const reply = await queryOne(
       `INSERT INTO forum_replies (post_id, author_id, body) VALUES ($1,$2,$3) RETURNING *`,
       [req.params.id, req.user!.sub, safe.body]

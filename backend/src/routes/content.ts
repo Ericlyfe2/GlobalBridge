@@ -2,7 +2,6 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth } from "../middleware/auth";
-import { sanitizeAllStrings } from "../lib/sanitize";
 import { pushEnabled } from "../lib/push";
 
 export const contentRouter = Router();
@@ -71,7 +70,7 @@ const contactSchema = z.object({
 
 contentRouter.post("/contact", async (req, res, next) => {
   try {
-    const b = sanitizeAllStrings(contactSchema.parse(req.body));
+    const b = contactSchema.parse(req.body);
     const saved = await queryOne<{ id: string }>(
       `INSERT INTO contact_messages (topic, name, email, message) VALUES ($1,$2,$3,$4) RETURNING id`,
       [b.topic, b.name, b.email, b.message]
@@ -263,21 +262,16 @@ contentRouter.get("/bookings", requireAuth, async (req, res, next) => {
 contentRouter.post("/bookings", requireAuth, async (req, res, next) => {
   try {
     const b = bookingSchema.parse(req.body);
-    // student_timezone deliberately excluded from sanitizeAllStrings: it's an
-    // IANA zone id like "Africa/Accra", not rich text, and sanitize() HTML-
-    // escapes "/" to "&#x2F;" — which would silently corrupt every zone name
-    // into something Intl can no longer parse back out.
-    const safe = sanitizeAllStrings({ ...b, student_timezone: undefined });
     const mentor = await queryOne<{ id: string }>(
       `SELECT id FROM users WHERE id = $1 AND role = 'mentor'`,
-      [safe.mentor_id]
+      [b.mentor_id]
     );
     if (!mentor) return res.status(404).json({ error: "Mentor not found" });
 
     const booking = await queryOne(
       `INSERT INTO mentor_bookings (mentor_id, student_id, slot_date, slot_time, duration_min, goal, student_timezone)
        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [safe.mentor_id, req.user!.sub, safe.slot_date, safe.slot_time, safe.duration_min ?? 30, safe.goal, b.student_timezone ?? null]
+      [b.mentor_id, req.user!.sub, b.slot_date, b.slot_time, b.duration_min ?? 30, b.goal, b.student_timezone ?? null]
     );
     // Notify the mentor — include the zone explicitly so "3:00 PM" isn't left
     // ambiguous between two people who may not share a timezone.

@@ -14,7 +14,8 @@
     "seed:knowledge": "tsx src/seed-knowledge.ts",
     "embed:knowledge": "tsx src/generate-embeddings.ts",
     "seed:opportunities": "tsx src/seed-opportunities.ts",
-    "seed:admin": "tsx src/seed-admin.ts"
+    "seed:admin": "tsx src/seed-admin.ts",
+    "migrate:decode-entities": "tsx src/migrate-decode-html-entities.ts"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

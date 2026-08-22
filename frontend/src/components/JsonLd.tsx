@@ -1,3 +1,4 @@
+import { safeJsonLd } from "@/lib/json-ld";
 // Structured data (JSON-LD) for the landing page — helps search engines
 // understand the organization and enable sitelinks search.
 
@@ -30,7 +31,7 @@ export function JsonLd() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   );
 }

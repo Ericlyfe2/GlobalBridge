@@ -2,7 +2,6 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth } from "../middleware/auth";
-import { sanitizeAllStrings } from "../lib/sanitize";
 
 export const peerReviewRouter = Router();
 
@@ -92,7 +91,7 @@ peerReviewRouter.post("/submissions", requireAuth, async (req, res, next) => {
     if ((submissionsMade?.n ?? 0) > 0 && credits < REVIEW_COST) {
       return res.status(403).json({ error: `You need ${REVIEW_COST} review credits to submit again. Review ${REVIEW_COST - Math.max(credits, 0)} more draft(s) first.`, credits });
     }
-    const b = sanitizeAllStrings(submitSchema.parse(req.body));
+    const b = submitSchema.parse(req.body);
     const { alias, color } = randomAlias();
     const submission = await queryOne(
       `INSERT INTO peer_review_submissions (user_id, alias, alias_color, doc_type, target, focus_question, body)
@@ -119,7 +118,7 @@ peerReviewRouter.post("/submissions/:id/reviews", requireAuth, async (req, res, 
       return res.status(400).json({ error: "You can't review your own submission" });
     }
 
-    const b = sanitizeAllStrings(reviewSchema.parse(req.body));
+    const b = reviewSchema.parse(req.body);
     let overall = 0;
     let weightSum = 0;
     for (const [key, weight] of Object.entries(RUBRIC_WEIGHTS)) {

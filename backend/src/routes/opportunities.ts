@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
-import { sanitizeAllStrings, escapeLike } from "../lib/sanitize";
+import { escapeLike } from "../lib/sanitize";
 
 export const opportunitiesRouter = Router();
 
@@ -91,8 +91,7 @@ opportunitiesRouter.post(
   requireRole("mentor", "admin", "employer"),
   async (req, res, next) => {
     try {
-      const b = createSchema.parse(req.body);
-      const safe = sanitizeAllStrings(b);
+      const safe = createSchema.parse(req.body);
       const opp = await queryOne(
         `INSERT INTO opportunities (posted_by, type, title, description, country, institution,
            field_of_study, funding_amount, currency, eligibility, application_url, deadline, sponsors_visa)

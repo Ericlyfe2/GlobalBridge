@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth, requireRole, clearUserCache } from "../middleware/auth";
-import { sanitizeObject, sanitizeAllStrings, escapeLike } from "../lib/sanitize";
+import { pickAllowed, escapeLike } from "../lib/sanitize";
 import { buildDailySeries, clampDays } from "../lib/analytics";
 import { recordAudit } from "../lib/audit";
 import { adminAuth } from "../lib/firebase-admin";
@@ -376,7 +376,7 @@ usersRouter.patch("/me", requireAuth, async (req, res, next) => {
   try {
     updateMeSchema.parse(req.body);
     const allowed = ["full_name", "bio", "country_of_residence", "avatar_url", "preferred_language"];
-    const safe = sanitizeObject(req.body, allowed);
+    const safe = pickAllowed(req.body, allowed);
     const updates: string[] = [];
     const values: unknown[] = [];
     let i = 1;
@@ -423,7 +423,7 @@ usersRouter.get("/me/mentor-profile", requireAuth, requireRole("mentor", "admin"
 // this a mentor has no way to ever fill in their own listing.
 usersRouter.patch("/me/mentor-profile", requireAuth, requireRole("mentor", "admin"), async (req, res, next) => {
   try {
-    const b = sanitizeAllStrings(mentorProfileSchema.parse(req.body));
+    const b = mentorProfileSchema.parse(req.body);
     const fields: string[] = [];
     const values: unknown[] = [];
     let i = 1;
