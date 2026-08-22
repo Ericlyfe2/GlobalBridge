@@ -1,6 +1,13 @@
-// Real service-health probes for the admin console.
-// Each probe catches its own failure and reports up/down/not_configured with latency,
-// so the admin overview reflects reality instead of a hardcoded "Connected".
+// Real service-health probes.
+//
+// Each probe catches its own failure and reports up/down/not_configured with
+// latency, so both the admin overview and GET /health/ready reflect reality
+// rather than a hardcoded "Connected".
+//
+// There is deliberately no AI probe. The AI features are Next.js route handlers
+// in a separate deployment, not a dependency this process can be unready on
+// behalf of. The probe that used to live here targeted AI_SERVICE_URL — the
+// removed Python microservice — and reported down unconditionally.
 
 import { pool, redis } from "../db";
 
@@ -40,33 +47,6 @@ export async function probeRedis(): Promise<Probe> {
   if (!client) return { name: "redis", status: "not_configured", latencyMs: null };
   return measure("redis", async () => {
     await client.ping();
-  });
-}
-
-/**
- * Probe the AI microservice.
- *
- * Retained only for the admin console's service overview. It is NOT part of
- * collectHealth() any more: it targets AI_SERVICE_URL, the removed Python
- * service, so it reports "down" unconditionally. Leaving it in the readiness
- * report would pin this API at 503 forever and fail every deploy.
- *
- * The AI features now live in the Next.js route handlers, which are a separate
- * deployment — not a dependency this process can be unready on behalf of.
- *
- * Removed entirely when GB-09 lands and AI_SERVICE_URL goes with it.
- */
-export function probeAI(fetchImpl: typeof fetch = fetch): Promise<Probe> {
-  const base = process.env.AI_SERVICE_URL || "http://localhost:8000";
-  return measure("ai", async () => {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 4000);
-    try {
-      const res = await fetchImpl(`${base}/health`, { signal: ctrl.signal });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    } finally {
-      clearTimeout(timer);
-    }
   });
 }
 

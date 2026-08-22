@@ -1641,10 +1641,23 @@ limitation.
 Without `REDIS_URL`, WebSocket delivery is single-instance only. Multi-instance deployments must
 enable Redis pub/sub or users will miss messages depending on which instance they land on.
 
-### Stale documentation removed *(resolved 2026-08-10)*
+### Stale documentation removed *(resolved 2026-08-10; code caught up 2026-08-22)*
 Earlier docs described a **Python/FastAPI AI microservice** that no longer exists — the AI moved into
-Next.js route handlers. The old `SETUP.md` and `GLOBALBRIDGE_PLATFORM_DOCUMENTATION.md` both
-instructed readers to `cd ai && uvicorn main:app`, a directory that isn't in the repo, so anyone
+Next.js route handlers.
+
+> **The docs were ahead of the code for twelve days.** This section claimed the service was gone
+> while `backend/src/routes/ai.ts` still had four endpoints POSTing to `AI_SERVICE_URL`
+> (default `http://localhost:8000`): `/chat`, `/checklist`, `/doc-check` and `/translate`.
+> All four failed with `fetch failed` on every call. `AI_SERVICE_URL` was still a defaulted
+> field in `env.ts`, still baked into the API's CSP `connect-src`, and still probed by
+> `collectHealth()` — which is why wiring a real readiness endpoint had to remove it first.
+>
+> Worse, `/checklist` was the **only** writer to `visa_checklists`, so visa-roadmap progress
+> could never persist and the student dashboard's visa tile was null for every user. All four
+> endpoints are deleted; roadmap persistence now lives in real `/api/ai/checklists` routes.
+> (GB-09)
+
+The old `SETUP.md` and `GLOBALBRIDGE_PLATFORM_DOCUMENTATION.md` both instructed readers to `cd ai && uvicorn main:app`, a directory that isn't in the repo, so anyone
 following them hit a dead end at step 4.
 
 Both were deleted and replaced by this document; `README.md` was rewritten as a short entry point

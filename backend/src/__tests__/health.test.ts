@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { measure, probeAI } from "../lib/health";
+import { measure } from "../lib/health";
 
 describe("measure", () => {
   it("returns 'up' with a non-negative latency on success", async () => {
@@ -19,26 +19,8 @@ describe("measure", () => {
   });
 });
 
-describe("probeAI", () => {
-  it("is 'up' when the AI service returns ok", async () => {
-    const fakeFetch = (async () => ({ ok: true, status: 200 })) as unknown as typeof fetch;
-    const p = await probeAI(fakeFetch);
-    expect(p.status).toBe("up");
-  });
-
-  it("is 'down' when the AI service returns a non-2xx", async () => {
-    const fakeFetch = (async () => ({ ok: false, status: 503 })) as unknown as typeof fetch;
-    const p = await probeAI(fakeFetch);
-    expect(p.status).toBe("down");
-    expect(p.detail).toContain("503");
-  });
-
-  it("is 'down' when the fetch itself rejects", async () => {
-    const fakeFetch = (async () => {
-      throw new Error("ECONNREFUSED");
-    }) as unknown as typeof fetch;
-    const p = await probeAI(fakeFetch);
-    expect(p.status).toBe("down");
-    expect(p.detail).toContain("ECONNREFUSED");
-  });
-});
+// The probeAI tests that lived here are gone with the probe itself (GB-09).
+// It targeted AI_SERVICE_URL, the removed Python microservice, so it reported
+// down unconditionally; the AI features are Next.js route handlers in a
+// separate deployment, not a dependency of this process. Coverage of what
+// readiness now checks lives in operability.test.ts.
