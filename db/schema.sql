@@ -629,3 +629,152 @@ CREATE INDEX IF NOT EXISTS idx_activity_log_action ON activity_log(action);
 CREATE INDEX IF NOT EXISTS idx_activity_log_created ON activity_log(created_at);
 CREATE INDEX IF NOT EXISTS idx_activity_log_resource ON activity_log(resource, resource_id);
 CREATE INDEX IF NOT EXISTS idx_user_documents_user ON user_documents(user_id);
+
+-- =====================
+-- CONSOLIDATED FROM ONE-OFF MIGRATION SCRIPTS
+-- =====================
+-- Everything below previously existed ONLY inside backend/src/migrate-*.ts and
+-- db/migration_rag.sql, which had to be run by hand. A database provisioned from
+-- this file alone was therefore missing ten tables that the application queries
+-- on live request paths — Safe Space, Peer Review, Library, the contact form,
+-- the newsletter and all web push returned 500 "relation does not exist".
+--
+-- This file is the canonical schema. It is idempotent and safe to re-run against
+-- an existing database. The migrate-*.ts scripts are retained only as historical
+-- record; new environments need nothing but this file.
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- ── Mentor booking timezone (was migrate-booking-timezone.ts) ───────────────
+-- slot_time alone is ambiguous the moment mentor and student are in different
+-- zones: "3:00 PM" has no way of saying whose 3pm it is.
+ALTER TABLE mentor_bookings ADD COLUMN IF NOT EXISTS student_timezone TEXT;
+
+-- ── Safe Space (was migrate-safe-space.ts) ─────────────────────────────────
+-- user_id is kept for abuse/legal escalation only — every read endpoint omits
+-- it, so nothing in the API response links a post back to an account.
+CREATE TABLE IF NOT EXISTS safe_space_posts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    topic TEXT NOT NULL,
+    alias TEXT NOT NULL,
+    alias_color TEXT NOT NULL,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    upvotes INT NOT NULL DEFAULT 0,
+    support_count INT NOT NULL DEFAULT 0,
+    flagged BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS safe_space_replies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    post_id UUID NOT NULL REFERENCES safe_space_posts(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    alias TEXT NOT NULL,
+    alias_color TEXT NOT NULL,
+    body TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Dedup tables so one account can't inflate a post's counts by spam-clicking.
+CREATE TABLE IF NOT EXISTS safe_space_upvotes (
+    post_id UUID NOT NULL REFERENCES safe_space_posts(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    PRIMARY KEY (post_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS safe_space_support (
+    post_id UUID NOT NULL REFERENCES safe_space_posts(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    PRIMARY KEY (post_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_safe_space_posts_topic ON safe_space_posts(topic);
+CREATE INDEX IF NOT EXISTS idx_safe_space_replies_post ON safe_space_replies(post_id);
+
+-- ── Peer review (was migrate-peer-review.ts) ───────────────────────────────
+-- Alias-based like safe_space_posts — reviewers see the essay and a random
+-- alias, never the submitter's real identity.
+CREATE TABLE IF NOT EXISTS peer_review_submissions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    alias TEXT NOT NULL,
+    alias_color TEXT NOT NULL,
+    doc_type TEXT NOT NULL,
+    target TEXT NOT NULL,
+    focus_question TEXT,
+    body TEXT NOT NULL,
+    reviews_needed INT NOT NULL DEFAULT 3,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS peer_review_reviews (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    submission_id UUID NOT NULL REFERENCES peer_review_submissions(id) ON DELETE CASCADE,
+    reviewer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    alias TEXT NOT NULL,
+    alias_color TEXT NOT NULL,
+    rubric_scores JSONB NOT NULL,
+    overall_score INT NOT NULL,
+    comments TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (submission_id, reviewer_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_peer_review_subs_user ON peer_review_submissions(user_id);
+CREATE INDEX IF NOT EXISTS idx_peer_review_reviews_sub ON peer_review_reviews(submission_id);
+
+-- ── Mentor-contributed library (was migrate-library.ts) ────────────────────
+CREATE TABLE IF NOT EXISTS library_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    contributor_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    type TEXT NOT NULL,
+    topic TEXT NOT NULL,
+    duration_min INT NOT NULL,
+    origin TEXT NOT NULL,
+    origin_flag TEXT NOT NULL,
+    destination TEXT NOT NULL,
+    dest_flag TEXT NOT NULL,
+    media_url TEXT NOT NULL,
+    plays_count INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_library_items_topic ON library_items(topic);
+
+-- ── Contact form (was migrate-contact-table.ts) ────────────────────────────
+CREATE TABLE IF NOT EXISTS contact_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    topic TEXT NOT NULL,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- ── Newsletter (was migrate-newsletter-table.ts) ───────────────────────────
+CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- ── Web push subscriptions (was db/migration_rag.sql only) ─────────────────
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    endpoint TEXT NOT NULL UNIQUE,
+    p256dh TEXT NOT NULL,
+    auth TEXT NOT NULL,
+    user_agent TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    last_used_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_push_subs_user ON push_subscriptions(user_id);
+
+-- Supports GET /api/ai/usage/today, which filters on user_id AND created_at.
+-- The separate single-column indexes above cannot serve that pair efficiently.
+CREATE INDEX IF NOT EXISTS idx_ai_usage_log_user_created ON ai_usage_log(user_id, created_at);
