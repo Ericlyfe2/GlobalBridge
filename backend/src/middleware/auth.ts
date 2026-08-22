@@ -108,7 +108,11 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 }
 
 export function requireRole(...roles: AuthUser["role"][]) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  // Named so the guard is identifiable in a stack trace and in the
+  // authorization-matrix test, which enumerates every route's middleware by
+  // Function.name. An anonymous closure here made "which roles does this route
+  // allow" unanswerable without reading the source of every file.
+  const guard = (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) return res.status(401).json({ error: "Not authenticated" });
     const userRole = req.user.role;
     if (userRole === "super_admin") return next();
@@ -117,16 +121,20 @@ export function requireRole(...roles: AuthUser["role"][]) {
     }
     next();
   };
+  Object.defineProperty(guard, "name", { value: `requireRole:${[...roles].sort().join("|")}` });
+  return guard;
 }
 
 export function requireAdmin() {
-  return (req: Request, res: Response, next: NextFunction) => {
+  const guard = (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) return res.status(401).json({ error: "Not authenticated" });
     if (!isAdmin(req.user.role)) {
       return res.status(403).json({ error: "Admin access required" });
     }
     next();
   };
+  Object.defineProperty(guard, "name", { value: "requireAdmin" });
+  return guard;
 }
 
 /**

@@ -527,18 +527,41 @@ CREATE TABLE IF NOT EXISTS mentor_bookings (
 -- =====================
 -- USER DOCUMENTS TABLE (verification docs)
 -- =====================
+-- Shape corrected 2026-08-22 (GB-02, found by verify:clean-install).
+--
+-- This block used to declare type / file_name / mime_type / verified /
+-- verified_by / verified_at — none of which any code has ever referenced —
+-- while routes/uploads.ts reads and writes purpose / storage_key /
+-- original_name / mime / size_bytes / status. A database provisioned from this
+-- file therefore had no `purpose` column, which is not just a failed INSERT:
+-- purpose is what GET /api/uploads/files/:key checks to decide whether a
+-- document is product-public or private to its owner. Uploads were broken on
+-- any fresh environment, access control included.
+--
+-- The Phase 3 drift guard compares table presence only, so it could not see
+-- this. The clean-install smoke test found it on its first run.
 CREATE TABLE IF NOT EXISTS user_documents (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    type VARCHAR(50) NOT NULL,
+    -- 'avatar' | 'housing' | 'verification' | 'document'; drives access control.
+    purpose VARCHAR(50) NOT NULL,
     url TEXT NOT NULL,
-    file_name VARCHAR(255),
-    mime_type VARCHAR(100),
-    verified BOOLEAN DEFAULT FALSE,
-    verified_by UUID REFERENCES users(id) ON DELETE SET NULL,
-    verified_at TIMESTAMPTZ,
+    storage_key TEXT NOT NULL,
+    original_name VARCHAR(255),
+    mime VARCHAR(100),
+    size_bytes INTEGER,
+    status VARCHAR(50) DEFAULT 'pending',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Bring an already-provisioned database in line without dropping anything.
+ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS purpose VARCHAR(50);
+ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS storage_key TEXT;
+ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS original_name VARCHAR(255);
+ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS mime VARCHAR(100);
+ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS size_bytes INTEGER;
+ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'pending';
+CREATE INDEX IF NOT EXISTS idx_user_documents_storage_key ON user_documents(storage_key);
 
 -- =====================
 -- PERMISSIONS / RBAC TABLE

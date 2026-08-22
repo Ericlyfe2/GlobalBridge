@@ -20,7 +20,7 @@ import path from "path";
 const SRC = path.join(__dirname, "..");
 const SCHEMA_PATH = path.join(SRC, "..", "..", "db", "schema.sql");
 
-/** Source files that define runtime queries. Excludes tests and migrations. */
+/** Source files that define runtime queries. Excludes tests, migrations and verification scripts. */
 function runtimeSources(): string[] {
   const out: string[] = [];
   const walk = (dir: string) => {
@@ -31,7 +31,10 @@ function runtimeSources(): string[] {
       } else if (
         entry.name.endsWith(".ts") &&
         !entry.name.startsWith("migrate-") &&
-        !entry.name.startsWith("seed-")
+        !entry.name.startsWith("seed-") &&
+        // Verification scripts inspect catalog tables (pg_constraint,
+        // information_schema) that are not application schema.
+        !entry.name.startsWith("verify-")
       ) {
         out.push(full);
       }
