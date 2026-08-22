@@ -13,9 +13,13 @@ housingRouter.get("/", async (req, res, next) => {
       country: z.string().optional(),
       max_rent: z.coerce.number().positive().optional(),
       currency: z.string().length(3).optional(),
-      limit: z.coerce.number().int().min(1).max(100).optional(),
+      limit: z.coerce.number().int().min(1).max(100).default(60),
+      // Housing had limit but no offset, so everything past the first page was
+      // unreachable — and ordering by rating DESC meant new listings from
+      // landlords with no rating yet were the ones nobody could ever see.
+      offset: z.coerce.number().int().min(0).default(0),
     });
-    const { city, country, max_rent, currency, limit } = querySchema.parse(req.query);
+    const { city, country, max_rent, currency, limit, offset } = querySchema.parse(req.query);
     const filters: string[] = [`status = 'active'`];
     const values: unknown[] = [];
     let i = 1;
@@ -40,8 +44,8 @@ housingRouter.get("/", async (req, res, next) => {
        JOIN users u ON u.id = hl.landlord_id
        WHERE ${filters.join(" AND ")}
        ORDER BY hl.rating DESC, hl.created_at DESC
-       LIMIT $${i++}`,
-      [...values, Number(limit) || 60]
+       LIMIT $${i++} OFFSET $${i++}`,
+      [...values, limit, offset]
     );
     res.set("Cache-Control", "public, max-age=60");
     res.json({ listings: rows });

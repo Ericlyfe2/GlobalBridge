@@ -270,7 +270,8 @@ adminRouter.patch("/users/:id", requireAuth, requireAdmin(), async (req, res, ne
   try {
     const { full_name, email, role, verification_status, country_of_residence, country_of_origin, bio, preferred_language } = req.body;
 
-    const targetUser = await queryOne<{ role: string }>(`SELECT role FROM users WHERE id = $1`, [req.params.id]);
+    const targetUser = await queryOne<{ role: string; firebase_uid: string | null; verification_status: string }>(
+      `SELECT role, firebase_uid, verification_status FROM users WHERE id = $1`, [req.params.id]);
     if (!targetUser) return res.status(404).json({ error: "User not found" });
 
     if (targetUser.role === "super_admin" && !isSuperAdmin(req.user!.role)) {
@@ -318,12 +319,40 @@ adminRouter.patch("/users/:id", requireAuth, requireAdmin(), async (req, res, ne
       );
     }
 
+    // requireAuth caches firebase_uid -> role for 60s, and nothing invalidated
+    // it here: a demoted admin kept their old role for up to a minute, and the
+    // Firebase claim the client reads was never refreshed at all.
+    if (targetUser.firebase_uid) {
+      clearUserCache(targetUser.firebase_uid);
+      if (role !== undefined && isSuperAdmin(req.user!.role) && role !== targetUser.role) {
+        try {
+          await adminAuth.setCustomUserClaims(targetUser.firebase_uid, { role });
+        } catch (e) {
+          console.error("failed to refresh role claim:", (e as Error).message);
+        }
+      }
+    }
+
+    // The audit row used to record only column names — "role = $1" — so it
+    // showed that a role changed but not what it changed to, which defeats the
+    // point of auditing the most sensitive admin action there is.
+    const changes: Record<string, { from: unknown; to: unknown }> = {};
+    if (role !== undefined && isSuperAdmin(req.user!.role) && role !== targetUser.role) {
+      changes.role = { from: targetUser.role, to: role };
+    }
+    if (verification_status !== undefined && verification_status !== targetUser.verification_status) {
+      changes.verification_status = { from: targetUser.verification_status, to: verification_status };
+    }
+    for (const [k, v] of Object.entries({ full_name, email, country_of_residence, country_of_origin, bio, preferred_language })) {
+      if (v !== undefined) changes[k] = { from: "(not recorded)", to: v };
+    }
+
     await recordAudit({
       adminId: req.user!.sub,
       action: "user.update",
       targetType: "user",
       targetId: String(req.params.id),
-      metadata: { updates: updates.join(", ") },
+      metadata: { changes, fields: Object.keys(changes) },
     });
 
     res.json({ ok: true });

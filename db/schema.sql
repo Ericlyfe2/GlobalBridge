@@ -928,3 +928,21 @@ INSERT INTO trusted_sources (name, type, base_url, confidence_weight) VALUES
   ('UNHCR',                                        'ngo', 'https://www.unhcr.org',            0.90),
   ('EU Immigration Portal',                        'gov', 'https://immigration-portal.ec.europa.eu', 1.00)
 ON CONFLICT (base_url) DO NOTHING;
+
+-- =====================
+-- FORUM VOTES (GB-18)
+-- =====================
+-- forum_posts.upvotes and forum_replies.upvotes were displayed and never
+-- incremented: the up/down buttons in the thread view had no onClick and no
+-- endpoint behind them. This is the missing persistence, with one row per
+-- (voter, target) so a vote is idempotent and reversible rather than a counter
+-- anyone can pump.
+CREATE TABLE IF NOT EXISTS forum_votes (
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    target_type VARCHAR(10) NOT NULL CHECK (target_type IN ('post', 'reply')),
+    target_id UUID NOT NULL,
+    value SMALLINT NOT NULL CHECK (value IN (-1, 1)),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (user_id, target_type, target_id)
+);
+CREATE INDEX IF NOT EXISTS idx_forum_votes_target ON forum_votes(target_type, target_id);

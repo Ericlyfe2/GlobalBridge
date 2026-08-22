@@ -130,7 +130,10 @@
     "signIn": "Ingia",
     "getStarted": "Anza",
     "openMenu": "Fungua menyu",
-    "closeMenu": "Funga menyu"
+    "closeMenu": "Funga menyu",
+    "more": "Zaidi",
+    "primary": "Menyu kuu",
+    "visaRoadmap": "Ramani ya visa"
   },
   "tools": {
     "countryCompare": {
@@ -867,5 +870,12 @@
   "error": {
     "title": "Sorry — this page misbehaved.",
     "description": "Don't worry, your data is safe. Try the retry button. If it keeps failing, ping us via Help."
+  },
+  "pwa": {
+    "install": "Sakinisha",
+    "notNow": "Si sasa",
+    "offlineBadge": "Nje ya mtandao",
+    "offlineTitle": "Uko nje ya mtandao",
+    "reconnecting": "Inaunganisha tena…"
   }
 }

@@ -127,7 +127,10 @@
     "signIn": "ログイン",
     "getStarted": "始める",
     "openMenu": "メニューを開く",
-    "closeMenu": "メニューを閉じる"
+    "closeMenu": "メニューを閉じる",
+    "more": "その他",
+    "primary": "メインメニュー",
+    "visaRoadmap": "ビザロードマップ"
   },
   "tools": {
     "countryCompare": {
@@ -864,5 +867,12 @@
   "error": {
     "title": "Sorry — this page misbehaved.",
     "description": "Don't worry, your data is safe. Try the retry button. If it keeps failing, ping us via Help."
+  },
+  "pwa": {
+    "install": "インストール",
+    "notNow": "後で",
+    "offlineBadge": "オフライン",
+    "offlineTitle": "オフラインです",
+    "reconnecting": "再接続中…"
   }
 }

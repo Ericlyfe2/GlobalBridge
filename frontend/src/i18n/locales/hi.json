@@ -130,7 +130,10 @@
     "signIn": "साइन इन करें",
     "getStarted": "शुरू करें",
     "openMenu": "मेन्यू खोलें",
-    "closeMenu": "मेन्यू बंद करें"
+    "closeMenu": "मेन्यू बंद करें",
+    "more": "और",
+    "primary": "मुख्य मेनू",
+    "visaRoadmap": "वीज़ा रोडमैप"
   },
   "tools": {
     "countryCompare": {
@@ -867,5 +870,12 @@
   "error": {
     "title": "Sorry — this page misbehaved.",
     "description": "Don't worry, your data is safe. Try the retry button. If it keeps failing, ping us via Help."
+  },
+  "pwa": {
+    "install": "इंस्टॉल करें",
+    "notNow": "अभी नहीं",
+    "offlineBadge": "ऑफ़लाइन",
+    "offlineTitle": "आप ऑफ़लाइन हैं",
+    "reconnecting": "फिर से कनेक्ट हो रहा है…"
   }
 }

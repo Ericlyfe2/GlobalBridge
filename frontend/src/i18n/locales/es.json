@@ -130,7 +130,10 @@
     "signIn": "Iniciar sesión",
     "getStarted": "Comenzar",
     "openMenu": "Abrir menú",
-    "closeMenu": "Cerrar menú"
+    "closeMenu": "Cerrar menú",
+    "more": "Más",
+    "primary": "Menú principal",
+    "visaRoadmap": "Hoja de ruta del visado"
   },
   "tools": {
     "countryCompare": {
@@ -867,5 +870,12 @@
   "error": {
     "title": "Sorry — this page misbehaved.",
     "description": "Don't worry, your data is safe. Try the retry button. If it keeps failing, ping us via Help."
+  },
+  "pwa": {
+    "install": "Instalar",
+    "notNow": "Ahora no",
+    "offlineBadge": "Sin conexión",
+    "offlineTitle": "Estás sin conexión",
+    "reconnecting": "Reconectando…"
   }
 }

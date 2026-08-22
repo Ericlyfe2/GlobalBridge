@@ -26,6 +26,7 @@ import { libraryRouter } from "./routes/library";
 import { peerReviewRouter } from "./routes/peerReview";
 import { errorHandler } from "./middleware/error";
 import { csrfProtection } from "./middleware/csrf";
+import { installUuidParamValidation, apiNotFound } from "./middleware/validate";
 import { initWebsocket } from "./ws";
 import { redis } from "./db";
 import { RedisRateLimitStore, trustProxyHops } from "./lib/rate-limit-store";
@@ -167,6 +168,15 @@ app.get("/health/ready", async (_req, res) => {
   }
 });
 
+// A malformed :id used to reach SQL and surface as an opaque 500. router.param
+// fires before any handler on the route that declared the parameter.
+installUuidParamValidation([
+  authRouter, usersRouter, opportunitiesRouter, housingRouter, forumsRouter,
+  messagesRouter, aiRouter, knowledgeRouter, ragRouter, moderationRouter,
+  contentRouter, jobsRouter, adminRouter, safeSpaceRouter, libraryRouter,
+  peerReviewRouter, uploadsRouter,
+]);
+
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/opportunities", opportunitiesRouter);
@@ -189,6 +199,7 @@ app.use("/api/peer-review", peerReviewRouter);
 // to their owner or an admin.
 app.use("/api/uploads", uploadsRouter);
 
+app.use(apiNotFound);
 app.use(errorHandler);
 
 const server = app.listen(PORT, () => {

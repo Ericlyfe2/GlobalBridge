@@ -21,6 +21,8 @@ const RUBRIC_WEIGHTS: Record<string, number> = {
   hook: 15, arc: 20, ev: 20, fit: 20, voice: 15, close: 10,
 };
 const REVIEW_COST = 3; // credits spent per submission
+/** A review with no words in it is not a review, and must not earn a credit. */
+const MIN_COMMENT_CHARS = 120;
 
 async function creditsFor(userId: string): Promise<number> {
   const reviewsGiven = await queryOne<{ n: number }>(
@@ -89,7 +91,15 @@ peerReviewRouter.post("/submissions", requireAuth, async (req, res, next) => {
     // First submission is free — otherwise nobody could ever submit, since
     // there'd be nothing in the queue yet to earn credits by reviewing.
     if ((submissionsMade?.n ?? 0) > 0 && credits < REVIEW_COST) {
-      return res.status(403).json({ error: `You need ${REVIEW_COST} review credits to submit again. Review ${REVIEW_COST - Math.max(credits, 0)} more draft(s) first.`, credits });
+      // The old message computed REVIEW_COST - max(credits, 0), which ignored
+      // negative balances: at credits = -3 it said "review 3 more" when six
+      // were actually required to reach the threshold.
+      const needed = REVIEW_COST - credits;
+      return res.status(403).json({
+        error: `You need ${REVIEW_COST} review credits to submit again. Review ${needed} more draft${needed === 1 ? "" : "s"} first.`,
+        credits,
+        reviews_needed: needed,
+      });
     }
     const b = submitSchema.parse(req.body);
     const { alias, color } = randomAlias();
@@ -102,9 +112,29 @@ peerReviewRouter.post("/submissions", requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// rubric_scores was a bare z.record, so {} validated: posting an empty rubric
+// earned a full credit and scored the submission 0. Credits were farmable in
+// one request, which defeats the whole economy. Every weighted criterion must
+// now be present, and a review needs substantive comments to count.
 const reviewSchema = z.object({
   rubric_scores: z.record(z.string(), z.number().min(0).max(100)),
   comments: z.string().max(3000).optional(),
+}).superRefine((v, ctx) => {
+  const missing = Object.keys(RUBRIC_WEIGHTS).filter((k) => typeof v.rubric_scores[k] !== "number");
+  if (missing.length) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["rubric_scores"],
+      message: `Score every criterion before submitting — missing: ${missing.join(", ")}.`,
+    });
+  }
+  if ((v.comments ?? "").trim().length < MIN_COMMENT_CHARS) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["comments"],
+      message: `Write at least ${MIN_COMMENT_CHARS} characters of feedback — that is what earns the credit.`,
+    });
+  }
 });
 
 peerReviewRouter.post("/submissions/:id/reviews", requireAuth, async (req, res, next) => {
