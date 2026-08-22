@@ -27,6 +27,7 @@ vi.mock("../db", () => ({
 }));
 vi.mock("../middleware/auth", () => ({
   requireAuth: (_r: Request, _s: Response, n: NextFunction) => n(),
+  optionalAuth: (_r: Request, _s: Response, n: NextFunction) => n(),
   requireRole: () => (_r: Request, _s: Response, n: NextFunction) => n(),
   requireAdmin: () => (_r: Request, _s: Response, n: NextFunction) => n(),
   clearUserCache: vi.fn(),

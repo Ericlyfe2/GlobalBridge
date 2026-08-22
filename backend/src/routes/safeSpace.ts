@@ -28,9 +28,12 @@ const POST_COLUMNS = `id, topic, alias, alias_color, title, body, upvotes, suppo
 safeSpaceRouter.get("/posts", requireAuth, async (req, res, next) => {
   try {
     const { topic } = z.object({ topic: z.enum(TOPICS).optional() }).parse(req.query);
+    // flagged was set by moderation and then read by nothing, so flagging a
+    // post had no effect on who could see it. Same class as the housing
+    // detail leak (GB-07).
     const posts = topic
-      ? await query(`SELECT ${POST_COLUMNS} FROM safe_space_posts WHERE topic = $1 ORDER BY created_at DESC LIMIT 100`, [topic])
-      : await query(`SELECT ${POST_COLUMNS} FROM safe_space_posts ORDER BY created_at DESC LIMIT 100`);
+      ? await query(`SELECT ${POST_COLUMNS} FROM safe_space_posts WHERE topic = $1 AND flagged = FALSE ORDER BY created_at DESC LIMIT 100`, [topic])
+      : await query(`SELECT ${POST_COLUMNS} FROM safe_space_posts WHERE flagged = FALSE ORDER BY created_at DESC LIMIT 100`);
     res.json({ posts });
   } catch (err) { next(err); }
 });
@@ -91,7 +94,12 @@ const REPLY_COLUMNS = `id, post_id, alias, alias_color, body, created_at`;
 safeSpaceRouter.get("/posts/:id/replies", requireAuth, async (req, res, next) => {
   try {
     const replies = await query(
-      `SELECT ${REPLY_COLUMNS} FROM safe_space_replies WHERE post_id = $1 ORDER BY created_at ASC`,
+      // A flagged post's replies are withheld too, or the thread is still
+      // readable through the back door.
+      `SELECT r.id, r.post_id, r.alias, r.alias_color, r.body, r.created_at
+         FROM safe_space_replies r
+         JOIN safe_space_posts p ON p.id = r.post_id AND p.flagged = FALSE
+        WHERE r.post_id = $1 ORDER BY r.created_at ASC`,
       [req.params.id]
     );
     res.json({ replies });

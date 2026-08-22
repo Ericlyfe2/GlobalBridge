@@ -128,3 +128,33 @@ export function requireAdmin() {
     next();
   };
 }
+
+/**
+ * Populates req.user when a valid token is present, and continues either way.
+ *
+ * For routes that are legitimately public but need to widen what they return
+ * for the owner or an admin — a housing listing is a good example: anyone may
+ * read an active one, but only the landlord or an admin may read one that has
+ * been taken down. Without this, such a route has to choose between leaking
+ * moderated content to everyone or locking out anonymous browsing entirely.
+ *
+ * Never rejects. An absent, malformed or expired token simply means the request
+ * proceeds anonymously; it is the route's job to then apply the public rules.
+ */
+export async function optionalAuth(req: Request, _res: Response, next: NextFunction) {
+  const header = req.headers.authorization;
+  const token = header?.startsWith("Bearer ") ? header.slice(7) : null;
+  if (!token) return next();
+  try {
+    const decoded = await adminAuth.verifyIdToken(token, true);
+    const rawRole = (decoded as Record<string, unknown>).role;
+    const claimRole = (typeof rawRole === "string" && VALID_ROLES.has(rawRole)
+      ? rawRole
+      : "student") as AuthUser["role"];
+    const pgUser = await resolvePostgresUser(decoded.uid, decoded.email ?? "", (decoded as { name?: string }).name, claimRole);
+    req.user = { sub: pgUser.id, firebaseUid: decoded.uid, email: decoded.email ?? "", role: pgUser.role };
+  } catch {
+    /* anonymous — the route applies its public rules */
+  }
+  next();
+}

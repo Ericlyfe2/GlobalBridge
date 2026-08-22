@@ -778,3 +778,17 @@ CREATE INDEX IF NOT EXISTS idx_push_subs_user ON push_subscriptions(user_id);
 -- Supports GET /api/ai/usage/today, which filters on user_id AND created_at.
 -- The separate single-column indexes above cannot serve that pair efficiently.
 CREATE INDEX IF NOT EXISTS idx_ai_usage_log_user_created ON ai_usage_log(user_id, created_at);
+
+-- =====================
+-- PRIVACY & ROLE INTEGRITY (GB-05, GB-06)
+-- =====================
+-- Country of origin is sensitive on a platform for immigrants: combined with a
+-- legal name and country of residence it is an identifying, targetable tuple.
+-- It is private unless the user deliberately shares it.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS share_country_of_origin BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Marks the one-time signup profile step as done. requireAuth self-heals a
+-- minimal users row on first sight, so "does a row exist" cannot distinguish a
+-- first registration from a replay — which is what let any account re-POST
+-- /api/auth/register-profile to reassign its own role.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_completed_at TIMESTAMPTZ;

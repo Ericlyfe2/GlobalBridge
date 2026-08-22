@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
-import { requireAuth, requireRole, clearUserCache } from "../middleware/auth";
+import { requireAuth, requireRole, clearUserCache, isAdmin } from "../middleware/auth";
 import { pickAllowed, escapeLike } from "../lib/sanitize";
 import { buildDailySeries, clampDays } from "../lib/analytics";
 import { recordAudit } from "../lib/audit";
@@ -199,7 +199,11 @@ usersRouter.get("/employer-dashboard", requireAuth, async (req, res, next) => {
 usersRouter.get("/mentors", async (_req, res, next) => {
   try {
     const mentors = await query(
-      `SELECT u.id, u.full_name, u.avatar_url, u.country_of_residence, u.country_of_origin,
+      // country_of_origin only when the mentor chose to share it — same rule
+      // as GET /users/:id. Students filter mentors by shared origin, so this is
+      // opt-in rather than removed.
+      `SELECT u.id, u.full_name, u.avatar_url, u.country_of_residence,
+              CASE WHEN u.share_country_of_origin THEN u.country_of_origin END AS country_of_origin,
               u.bio, u.trust_score, mp.expertise_areas, mp.years_abroad, mp.languages_spoken
        FROM users u
        JOIN mentor_profiles mp ON mp.user_id = u.id
@@ -220,12 +224,16 @@ usersRouter.get("/mentors", async (_req, res, next) => {
 usersRouter.get("/mentors/:id", async (req, res, next) => {
   try {
     const mentor = await queryOne(
-      `SELECT u.id, u.full_name, u.avatar_url, u.country_of_residence, u.country_of_origin,
+      // The directory filters on verification_status but this route did not, so
+      // an unverified — or self-assigned (GB-06) — "mentor" still had a live,
+      // publicly reachable profile page. Both now agree.
+      `SELECT u.id, u.full_name, u.avatar_url, u.country_of_residence,
+              CASE WHEN u.share_country_of_origin THEN u.country_of_origin END AS country_of_origin,
               u.bio, u.trust_score, u.verification_status,
               mp.expertise_areas, mp.years_abroad, mp.languages_spoken, mp.universities_attended
        FROM users u
        JOIN mentor_profiles mp ON mp.user_id = u.id
-       WHERE u.id = $1 AND u.role = 'mentor'`,
+       WHERE u.id = $1 AND u.role = 'mentor' AND u.verification_status = 'verified'`,
       [req.params.id]
     );
     if (!mentor) return res.status(404).json({ error: "Mentor not found" });
@@ -345,16 +353,51 @@ usersRouter.get("/summary/signups", requireAuth, requireRole("admin"), async (re
   }
 });
 
-usersRouter.get("/:id", async (req, res, next) => {
+// Public profile of another user.
+//
+// Was unauthenticated and returned the full row. Anyone on the internet could
+// turn a UUID into a legal name plus country of origin plus country of
+// residence — and UUIDs are not a secret: they are handed out by the public
+// mentor directory and the public jobs feed. On a platform for immigrants that
+// tuple is identifying and targetable, so:
+//   - it now requires a session,
+//   - country_of_origin is withheld unless that user chose to share it,
+//   - verification_status collapses to a boolean, since the raw value
+//     distinguishes "rejected" (i.e. suspended) and that is nobody else's business.
+usersRouter.get("/:id", requireAuth, async (req, res, next) => {
   try {
-    const user = await queryOne(
+    const row = await queryOne<{
+      id: string; full_name: string; avatar_url: string | null; role: string;
+      country_of_origin: string | null; country_of_residence: string | null;
+      bio: string | null; trust_score: number; verification_status: string;
+      share_country_of_origin: boolean;
+    }>(
       `SELECT id, full_name, avatar_url, role, country_of_origin, country_of_residence,
-              bio, trust_score, verification_status
+              bio, trust_score, verification_status, share_country_of_origin
        FROM users WHERE id = $1`,
       [req.params.id]
     );
-    if (!user) return res.status(404).json({ error: "User not found" });
-    res.json({ user });
+    if (!row) return res.status(404).json({ error: "User not found" });
+
+    const isSelf = row.id === req.user!.sub;
+    const privileged = isSelf || isAdmin(req.user!.role);
+
+    res.json({
+      user: {
+        id: row.id,
+        full_name: row.full_name,
+        avatar_url: row.avatar_url,
+        role: row.role,
+        bio: row.bio,
+        trust_score: row.trust_score,
+        country_of_residence: row.country_of_residence,
+        is_verified: row.verification_status === "verified",
+        ...(privileged || row.share_country_of_origin
+          ? { country_of_origin: row.country_of_origin }
+          : {}),
+        ...(privileged ? { verification_status: row.verification_status } : {}),
+      },
+    });
   } catch (err) {
     next(err);
   }
@@ -366,6 +409,8 @@ usersRouter.get("/:id", async (req, res, next) => {
 // opaque 500, instead of a clean, actionable 400.
 const updateMeSchema = z.object({
   full_name: z.string().min(1).max(255).optional(),
+  // Opt-in disclosure of country_of_origin. Off by default; see GET /users/:id.
+  share_country_of_origin: z.boolean().optional(),
   bio: z.string().max(2000).optional(),
   country_of_residence: z.string().max(100).optional(),
   avatar_url: z.string().max(2000).optional(),
@@ -375,7 +420,7 @@ const updateMeSchema = z.object({
 usersRouter.patch("/me", requireAuth, async (req, res, next) => {
   try {
     updateMeSchema.parse(req.body);
-    const allowed = ["full_name", "bio", "country_of_residence", "avatar_url", "preferred_language"];
+    const allowed = ["full_name", "bio", "country_of_residence", "avatar_url", "preferred_language", "share_country_of_origin"];
     const safe = pickAllowed(req.body, allowed);
     const updates: string[] = [];
     const values: unknown[] = [];

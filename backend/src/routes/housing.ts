@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
-import { requireAuth, requireRole } from "../middleware/auth";
+import { requireAuth, requireRole, optionalAuth, isAdmin } from "../middleware/auth";
 import { recordAudit } from "../lib/audit";
 
 export const housingRouter = Router();
@@ -169,10 +169,15 @@ housingRouter.get("/admin/pending", requireAuth, requireRole("admin"), async (_r
   }
 });
 
-housingRouter.get("/:id", async (req, res, next) => {
+// The list filters on status='active' but this route did not, so a listing an
+// admin had archived — a confirmed scam, say — stayed fully readable at its
+// direct URL, address and all, to anyone who already had the link. Moderation
+// was cosmetic. optionalAuth keeps anonymous browsing of active listings while
+// letting the owner and admins still see their own non-active ones.
+housingRouter.get("/:id", optionalAuth, async (req, res, next) => {
   try {
-    const listing = await queryOne(
-      `SELECT hl.id, hl.title, hl.description, hl.city, hl.country, hl.address,
+    const listing = await queryOne<{ status: string; landlord_id: string } & Record<string, unknown>>(
+      `SELECT hl.id, hl.landlord_id, hl.title, hl.description, hl.city, hl.country, hl.address,
               hl.rent_amount, hl.currency, hl.bedrooms, hl.bathrooms, hl.furnished,
               hl.near_university, hl.photos, hl.virtual_tour_url, hl.rating, hl.status,
               hl.created_at, u.full_name AS landlord_name, u.verification_status AS landlord_status,
@@ -183,6 +188,15 @@ housingRouter.get("/:id", async (req, res, next) => {
       [req.params.id]
     );
     if (!listing) return res.status(404).json({ error: "Listing not found" });
+
+    const viewer = req.user;
+    const maySeeNonActive =
+      !!viewer && (viewer.sub === listing.landlord_id || isAdmin(viewer.role));
+    // 404 rather than 403: whether a withdrawn listing ever existed is itself
+    // information, and the list route already behaves as though it does not.
+    if (listing.status !== "active" && !maySeeNonActive) {
+      return res.status(404).json({ error: "Listing not found" });
+    }
     res.status(200).json({ listing });
   } catch (err) {
     next(err);
