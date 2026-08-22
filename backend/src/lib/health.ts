@@ -43,7 +43,19 @@ export async function probeRedis(): Promise<Probe> {
   });
 }
 
-/** Probe the AI microservice /health with a short timeout. `fetchImpl` is injectable for tests. */
+/**
+ * Probe the AI microservice.
+ *
+ * Retained only for the admin console's service overview. It is NOT part of
+ * collectHealth() any more: it targets AI_SERVICE_URL, the removed Python
+ * service, so it reports "down" unconditionally. Leaving it in the readiness
+ * report would pin this API at 503 forever and fail every deploy.
+ *
+ * The AI features now live in the Next.js route handlers, which are a separate
+ * deployment — not a dependency this process can be unready on behalf of.
+ *
+ * Removed entirely when GB-09 lands and AI_SERVICE_URL goes with it.
+ */
 export function probeAI(fetchImpl: typeof fetch = fetch): Promise<Probe> {
   const base = process.env.AI_SERVICE_URL || "http://localhost:8000";
   return measure("ai", async () => {
@@ -64,8 +76,17 @@ export interface HealthReport {
   checkedAt: string;
 }
 
+/**
+ * The dependencies this API genuinely cannot serve traffic without.
+ *
+ * Postgres is required. Redis is optional by design — every feature that uses
+ * it degrades rather than fails — so "not_configured" and even "down" leave the
+ * instance ready, and only show up in the breakdown.
+ */
 export async function collectHealth(): Promise<HealthReport> {
-  const services = await Promise.all([probePostgres(), probeRedis(), probeAI()]);
-  const overall = services.some((s) => s.status === "down") ? "degraded" : "healthy";
+  const [postgres, redisProbe] = await Promise.all([probePostgres(), probeRedis()]);
+  const services = [postgres, redisProbe];
+  // Only a required dependency being down makes this instance unready.
+  const overall = postgres.status === "down" ? "degraded" : "healthy";
   return { overall, services, checkedAt: new Date().toISOString() };
 }

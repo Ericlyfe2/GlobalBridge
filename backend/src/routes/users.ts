@@ -264,8 +264,17 @@ usersRouter.get("/", requireAuth, requireRole("admin"), async (req, res, next) =
 
     if (role) { conditions.push(`u.role = $${idx++}`); params.push(role); }
     if (status) {
-      if (status === "suspended") conditions.push(`u.verification_status = 'rejected'`);
-      else conditions.push(`u.verification_status = $${idx++}`); params.push(status);
+      // The `else` used to be unbraced, so params.push(status) ran on both
+      // branches. On the "suspended" path the SQL gained no placeholder but the
+      // params array still gained an entry, so every later binding shifted:
+      // ?status=suspended threw outright, and ?status=suspended&search=x bound
+      // the search term to the wrong placeholder.
+      if (status === "suspended") {
+        conditions.push(`u.verification_status = 'rejected'`);
+      } else {
+        conditions.push(`u.verification_status = $${idx++}`);
+        params.push(status);
+      }
     }
     if (search) { conditions.push(`(u.full_name ILIKE $${idx} OR u.email ILIKE $${idx})`); params.push(`%${escapeLike(search)}%`); idx++; }
 

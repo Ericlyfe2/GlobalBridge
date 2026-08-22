@@ -27,9 +27,20 @@ import { peerReviewRouter } from "./routes/peerReview";
 import { errorHandler } from "./middleware/error";
 import { csrfProtection } from "./middleware/csrf";
 import { initWebsocket } from "./ws";
+import { redis } from "./db";
+import { RedisRateLimitStore, trustProxyHops } from "./lib/rate-limit-store";
+import { collectHealth } from "./lib/health";
 
 const app = express();
 const PORT = Number(process.env.PORT || 4000);
+
+// Without this, req.ip is the load balancer's address behind Railway/Vercel, so
+// express-rate-limit put every user into one shared bucket: ten different
+// clients drew down the same counter. A hop count (not `true`) is the only
+// setting that is both correct and unspoofable — X-Forwarded-For is
+// client-writable, so trusting the whole chain lets anyone mint a fresh bucket.
+const TRUST_PROXY = trustProxyHops();
+app.set("trust proxy", TRUST_PROXY);
 
 // Global unhandled rejection handler
 process.on("unhandledRejection", (reason) => {
@@ -87,14 +98,39 @@ app.use(
 // is shared by everyone behind the same public IP — common for this audience, who are
 // often on campus/dorm NAT where dozens of students share one address. 1200/15min keeps
 // it a meaningful abuse backstop without collectively locking out a shared connection.
+// Shared across instances when Redis is available. The default in-process
+// store counted per instance, so N instances meant an effective N x max, and
+// every deploy reset all counters.
+const limiterStore = redis ? new RedisRateLimitStore(redis, "rl:global:") : undefined;
+if (!redis) {
+  console.warn("No REDIS_URL - rate limiting is per-instance only and resets on deploy.");
+}
+
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 1200,
     standardHeaders: true,
     legacyHeaders: false,
+    ...(limiterStore ? { store: limiterStore } : {}),
   })
 );
+
+// Tighter budgets on the endpoints that are expensive or worth brute-forcing.
+// These sit inside the global allowance, not instead of it.
+const strict = (max: number, windowMs: number, prefix: string) =>
+  rateLimit({
+    windowMs,
+    max,
+    standardHeaders: true,
+    legacyHeaders: false,
+    ...(redis ? { store: new RedisRateLimitStore(redis, prefix) } : {}),
+  });
+
+app.use("/api/auth", strict(30, 15 * 60 * 1000, "rl:auth:"));
+app.use("/api/uploads", strict(60, 15 * 60 * 1000, "rl:upload:"));
+app.use("/api/messages", strict(120, 15 * 60 * 1000, "rl:msg:"));
+app.use("/api/rag", strict(60, 15 * 60 * 1000, "rl:rag:"));
 
 app.use(csrfProtection);
 
@@ -103,7 +139,33 @@ app.use(csrfProtection);
 app.use(express.json({ limit: "12mb" }));
 app.use(express.urlencoded({ extended: true, limit: "12mb" }));
 
-app.get("/health", (_req, res) => res.json({ status: "ok", service: "globalbridge-api" }));
+// Liveness. "Is this process responsive." Deliberately dependency-free: this is
+// what railway.toml restarts on, and restarting a container does not fix a
+// database outage - it turns a degraded platform into a crash loop.
+app.get("/health", (_req, res) =>
+  res.json({ status: "ok", service: "globalbridge-api", uptime_s: Math.round(process.uptime()) }),
+);
+
+// Readiness. "Should this instance receive traffic." Probes its dependencies
+// and answers 503 with a per-service breakdown when one is down.
+//
+// /health previously returned a hardcoded 200 while collectHealth() - the real
+// prober - was imported only by the admin console. An instance whose database
+// pool was dead reported healthy, so nothing ever pulled it from rotation.
+// Point load balancers and uptime monitors here.
+app.get("/health/ready", async (_req, res) => {
+  try {
+    const report = await collectHealth();
+    res.status(report.overall === "healthy" ? 200 : 503).json(report);
+  } catch (e) {
+    res.status(503).json({
+      overall: "degraded",
+      services: [],
+      error: e instanceof Error ? e.message : "health probe failed",
+      checkedAt: new Date().toISOString(),
+    });
+  }
+});
 
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
