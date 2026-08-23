@@ -127,7 +127,10 @@
     "signIn": "로그인",
     "getStarted": "시작하기",
     "openMenu": "메뉴 열기",
-    "closeMenu": "메뉴 닫기"
+    "closeMenu": "메뉴 닫기",
+    "more": "더 보기",
+    "primary": "기본 메뉴",
+    "visaRoadmap": "비자 로드맵"
   },
   "tools": {
     "countryCompare": {
@@ -864,5 +867,12 @@
   "error": {
     "title": "Sorry — this page misbehaved.",
     "description": "Don't worry, your data is safe. Try the retry button. If it keeps failing, ping us via Help."
+  },
+  "pwa": {
+    "install": "설치",
+    "notNow": "나중에",
+    "offlineBadge": "오프라인",
+    "offlineTitle": "오프라인 상태입니다",
+    "reconnecting": "다시 연결하는 중…"
   }
 }

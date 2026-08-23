@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Map, Loader2, Bot, Milestone, CalendarClock, Coins, FileText, Lightbulb, AlertTriangle, Route,
-  Fingerprint, PlaneTakeoff, Stamp, MessageSquare, FolderOpen, ArrowRight, ShieldCheck,
+  Fingerprint, PlaneTakeoff, Stamp, MessageSquare, FolderOpen, ArrowRight, ShieldCheck, Check,
 } from "lucide-react";
+import { authFetch } from "@/lib/auth";
 
 /** Best-effort icon per phase, matched on real phase.title keywords — purely
  * cosmetic, never used to imply a phase is "current" or "done" since the
@@ -36,6 +37,96 @@ export default function VisaRoadmapPage() {
   const [loading, setLoading] = useState(false);
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Persistence (GB-09). visa_checklists previously had no reachable writer, so
+  // a generated roadmap vanished on refresh and the dashboard's visa-progress
+  // tile was null for every user.
+  const [checklistId, setChecklistId] = useState<string | null>(null);
+  const [completed, setCompleted] = useState<Set<string>>(new Set());
+  const [restored, setRestored] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Reload the most recent saved roadmap so progress survives a refresh.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await authFetch("/api/ai/checklists");
+        if (!res.ok) return;
+        const data = await res.json();
+        const latest = data?.checklists?.[0];
+        if (cancelled || !latest?.items?.length) return;
+        setOrigin(latest.origin_country ?? "");
+        setDestination(latest.destination_country ?? "");
+        setPurpose(latest.visa_type ?? "study");
+        setRoadmap({
+          title: `${latest.visa_type} roadmap: ${latest.origin_country} \u2192 ${latest.destination_country}`,
+          totalWeeks: 0,
+          phases: latest.items,
+        });
+        setChecklistId(latest.id);
+        setCompleted(new Set<string>(latest.completed_items ?? []));
+        setRestored(true);
+      } catch {
+        /* nothing saved yet, or offline — the generator still works */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  async function persist(next: Roadmap) {
+    setSaveError(null);
+    try {
+      const res = await authFetch("/api/ai/checklists", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          origin_country: origin,
+          destination_country: destination,
+          visa_type: purpose,
+          items: next.phases,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        // Say so rather than pretending it saved — the roadmap is still on
+        // screen and usable, it just will not survive a refresh.
+        setSaveError("Generated, but couldn't save your progress. It won't be here when you return.");
+        return;
+      }
+      setChecklistId(data.checklist?.id ?? null);
+      setCompleted(new Set<string>(data.checklist?.completed_items ?? []));
+    } catch {
+      setSaveError("Generated, but couldn't save your progress. It won't be here when you return.");
+    }
+  }
+
+  async function togglePhase(phaseId: string) {
+    if (!checklistId) return;
+    const nowCompleted = !completed.has(phaseId);
+    // Optimistic, then reconciled against what the server actually stored.
+    setCompleted((prev) => {
+      const next = new Set(prev);
+      if (nowCompleted) next.add(phaseId); else next.delete(phaseId);
+      return next;
+    });
+    try {
+      const res = await authFetch(`/api/ai/checklists/${checklistId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phase_id: phaseId, completed: nowCompleted }),
+      });
+      const data = await res.json();
+      if (res.ok) setCompleted(new Set<string>(data.checklist?.completed_items ?? []));
+      else throw new Error("save failed");
+    } catch {
+      setCompleted((prev) => {
+        const next = new Set(prev);
+        if (nowCompleted) next.delete(phaseId); else next.add(phaseId);
+        return next;
+      });
+      setSaveError("Couldn't save that change. Check your connection and try again.");
+    }
+  }
 
   async function generate() {
     if (!origin.trim() || !destination.trim()) return;
@@ -43,14 +134,19 @@ export default function VisaRoadmapPage() {
     setRoadmap(null);
     setError(null);
     try {
-      const res = await fetch("/api/ai/visa-roadmap", {
+      const res = await authFetch("/api/ai/visa-roadmap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ origin, destination, purpose }),
       });
       const data = await res.json();
       if (!res.ok || data?.error) setError(data?.error || `Request failed (${res.status})`);
-      else setRoadmap(data as Roadmap);
+      else {
+        const next = data as Roadmap;
+        setRoadmap(next);
+        setRestored(false);
+        await persist(next);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Network error");
     } finally {
@@ -124,10 +220,29 @@ export default function VisaRoadmapPage() {
       {roadmap && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
               <h2 className="text-xl font-display font-semibold text-ink-900">{roadmap.title}</h2>
-              <span className="badge badge-clay"><CalendarClock size={12} /> ~{roadmap.totalWeeks} weeks end-to-end</span>
+              <div className="flex items-center gap-2">
+                {roadmap.totalWeeks > 0 && (
+                  <span className="badge badge-clay"><CalendarClock size={12} /> ~{roadmap.totalWeeks} weeks end-to-end</span>
+                )}
+                {checklistId && (
+                  <span className="badge !bg-leaf-500/15 !text-leaf-600">
+                    {completed.size}/{roadmap.phases.length} done
+                  </span>
+                )}
+              </div>
             </div>
+
+            {restored && (
+              <p className="text-xs text-ink-500 mb-4">Picking up where you left off — this is your saved roadmap.</p>
+            )}
+            {saveError && (
+              <p className="text-xs text-amber-600 mb-4">{saveError}</p>
+            )}
+            {!checklistId && !saveError && (
+              <p className="text-xs text-ink-500 mb-4">Generate a roadmap to start tracking your progress.</p>
+            )}
 
             <ol className="relative border-l-2 border-cream-300 ml-3 space-y-6">
               {roadmap.phases.map((p, i) => {
@@ -138,12 +253,24 @@ export default function VisaRoadmapPage() {
                     className="relative pl-8 gb-reveal"
                     style={{ animationDelay: `${i * 110}ms` }}
                   >
-                    {/* node */}
-                    <span className="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-clay-500 text-white text-xs font-semibold flex items-center justify-center ring-4 ring-cream-50">
-                      {i + 1}
-                    </span>
+                    {/* node — doubles as the completion control once saved */}
+                    {checklistId ? (
+                      <button
+                        type="button"
+                        onClick={() => togglePhase(p.id)}
+                        aria-pressed={completed.has(p.id)}
+                        aria-label={completed.has(p.id) ? `Mark "${p.title}" as not done` : `Mark "${p.title}" as done`}
+                        className={`absolute -left-[13px] top-0 w-6 h-6 rounded-full text-xs font-semibold flex items-center justify-center ring-4 ring-cream-50 transition-colors ${completed.has(p.id) ? "bg-leaf-500 text-white" : "bg-clay-500 text-white hover:bg-clay-600"}`}
+                      >
+                        {completed.has(p.id) ? <Check size={13} /> : i + 1}
+                      </button>
+                    ) : (
+                      <span className="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-clay-500 text-white text-xs font-semibold flex items-center justify-center ring-4 ring-cream-50">
+                        {i + 1}
+                      </span>
+                    )}
 
-                    <div className="card">
+                    <div className={`card transition-opacity ${completed.has(p.id) ? "opacity-60" : ""}`}>
                       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                         <h3 className="font-display text-lg font-semibold text-ink-900 flex items-center gap-2">
                           <Icon size={15} className="text-clay-600" /> {p.title}

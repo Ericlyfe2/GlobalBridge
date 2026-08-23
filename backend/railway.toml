@@ -7,6 +7,11 @@
   restartPolicyMaxRetries = 3
 
 [healthcheck]
+  # Liveness, deliberately — this gates container restarts, and restarting a
+  # container does not fix a database outage, it turns a degraded platform into
+  # a crash loop. Point load balancers and uptime monitoring at /health/ready
+  # instead: that one probes Postgres and answers 503 with a per-service
+  # breakdown when a required dependency is down.
   path = "/health"
   interval = 30
   timeout = 5

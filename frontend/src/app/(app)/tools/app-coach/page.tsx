@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   Bot, Sparkles, Loader2, ArrowRight, AlertTriangle, CheckCircle2, TrendingUp, Wand2,
 } from "lucide-react";
+import { authFetch } from "@/lib/auth";
 
 type Severity = "ok" | "warn" | "fail";
 
@@ -31,7 +32,7 @@ I am applying to the MSc CS at University of Toronto because it offers world-cla
     setResult(null);
     setError(null);
     try {
-      const res = await fetch("/api/ai/score-essay", {
+      const res = await authFetch("/api/ai/score-essay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ docType, target, essay }),

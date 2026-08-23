@@ -1,9 +1,8 @@
 import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
-import { requireAuth, requireRole } from "../middleware/auth";
+import { requireAuth, requireRole, optionalAuth, isAdmin } from "../middleware/auth";
 import { recordAudit } from "../lib/audit";
-import { sanitizeAllStrings } from "../lib/sanitize";
 
 export const housingRouter = Router();
 
@@ -14,9 +13,13 @@ housingRouter.get("/", async (req, res, next) => {
       country: z.string().optional(),
       max_rent: z.coerce.number().positive().optional(),
       currency: z.string().length(3).optional(),
-      limit: z.coerce.number().int().min(1).max(100).optional(),
+      limit: z.coerce.number().int().min(1).max(100).default(60),
+      // Housing had limit but no offset, so everything past the first page was
+      // unreachable — and ordering by rating DESC meant new listings from
+      // landlords with no rating yet were the ones nobody could ever see.
+      offset: z.coerce.number().int().min(0).default(0),
     });
-    const { city, country, max_rent, currency, limit } = querySchema.parse(req.query);
+    const { city, country, max_rent, currency, limit, offset } = querySchema.parse(req.query);
     const filters: string[] = [`status = 'active'`];
     const values: unknown[] = [];
     let i = 1;
@@ -41,8 +44,8 @@ housingRouter.get("/", async (req, res, next) => {
        JOIN users u ON u.id = hl.landlord_id
        WHERE ${filters.join(" AND ")}
        ORDER BY hl.rating DESC, hl.created_at DESC
-       LIMIT $${i++}`,
-      [...values, Number(limit) || 60]
+       LIMIT $${i++} OFFSET $${i++}`,
+      [...values, limit, offset]
     );
     res.set("Cache-Control", "public, max-age=60");
     res.json({ listings: rows });
@@ -71,7 +74,7 @@ const createSchema = z.object({
 // through admin moderation via GET /admin/pending before appearing publicly.
 housingRouter.post("/", requireAuth, async (req, res, next) => {
   try {
-    const b = sanitizeAllStrings(createSchema.parse(req.body));
+    const b = createSchema.parse(req.body);
     const listing = await queryOne(
       `INSERT INTO housing_listings
         (landlord_id, title, description, city, country, address, rent_amount, currency,
@@ -103,7 +106,7 @@ housingRouter.patch("/:id", requireAuth, async (req, res, next) => {
       return res.status(403).json({ error: "Not your listing" });
     }
 
-    const b = sanitizeAllStrings(updateSchema.parse(req.body));
+    const b = updateSchema.parse(req.body);
     const fields: string[] = [];
     const values: unknown[] = [];
     let i = 1;
@@ -170,10 +173,15 @@ housingRouter.get("/admin/pending", requireAuth, requireRole("admin"), async (_r
   }
 });
 
-housingRouter.get("/:id", async (req, res, next) => {
+// The list filters on status='active' but this route did not, so a listing an
+// admin had archived — a confirmed scam, say — stayed fully readable at its
+// direct URL, address and all, to anyone who already had the link. Moderation
+// was cosmetic. optionalAuth keeps anonymous browsing of active listings while
+// letting the owner and admins still see their own non-active ones.
+housingRouter.get("/:id", optionalAuth, async (req, res, next) => {
   try {
-    const listing = await queryOne(
-      `SELECT hl.id, hl.title, hl.description, hl.city, hl.country, hl.address,
+    const listing = await queryOne<{ status: string; landlord_id: string } & Record<string, unknown>>(
+      `SELECT hl.id, hl.landlord_id, hl.title, hl.description, hl.city, hl.country, hl.address,
               hl.rent_amount, hl.currency, hl.bedrooms, hl.bathrooms, hl.furnished,
               hl.near_university, hl.photos, hl.virtual_tour_url, hl.rating, hl.status,
               hl.created_at, u.full_name AS landlord_name, u.verification_status AS landlord_status,
@@ -184,6 +192,15 @@ housingRouter.get("/:id", async (req, res, next) => {
       [req.params.id]
     );
     if (!listing) return res.status(404).json({ error: "Listing not found" });
+
+    const viewer = req.user;
+    const maySeeNonActive =
+      !!viewer && (viewer.sub === listing.landlord_id || isAdmin(viewer.role));
+    // 404 rather than 403: whether a withdrawn listing ever existed is itself
+    // information, and the list route already behaves as though it does not.
+    if (listing.status !== "active" && !maySeeNonActive) {
+      return res.status(404).json({ error: "Listing not found" });
+    }
     res.status(200).json({ listing });
   } catch (err) {
     next(err);

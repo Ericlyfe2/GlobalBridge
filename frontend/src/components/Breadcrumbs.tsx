@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { safeJsonLd } from "@/lib/json-ld";
 
 export type Crumb = { label: string; href?: string };
 
@@ -39,7 +40,7 @@ export function Breadcrumbs({ items, siteUrl = "https://globalbridge.app" }: { i
           );
         })}
       </ol>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
     </nav>
   );
 }

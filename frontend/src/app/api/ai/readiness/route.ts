@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
+import { requireAiUser, tooLarge, totalChars } from "@/lib/ai-auth";
 import { getAiConfig } from "@/lib/aiConfig";
 import {
   PILLARS, PILLAR_LABEL, normalizePillars, autoNote, extractJson, mockFallback,
@@ -55,8 +55,9 @@ export async function POST(req: Request) {
     return Response.json(mockFallback(scores, overall), { status: 200 });
   }
 
-  const rl = rateLimit(`readiness:${clientIp(req)}`, 8, 60_000);
-  if (!rl.ok) return tooMany(rl.retryAfter);
+  // Authenticated + per-user rate limited: this call spends OpenAI credits.
+  const gate = await requireAiUser(req, { feature: "readiness", limit: 8, body });
+  if ("response" in gate) return gate.response;
 
   const client = new OpenAI({ apiKey, baseURL });
 
@@ -71,6 +72,14 @@ export async function POST(req: Request) {
           content: JSON.stringify({ pillars: scores, destination: body.destination ?? null, purpose: body.purpose ?? null }),
         },
       ],
+    });
+
+    // Book this call against the caller's daily budget. ai_usage_log is
+    // what the admin AI console reads and what the ceiling is computed from.
+    await gate.record({
+      model: aiConfig.ai_model,
+      input_tokens: completion.usage?.prompt_tokens ?? 0,
+      output_tokens: completion.usage?.completion_tokens ?? 0,
     });
     const raw = completion.choices[0]?.message?.content?.trim() || "";
     const json = extractJson(raw) as { actions?: Action[]; notes?: Record<string, string> } | null;

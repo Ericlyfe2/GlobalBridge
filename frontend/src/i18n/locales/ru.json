@@ -136,7 +136,10 @@
     "signIn": "Войти",
     "getStarted": "Начать",
     "openMenu": "Открыть меню",
-    "closeMenu": "Закрыть меню"
+    "closeMenu": "Закрыть меню",
+    "more": "Ещё",
+    "primary": "Основное меню",
+    "visaRoadmap": "План получения визы"
   },
   "tools": {
     "countryCompare": {
@@ -873,5 +876,12 @@
   "error": {
     "title": "Sorry — this page misbehaved.",
     "description": "Don't worry, your data is safe. Try the retry button. If it keeps failing, ping us via Help."
+  },
+  "pwa": {
+    "install": "Установить",
+    "notNow": "Не сейчас",
+    "offlineBadge": "Нет сети",
+    "offlineTitle": "Вы не в сети",
+    "reconnecting": "Переподключение…"
   }
 }

@@ -527,18 +527,41 @@ CREATE TABLE IF NOT EXISTS mentor_bookings (
 -- =====================
 -- USER DOCUMENTS TABLE (verification docs)
 -- =====================
+-- Shape corrected 2026-08-22 (GB-02, found by verify:clean-install).
+--
+-- This block used to declare type / file_name / mime_type / verified /
+-- verified_by / verified_at — none of which any code has ever referenced —
+-- while routes/uploads.ts reads and writes purpose / storage_key /
+-- original_name / mime / size_bytes / status. A database provisioned from this
+-- file therefore had no `purpose` column, which is not just a failed INSERT:
+-- purpose is what GET /api/uploads/files/:key checks to decide whether a
+-- document is product-public or private to its owner. Uploads were broken on
+-- any fresh environment, access control included.
+--
+-- The Phase 3 drift guard compares table presence only, so it could not see
+-- this. The clean-install smoke test found it on its first run.
 CREATE TABLE IF NOT EXISTS user_documents (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    type VARCHAR(50) NOT NULL,
+    -- 'avatar' | 'housing' | 'verification' | 'document'; drives access control.
+    purpose VARCHAR(50) NOT NULL,
     url TEXT NOT NULL,
-    file_name VARCHAR(255),
-    mime_type VARCHAR(100),
-    verified BOOLEAN DEFAULT FALSE,
-    verified_by UUID REFERENCES users(id) ON DELETE SET NULL,
-    verified_at TIMESTAMPTZ,
+    storage_key TEXT NOT NULL,
+    original_name VARCHAR(255),
+    mime VARCHAR(100),
+    size_bytes INTEGER,
+    status VARCHAR(50) DEFAULT 'pending',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Bring an already-provisioned database in line without dropping anything.
+ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS purpose VARCHAR(50);
+ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS storage_key TEXT;
+ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS original_name VARCHAR(255);
+ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS mime VARCHAR(100);
+ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS size_bytes INTEGER;
+ALTER TABLE user_documents ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'pending';
+CREATE INDEX IF NOT EXISTS idx_user_documents_storage_key ON user_documents(storage_key);
 
 -- =====================
 -- PERMISSIONS / RBAC TABLE
@@ -629,3 +652,320 @@ CREATE INDEX IF NOT EXISTS idx_activity_log_action ON activity_log(action);
 CREATE INDEX IF NOT EXISTS idx_activity_log_created ON activity_log(created_at);
 CREATE INDEX IF NOT EXISTS idx_activity_log_resource ON activity_log(resource, resource_id);
 CREATE INDEX IF NOT EXISTS idx_user_documents_user ON user_documents(user_id);
+
+-- =====================
+-- CONSOLIDATED FROM ONE-OFF MIGRATION SCRIPTS
+-- =====================
+-- Everything below previously existed ONLY inside backend/src/migrate-*.ts and
+-- db/migration_rag.sql, which had to be run by hand. A database provisioned from
+-- this file alone was therefore missing ten tables that the application queries
+-- on live request paths — Safe Space, Peer Review, Library, the contact form,
+-- the newsletter and all web push returned 500 "relation does not exist".
+--
+-- This file is the canonical schema. It is idempotent and safe to re-run against
+-- an existing database. The migrate-*.ts scripts are retained only as historical
+-- record; new environments need nothing but this file.
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- ── Mentor booking timezone (was migrate-booking-timezone.ts) ───────────────
+-- slot_time alone is ambiguous the moment mentor and student are in different
+-- zones: "3:00 PM" has no way of saying whose 3pm it is.
+ALTER TABLE mentor_bookings ADD COLUMN IF NOT EXISTS student_timezone TEXT;
+
+-- ── Safe Space (was migrate-safe-space.ts) ─────────────────────────────────
+-- user_id is kept for abuse/legal escalation only — every read endpoint omits
+-- it, so nothing in the API response links a post back to an account.
+CREATE TABLE IF NOT EXISTS safe_space_posts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    topic TEXT NOT NULL,
+    alias TEXT NOT NULL,
+    alias_color TEXT NOT NULL,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    upvotes INT NOT NULL DEFAULT 0,
+    support_count INT NOT NULL DEFAULT 0,
+    flagged BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS safe_space_replies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    post_id UUID NOT NULL REFERENCES safe_space_posts(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    alias TEXT NOT NULL,
+    alias_color TEXT NOT NULL,
+    body TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Dedup tables so one account can't inflate a post's counts by spam-clicking.
+CREATE TABLE IF NOT EXISTS safe_space_upvotes (
+    post_id UUID NOT NULL REFERENCES safe_space_posts(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    PRIMARY KEY (post_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS safe_space_support (
+    post_id UUID NOT NULL REFERENCES safe_space_posts(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    PRIMARY KEY (post_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_safe_space_posts_topic ON safe_space_posts(topic);
+CREATE INDEX IF NOT EXISTS idx_safe_space_replies_post ON safe_space_replies(post_id);
+
+-- ── Peer review (was migrate-peer-review.ts) ───────────────────────────────
+-- Alias-based like safe_space_posts — reviewers see the essay and a random
+-- alias, never the submitter's real identity.
+CREATE TABLE IF NOT EXISTS peer_review_submissions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    alias TEXT NOT NULL,
+    alias_color TEXT NOT NULL,
+    doc_type TEXT NOT NULL,
+    target TEXT NOT NULL,
+    focus_question TEXT,
+    body TEXT NOT NULL,
+    reviews_needed INT NOT NULL DEFAULT 3,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS peer_review_reviews (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    submission_id UUID NOT NULL REFERENCES peer_review_submissions(id) ON DELETE CASCADE,
+    reviewer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    alias TEXT NOT NULL,
+    alias_color TEXT NOT NULL,
+    rubric_scores JSONB NOT NULL,
+    overall_score INT NOT NULL,
+    comments TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (submission_id, reviewer_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_peer_review_subs_user ON peer_review_submissions(user_id);
+CREATE INDEX IF NOT EXISTS idx_peer_review_reviews_sub ON peer_review_reviews(submission_id);
+
+-- ── Mentor-contributed library (was migrate-library.ts) ────────────────────
+CREATE TABLE IF NOT EXISTS library_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    contributor_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    type TEXT NOT NULL,
+    topic TEXT NOT NULL,
+    duration_min INT NOT NULL,
+    origin TEXT NOT NULL,
+    origin_flag TEXT NOT NULL,
+    destination TEXT NOT NULL,
+    dest_flag TEXT NOT NULL,
+    media_url TEXT NOT NULL,
+    plays_count INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_library_items_topic ON library_items(topic);
+
+-- ── Contact form (was migrate-contact-table.ts) ────────────────────────────
+CREATE TABLE IF NOT EXISTS contact_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    topic TEXT NOT NULL,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- ── Newsletter (was migrate-newsletter-table.ts) ───────────────────────────
+CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- ── Web push subscriptions (was db/migration_rag.sql only) ─────────────────
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    endpoint TEXT NOT NULL UNIQUE,
+    p256dh TEXT NOT NULL,
+    auth TEXT NOT NULL,
+    user_agent TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    last_used_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_push_subs_user ON push_subscriptions(user_id);
+
+-- Supports GET /api/ai/usage/today, which filters on user_id AND created_at.
+-- The separate single-column indexes above cannot serve that pair efficiently.
+CREATE INDEX IF NOT EXISTS idx_ai_usage_log_user_created ON ai_usage_log(user_id, created_at);
+
+-- =====================
+-- PRIVACY & ROLE INTEGRITY (GB-05, GB-06)
+-- =====================
+-- Country of origin is sensitive on a platform for immigrants: combined with a
+-- legal name and country of residence it is an identifying, targetable tuple.
+-- It is private unless the user deliberately shares it.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS share_country_of_origin BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Marks the one-time signup profile step as done. requireAuth self-heals a
+-- minimal users row on first sight, so "does a row exist" cannot distinguish a
+-- first registration from a replay — which is what let any account re-POST
+-- /api/auth/register-profile to reassign its own role.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_completed_at TIMESTAMPTZ;
+
+-- =====================
+-- MENTORSHIP: AVAILABILITY, CONFLICTS, LIFECYCLE (GB-08)
+-- =====================
+-- Booking accepted anything: two students could hold the same mentor at the same
+-- moment, a mentor who had switched themselves off still received bookings, and
+-- no endpoint could ever move a booking out of 'pending'.
+
+-- Needed to combine an equality column (mentor_id) with a range operator in one
+-- exclusion constraint.
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+-- The live database had slot_time as VARCHAR(10) while this file declared TIME,
+-- so "25:99", "99:99" and "not-time" were all stored silently rather than
+-- rejected. Column-level drift the Phase 3 guard did not catch, since it only
+-- compared table presence. Cast rather than recreate, so existing values survive.
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_name = 'mentor_bookings' AND column_name = 'slot_time'
+       AND data_type <> 'time without time zone'
+  ) THEN
+    ALTER TABLE mentor_bookings
+      ALTER COLUMN slot_time TYPE TIME USING slot_time::time;
+  END IF;
+END $$;
+
+-- Mentors declare availability in their own timezone; without it a weekday and a
+-- wall-clock window are meaningless.
+ALTER TABLE mentor_profiles ADD COLUMN IF NOT EXISTS timezone TEXT NOT NULL DEFAULT 'UTC';
+
+-- Recurring weekly windows. weekday follows Postgres EXTRACT(DOW): 0 = Sunday.
+CREATE TABLE IF NOT EXISTS mentor_availability (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    mentor_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    weekday SMALLINT NOT NULL CHECK (weekday BETWEEN 0 AND 6),
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT mentor_availability_range CHECK (end_time > start_time),
+    UNIQUE (mentor_id, weekday, start_time)
+);
+CREATE INDEX IF NOT EXISTS idx_mentor_availability_mentor ON mentor_availability(mentor_id, weekday);
+
+-- slot_date + slot_time are wall-clock in the STUDENT's timezone, which is
+-- ambiguous the moment two parties are in different zones — and useless for
+-- overlap detection. starts_at is the resolved instant, and is what the
+-- exclusion constraint and every availability check work from.
+ALTER TABLE mentor_bookings ADD COLUMN IF NOT EXISTS starts_at TIMESTAMPTZ;
+ALTER TABLE mentor_bookings ADD COLUMN IF NOT EXISTS ends_at TIMESTAMPTZ;
+
+UPDATE mentor_bookings
+   SET starts_at = (slot_date + slot_time) AT TIME ZONE COALESCE(student_timezone, 'UTC')
+ WHERE starts_at IS NULL;
+
+-- ends_at is a stored column rather than an expression in the constraint below,
+-- because `timestamptz + interval` is STABLE (it depends on the session
+-- timezone for calendar arithmetic) and an index expression must be IMMUTABLE.
+-- A trigger keeps it correct no matter who writes the row, so the invariant
+-- does not depend on application code remembering to set it.
+CREATE OR REPLACE FUNCTION mentor_bookings_set_ends_at() RETURNS trigger AS $fn$
+BEGIN
+  -- Derive the instant here too, so a caller that forgets starts_at cannot
+  -- silently opt out of the overlap constraint: tstzrange(NULL, NULL) conflicts
+  -- with nothing, which would disable the guarantee exactly when it matters.
+  IF NEW.starts_at IS NULL THEN
+    NEW.starts_at := (NEW.slot_date + NEW.slot_time)
+                     AT TIME ZONE COALESCE(NEW.student_timezone, 'UTC');
+  END IF;
+  NEW.ends_at := NEW.starts_at + make_interval(mins => COALESCE(NEW.duration_min, 30));
+  RETURN NEW;
+END;
+$fn$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_mentor_bookings_ends_at ON mentor_bookings;
+CREATE TRIGGER trg_mentor_bookings_ends_at
+  BEFORE INSERT OR UPDATE OF starts_at, duration_min, slot_date, slot_time, student_timezone
+  ON mentor_bookings
+  FOR EACH ROW EXECUTE FUNCTION mentor_bookings_set_ends_at();
+
+UPDATE mentor_bookings
+   SET ends_at = starts_at + make_interval(mins => COALESCE(duration_min, 30))
+ WHERE ends_at IS NULL AND starts_at IS NOT NULL;
+
+-- The constraint the audit asked for: enforced by the database, not by a
+-- read-then-write in application code that two concurrent requests can both win.
+-- Scoped to live bookings, so a cancelled or declined slot frees up again.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'mentor_bookings_no_overlap'
+  ) THEN
+    ALTER TABLE mentor_bookings ADD CONSTRAINT mentor_bookings_no_overlap
+      EXCLUDE USING gist (
+        mentor_id WITH =,
+        tstzrange(starts_at, ends_at) WITH &&
+      ) WHERE (status IN ('pending', 'confirmed'));
+  END IF;
+END $$;
+
+ALTER TABLE mentor_bookings ALTER COLUMN starts_at SET NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_mentor_bookings_mentor_start ON mentor_bookings(mentor_id, starts_at);
+CREATE INDEX IF NOT EXISTS idx_mentor_bookings_student ON mentor_bookings(student_id, starts_at);
+
+-- =====================
+-- TRUSTED SOURCES (GB-14)
+-- =====================
+-- The table existed from the beginning with a type, an is_active flag and a
+-- confidence_weight, and was referenced by exactly zero lines of code — the
+-- "trusted source preference" the docs describe was never implemented. It is
+-- now the allow-list that decides which model-produced URLs may be shown to a
+-- user as a citation at all.
+ALTER TABLE trusted_sources ADD CONSTRAINT trusted_sources_base_url_key UNIQUE (base_url);
+
+INSERT INTO trusted_sources (name, type, base_url, confidence_weight) VALUES
+  ('Government of Canada',                         'gov', 'https://www.canada.ca',            1.00),
+  ('Immigration, Refugees and Citizenship Canada', 'gov', 'https://ircc.canada.ca',           1.00),
+  ('UK Government',                                'gov', 'https://www.gov.uk',               1.00),
+  ('US Citizenship and Immigration Services',      'gov', 'https://www.uscis.gov',            1.00),
+  ('US Department of State — Travel',              'gov', 'https://travel.state.gov',         1.00),
+  ('Study in the States (US ICE/SEVP)',            'gov', 'https://studyinthestates.dhs.gov', 1.00),
+  ('German Federal Office for Migration (BAMF)',   'gov', 'https://www.bamf.de',              1.00),
+  ('German Federal Foreign Office',                'gov', 'https://www.auswaertiges-amt.de',  1.00),
+  ('Make it in Germany',                           'gov', 'https://www.make-it-in-germany.com', 1.00),
+  ('Australian Department of Home Affairs',        'gov', 'https://immi.homeaffairs.gov.au',  1.00),
+  ('Study Australia',                              'gov', 'https://www.studyaustralia.gov.au', 1.00),
+  ('Ireland Immigration Service',                  'gov', 'https://www.irishimmigration.ie',  1.00),
+  ('Immigration New Zealand',                      'gov', 'https://www.immigration.govt.nz',  1.00),
+  ('Netherlands IND',                              'gov', 'https://ind.nl',                   1.00),
+  ('Campus France',                                'gov', 'https://www.campusfrance.org',     0.95),
+  ('DAAD (German Academic Exchange Service)',      'ngo', 'https://www.daad.de',              0.95),
+  ('British Council',                              'ngo', 'https://www.britishcouncil.org',   0.90),
+  ('EducationUSA',                                 'gov', 'https://educationusa.state.gov',   0.95),
+  ('UNHCR',                                        'ngo', 'https://www.unhcr.org',            0.90),
+  ('EU Immigration Portal',                        'gov', 'https://immigration-portal.ec.europa.eu', 1.00)
+ON CONFLICT (base_url) DO NOTHING;
+
+-- =====================
+-- FORUM VOTES (GB-18)
+-- =====================
+-- forum_posts.upvotes and forum_replies.upvotes were displayed and never
+-- incremented: the up/down buttons in the thread view had no onClick and no
+-- endpoint behind them. This is the missing persistence, with one row per
+-- (voter, target) so a vote is idempotent and reversible rather than a counter
+-- anyone can pump.
+CREATE TABLE IF NOT EXISTS forum_votes (
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    target_type VARCHAR(10) NOT NULL CHECK (target_type IN ('post', 'reply')),
+    target_id UUID NOT NULL,
+    value SMALLINT NOT NULL CHECK (value IN (-1, 1)),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (user_id, target_type, target_id)
+);
+CREATE INDEX IF NOT EXISTS idx_forum_votes_target ON forum_votes(target_type, target_id);

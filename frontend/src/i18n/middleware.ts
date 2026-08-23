@@ -48,9 +48,16 @@ export function i18nMiddleware(request: NextRequest) {
   const preferredLang = getLangFromRequest(request);
 
   if (preferredLang !== DEFAULT_LANG) {
-    const suffix = pathname === "/" ? "" : pathname;
-    const redirectUrl = new URL(`/${preferredLang}${suffix}${search}`, request.url);
-    const response = NextResponse.redirect(redirectUrl);
+    // Rewrite, not redirect (GB-21).
+    //
+    // Every internal <Link> points at an un-prefixed path, so redirecting here
+    // cost a 302 round trip on *every* navigation for anyone whose language is
+    // not English — and defeated Next's client-side routing on each one. A
+    // rewrite serves the localised render at the URL the user is already on.
+    //
+    // Explicit /${lang}/... URLs still work (handled above) for sharing and
+    // for anyone who wants to pin a language in the address bar.
+    const response = NextResponse.next();
     setLangCookie(response, preferredLang);
     response.headers.set("x-language", preferredLang);
     return response;

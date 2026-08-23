@@ -6,37 +6,32 @@ export function escapeLike(input: string): string {
   return input.replace(/[\\%_]/g, (c) => `\\${c}`);
 }
 
-export function sanitize(input: string): string {
-  return input
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;")
-    .replace(/\//g, "&#x2F;");
-}
-
-export function sanitizeObject(obj: Record<string, unknown>, allowed: string[]): Record<string, unknown> {
+/**
+ * Field allow-list for partial-update handlers that build a dynamic SET clause
+ * straight from `req.body`. Returns only the named keys, so an extra property
+ * in the request can never become a column in the UPDATE.
+ *
+ * This does NOT transform values. User text is stored verbatim.
+ *
+ * ── Why there is no HTML escaping here ──────────────────────────────────────
+ * There used to be a sanitize() that replaced < > " ' / with HTML entities on
+ * the way *in*. That was wrong twice over:
+ *
+ *   1. It solved a problem that does not exist. Every consumer of this data is
+ *      React, which escapes at render time. Escaping again on write produced
+ *      double-encoding, not safety.
+ *   2. It corrupted the stored value permanently. "/" -> "&#x2F;" broke every
+ *      URL written through it (listing photos, avatars, apply links), and
+ *      "'" -> "&#x27;" mangled any name or sentence containing an apostrophe.
+ *
+ * The escaping boundary belongs at render, not at rest. If a surface ever needs
+ * to emit stored text as raw HTML, that surface sanitizes at that point — with
+ * a real HTML sanitizer, against the markup it intends to allow.
+ */
+export function pickAllowed(obj: Record<string, unknown>, allowed: string[]): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const k of allowed) {
-    const v = obj[k];
-    if (v !== undefined) {
-      out[k] = typeof v === "string" ? sanitize(v) : v;
-    }
+    if (obj[k] !== undefined) out[k] = obj[k];
   }
   return out;
-}
-
-export function sanitizeAllStrings<T>(obj: T): T {
-  if (typeof obj === "string") return sanitize(obj) as T;
-  if (Array.isArray(obj)) return obj.map(sanitizeAllStrings) as T;
-  if (obj && typeof obj === "object") {
-    const out = { ...obj };
-    for (const key in out) {
-      if (Object.prototype.hasOwnProperty.call(out, key)) {
-        (out as Record<string, unknown>)[key] = sanitizeAllStrings((out as Record<string, unknown>)[key]);
-      }
-    }
-    return out;
-  }
-  return obj;
 }

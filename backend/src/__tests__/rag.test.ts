@@ -18,6 +18,7 @@ vi.mock("../lib/embeddings", () => ({
 
 vi.mock("../middleware/auth", () => ({
   requireAuth: (_req: Request, _res: Response, next: NextFunction) => next(),
+  requireAdmin: () => (_req: Request, _res: Response, next: NextFunction) => next(),
 }));
 
 interface FakeRes {

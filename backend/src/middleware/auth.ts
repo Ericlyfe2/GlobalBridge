@@ -108,7 +108,11 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 }
 
 export function requireRole(...roles: AuthUser["role"][]) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  // Named so the guard is identifiable in a stack trace and in the
+  // authorization-matrix test, which enumerates every route's middleware by
+  // Function.name. An anonymous closure here made "which roles does this route
+  // allow" unanswerable without reading the source of every file.
+  const guard = (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) return res.status(401).json({ error: "Not authenticated" });
     const userRole = req.user.role;
     if (userRole === "super_admin") return next();
@@ -117,14 +121,48 @@ export function requireRole(...roles: AuthUser["role"][]) {
     }
     next();
   };
+  Object.defineProperty(guard, "name", { value: `requireRole:${[...roles].sort().join("|")}` });
+  return guard;
 }
 
 export function requireAdmin() {
-  return (req: Request, res: Response, next: NextFunction) => {
+  const guard = (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) return res.status(401).json({ error: "Not authenticated" });
     if (!isAdmin(req.user.role)) {
       return res.status(403).json({ error: "Admin access required" });
     }
     next();
   };
+  Object.defineProperty(guard, "name", { value: "requireAdmin" });
+  return guard;
+}
+
+/**
+ * Populates req.user when a valid token is present, and continues either way.
+ *
+ * For routes that are legitimately public but need to widen what they return
+ * for the owner or an admin — a housing listing is a good example: anyone may
+ * read an active one, but only the landlord or an admin may read one that has
+ * been taken down. Without this, such a route has to choose between leaking
+ * moderated content to everyone or locking out anonymous browsing entirely.
+ *
+ * Never rejects. An absent, malformed or expired token simply means the request
+ * proceeds anonymously; it is the route's job to then apply the public rules.
+ */
+export async function optionalAuth(req: Request, _res: Response, next: NextFunction) {
+  const header = req.headers.authorization;
+  const token = header?.startsWith("Bearer ") ? header.slice(7) : null;
+  if (!token) return next();
+  try {
+    const decoded = await adminAuth.verifyIdToken(token, true);
+    const rawRole = (decoded as Record<string, unknown>).role;
+    const claimRole = (typeof rawRole === "string" && VALID_ROLES.has(rawRole)
+      ? rawRole
+      : "student") as AuthUser["role"];
+    const pgUser = await resolvePostgresUser(decoded.uid, decoded.email ?? "", (decoded as { name?: string }).name, claimRole);
+    req.user = { sub: pgUser.id, firebaseUid: decoded.uid, email: decoded.email ?? "", role: pgUser.role };
+  } catch {
+    /* anonymous — the route applies its public rules */
+  }
+  next();
 }

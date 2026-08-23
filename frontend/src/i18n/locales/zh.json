@@ -127,7 +127,10 @@
     "signIn": "登录",
     "getStarted": "开始使用",
     "openMenu": "打开菜单",
-    "closeMenu": "关闭菜单"
+    "closeMenu": "关闭菜单",
+    "more": "更多",
+    "primary": "主导航",
+    "visaRoadmap": "签证路线图"
   },
   "tools": {
     "countryCompare": {
@@ -864,5 +867,12 @@
   "error": {
     "title": "Sorry — this page misbehaved.",
     "description": "Don't worry, your data is safe. Try the retry button. If it keeps failing, ping us via Help."
+  },
+  "pwa": {
+    "install": "安装",
+    "notNow": "暂不",
+    "offlineBadge": "离线",
+    "offlineTitle": "您已离线",
+    "reconnecting": "正在重新连接…"
   }
 }

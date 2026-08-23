@@ -3,7 +3,8 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth, isAdmin } from "../middleware/auth";
-import { storage, UPLOAD_PATH } from "../lib/storage";
+import { storage, UPLOAD_PATH, SIGNED_URL_TTL_SECONDS } from "../lib/storage";
+import { sniffFileType, MAX_BYTES, PER_USER_QUOTA_BYTES, formatBytes } from "../lib/file-type";
 
 export const uploadsRouter = Router();
 
@@ -27,8 +28,6 @@ const PURPOSE_MIME: Record<string, string[]> = {
   document: ["image/png", "image/jpeg", "image/webp", "image/gif", "application/pdf"],
 };
 
-const MAX_BYTES = 8 * 1024 * 1024; // 8 MB
-
 const schema = z.object({
   purpose: z.enum(["avatar", "housing", "verification", "document"]),
   filename: z.string().min(1).max(255),
@@ -41,25 +40,53 @@ uploadsRouter.post("/", requireAuth, async (req, res, next) => {
   try {
     const b = schema.parse(req.body);
 
-    const allowed = PURPOSE_MIME[b.purpose];
-    if (!allowed.includes(b.mime)) {
-      return res.status(400).json({ error: `Unsupported file type for ${b.purpose}: ${b.mime}` });
-    }
-
-    const ext = MIME_EXT[b.mime] ?? "";
     const base64 = b.data.includes(",") ? b.data.slice(b.data.indexOf(",") + 1) : b.data;
     const buffer = Buffer.from(base64, "base64");
 
     if (!buffer.length) return res.status(400).json({ error: "Empty file" });
-    if (buffer.length > MAX_BYTES) return res.status(413).json({ error: "File too large (max 8MB)" });
+    if (buffer.length > MAX_BYTES) {
+      return res.status(413).json({ error: `File too large — the limit is ${formatBytes(MAX_BYTES)}.` });
+    }
 
-    const stored = await storage.save(buffer, { ext, mime: b.mime });
+    // The client's `mime` field is a claim, not evidence. Everything downstream
+    // — the per-purpose allow-list, the stored row, the Content-Type this API
+    // later serves the bytes under — now keys off the detected type instead.
+    const detected = sniffFileType(buffer);
+    if (!detected) {
+      return res.status(415).json({
+        error: "That file type isn't supported. Upload a PNG, JPEG, GIF, WebP or PDF.",
+      });
+    }
+    const allowed = PURPOSE_MIME[b.purpose];
+    if (!allowed.includes(detected)) {
+      return res.status(415).json({ error: `A ${detected} file can't be used as a ${b.purpose}.` });
+    }
 
-    let document = null;
-    document = await queryOne(
+    // Per-user storage quota. size_bytes was written on every row and never
+    // read, so one account could write unbounded data — the only ceiling was
+    // the global IP rate limit.
+    const usedRow = await queryOne<{ used: string }>(
+      `SELECT COALESCE(SUM(size_bytes), 0)::text AS used FROM user_documents WHERE user_id = $1`,
+      [req.user!.sub],
+    );
+    const used = Number(usedRow?.used ?? 0);
+    if (used + buffer.length > PER_USER_QUOTA_BYTES) {
+      return res.status(413).json({
+        error:
+          `You've used ${formatBytes(used)} of your ${formatBytes(PER_USER_QUOTA_BYTES)} storage. ` +
+          `Delete an old document to free up space.`,
+        used_bytes: used,
+        quota_bytes: PER_USER_QUOTA_BYTES,
+      });
+    }
+
+    const ext = MIME_EXT[detected] ?? "";
+    const stored = await storage.save(buffer, { ext, mime: detected });
+
+    const document = await queryOne(
       `INSERT INTO user_documents (user_id, purpose, url, storage_key, original_name, mime, size_bytes)
        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [req.user!.sub, b.purpose, stored.url, stored.key, b.filename, b.mime, buffer.length]
+      [req.user!.sub, b.purpose, stored.url, stored.key, b.filename, detected, buffer.length]
     );
     // Submitting verification docs re-opens a previously rejected user for review.
     if (b.purpose === "verification") {
@@ -108,6 +135,18 @@ uploadsRouter.get("/files/:key", requireAuth, async (req, res, next) => {
       || doc.user_id === req.user!.sub
       || isAdmin(req.user!.role);
     if (!authorized) return res.status(403).json({ error: "Not authorized to view this file" });
+
+    // Authorization has passed. On a durable backend the bucket is private, so
+    // hand out a short-lived signed URL rather than proxying the bytes. The
+    // ownership check above is still the only way to obtain one — the object is
+    // never publicly addressable, and the URL expires.
+    const signed = await storage.signedUrl(key, doc.mime, SIGNED_URL_TTL_SECONDS);
+    if (signed) {
+      // No-store: the redirect embeds a credential and must not be cached by
+      // the browser, a CDN, or the service worker.
+      res.set("Cache-Control", "no-store, private");
+      return res.redirect(302, signed);
+    }
 
     res.type(doc.mime);
     res.sendFile(key, { root: UPLOAD_PATH }, (err) => {

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth, requireAdmin } from "../middleware/auth";
 import { getEmbedding, generateEmbedding } from "../lib/embeddings";
 
 export const ragRouter = Router();
@@ -15,7 +15,10 @@ const searchSchema = z.object({
   min_score: z.coerce.number().min(0).max(1).default(0.5),
 });
 
-ragRouter.post("/search", async (req, res, next) => {
+// Authenticated: every cache-missing query buys an OpenAI embedding, and the
+// embedding_cache row it writes is unbounded. Anonymous access made both of
+// those free to an attacker.
+ragRouter.post("/search", requireAuth, async (req, res, next) => {
   try {
     const { query: queryText, category, limit, min_score } = searchSchema.parse(req.body);
 
@@ -81,7 +84,10 @@ ragRouter.post("/search", async (req, res, next) => {
   }
 });
 
-ragRouter.post("/embed", async (req, res, next) => {
+// Admin-only: this is a bare passthrough to the embeddings API with no
+// product behaviour of its own, so there is no reason for a normal account
+// to be able to bill it.
+ragRouter.post("/embed", requireAuth, requireAdmin(), async (req, res, next) => {
   try {
     const { text } = z.object({ text: z.string().min(1).max(8000) }).parse(req.body);
     if (!OPENAI_API_KEY) {
@@ -94,7 +100,9 @@ ragRouter.post("/embed", async (req, res, next) => {
   }
 });
 
-ragRouter.post("/reembed-all", requireAuth, async (req, res, next) => {
+// Admin-only: re-embeds the whole knowledge base synchronously inside the
+// request. requireAuth alone let any student trigger it, repeatedly.
+ragRouter.post("/reembed-all", requireAuth, requireAdmin(), async (req, res, next) => {
   try {
     if (!OPENAI_API_KEY) {
       return res.status(400).json({ error: "OPENAI_API_KEY not configured" });
@@ -118,7 +126,7 @@ ragRouter.post("/reembed-all", requireAuth, async (req, res, next) => {
   }
 });
 
-ragRouter.get("/stats", requireAuth, async (req, res, next) => {
+ragRouter.get("/stats", requireAuth, requireAdmin(), async (req, res, next) => {
   try {
     const [kbCount, cacheCount] = await Promise.all([
       queryOne<{ count: string }>(`SELECT COUNT(*) FROM knowledge_base WHERE is_active = true`),

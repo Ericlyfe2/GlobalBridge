@@ -1,8 +1,10 @@
 import OpenAI from "openai";
-import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
+import { requireAiUser, tooLarge, totalChars } from "@/lib/ai-auth";
 import { getAiConfig } from "@/lib/aiConfig";
 
 export const runtime = "nodejs";
+
+const MAX_FIELD_CHARS = 200;
 
 const COUNTRY_NAMES: Record<string, string> = {
   gh: "Ghana", ng: "Nigeria", ke: "Kenya", za: "South Africa",
@@ -61,8 +63,12 @@ export async function POST(req: Request) {
   const name1 = COUNTRY_NAMES[country1.toLowerCase()] ?? country1.toUpperCase();
   const name2 = COUNTRY_NAMES[country2.toLowerCase()] ?? country2.toUpperCase();
 
-  const rl = rateLimit(`compare:${clientIp(req)}`, 15, 60_000);
-  if (!rl.ok) return tooMany(rl.retryAfter);
+  if (totalChars(country1, country2, lang) > MAX_FIELD_CHARS) {
+    return tooLarge(MAX_FIELD_CHARS);
+  }
+  // Authenticated + per-user rate limited: this call spends OpenAI credits.
+  const gate = await requireAiUser(req, { feature: "compare", limit: 15, body });
+  if ("response" in gate) return gate.response;
 
   const client = new OpenAI({ apiKey, baseURL });
 
@@ -144,6 +150,14 @@ Rules:
         { role: "system", content: system },
         { role: "user", content: `Compare ${name1} (${country1}) vs ${name2} (${country2}) for an international student/immigrant.` },
       ],
+    });
+
+    // Book this call against the caller's daily budget. ai_usage_log is
+    // what the admin AI console reads and what the ceiling is computed from.
+    await gate.record({
+      model: aiConfig.ai_model,
+      input_tokens: msg.usage?.prompt_tokens ?? 0,
+      output_tokens: msg.usage?.completion_tokens ?? 0,
     });
 
     const raw = msg.choices[0]?.message?.content?.trim() || "";

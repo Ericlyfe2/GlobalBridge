@@ -130,7 +130,10 @@
     "signIn": "Giriş Yap",
     "getStarted": "Başlayın",
     "openMenu": "Menüyü aç",
-    "closeMenu": "Menüyü kapat"
+    "closeMenu": "Menüyü kapat",
+    "more": "Daha fazla",
+    "primary": "Ana menü",
+    "visaRoadmap": "Vize yol haritası"
   },
   "tools": {
     "countryCompare": {
@@ -867,5 +870,12 @@
   "error": {
     "title": "Sorry — this page misbehaved.",
     "description": "Don't worry, your data is safe. Try the retry button. If it keeps failing, ping us via Help."
+  },
+  "pwa": {
+    "install": "Yükle",
+    "notNow": "Şimdi değil",
+    "offlineBadge": "Çevrimdışı",
+    "offlineTitle": "Çevrimdışısınız",
+    "reconnecting": "Yeniden bağlanılıyor…"
   }
 }

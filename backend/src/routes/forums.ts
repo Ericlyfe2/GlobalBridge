@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query, queryOne } from "../db";
 import { requireAuth } from "../middleware/auth";
-import { sanitizeAllStrings, escapeLike } from "../lib/sanitize";
+import { escapeLike } from "../lib/sanitize";
 
 export const forumsRouter = Router();
 
@@ -67,8 +67,7 @@ const postSchema = z.object({
 
 forumsRouter.post("/posts", requireAuth, async (req, res, next) => {
   try {
-    const b = postSchema.parse(req.body);
-    const safe = sanitizeAllStrings(b);
+    const safe = postSchema.parse(req.body);
     const post = await queryOne(
       `INSERT INTO forum_posts (category_id, author_id, title, body, tags)
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
@@ -81,8 +80,7 @@ forumsRouter.post("/posts", requireAuth, async (req, res, next) => {
 
 forumsRouter.post("/posts/:id/replies", requireAuth, async (req, res, next) => {
   try {
-    const parsed = z.object({ body: z.string().min(2).max(5000) }).parse(req.body);
-    const safe = sanitizeAllStrings(parsed);
+    const safe = z.object({ body: z.string().min(2).max(5000) }).parse(req.body);
     const reply = await queryOne(
       `INSERT INTO forum_replies (post_id, author_id, body) VALUES ($1,$2,$3) RETURNING *`,
       [req.params.id, req.user!.sub, safe.body]
@@ -91,5 +89,80 @@ forumsRouter.post("/posts/:id/replies", requireAuth, async (req, res, next) => {
       req.params.id,
     ]);
     res.status(201).json({ reply });
+  } catch (err) { next(err); }
+});
+
+// ── Voting (GB-18) ──────────────────────────────────────────────────────────
+// The up/down controls in the thread view rendered with hover states and no
+// onClick, and no endpoint existed behind them. A control that looks
+// interactive and does nothing is worse than no control.
+
+const voteSchema = z.object({
+  target_type: z.enum(["post", "reply"]),
+  value: z.union([z.literal(1), z.literal(-1), z.literal(0)]),
+});
+
+const VOTE_TABLE = { post: "forum_posts", reply: "forum_replies" } as const;
+
+/**
+ * Cast, change, or clear a vote.
+ *
+ * value 0 clears. The stored tally is recomputed from forum_votes rather than
+ * incremented, so it cannot drift from the rows that justify it — which is how
+ * the existing counters would have gone wrong under any retry or double-click.
+ */
+forumsRouter.post("/vote/:id", requireAuth, async (req, res, next) => {
+  try {
+    const b = voteSchema.parse(req.body);
+    const table = VOTE_TABLE[b.target_type];
+
+    const exists = await queryOne<{ id: string }>(
+      `SELECT id FROM ${table} WHERE id = $1`, [req.params.id]
+    );
+    if (!exists) return res.status(404).json({ error: "Not found" });
+
+    if (b.value === 0) {
+      await query(
+        `DELETE FROM forum_votes WHERE user_id = $1 AND target_type = $2 AND target_id = $3`,
+        [req.user!.sub, b.target_type, req.params.id]
+      );
+    } else {
+      // One row per voter per target: voting twice is idempotent, and flipping
+      // direction replaces rather than stacks.
+      await query(
+        `INSERT INTO forum_votes (user_id, target_type, target_id, value)
+         VALUES ($1,$2,$3,$4)
+         ON CONFLICT (user_id, target_type, target_id) DO UPDATE SET value = EXCLUDED.value`,
+        [req.user!.sub, b.target_type, req.params.id, b.value]
+      );
+    }
+
+    const tally = await queryOne<{ score: number }>(
+      `UPDATE ${table} SET upvotes = COALESCE((
+         SELECT SUM(value)::int FROM forum_votes
+          WHERE target_type = $2 AND target_id = $1
+       ), 0)
+       WHERE id = $1 RETURNING upvotes AS score`,
+      [req.params.id, b.target_type]
+    );
+
+    res.json({ score: tally?.score ?? 0, my_vote: b.value });
+  } catch (err) { next(err); }
+});
+
+/** The caller's own votes in a thread, so the UI can show which way they voted. */
+forumsRouter.get("/posts/:id/my-votes", requireAuth, async (req, res, next) => {
+  try {
+    const votes = await query<{ target_type: string; target_id: string; value: number }>(
+      `SELECT v.target_type, v.target_id, v.value
+         FROM forum_votes v
+        WHERE v.user_id = $1
+          AND (
+            (v.target_type = 'post'  AND v.target_id = $2)
+            OR (v.target_type = 'reply' AND v.target_id IN (SELECT id FROM forum_replies WHERE post_id = $2))
+          )`,
+      [req.user!.sub, req.params.id]
+    );
+    res.json({ votes });
   } catch (err) { next(err); }
 });

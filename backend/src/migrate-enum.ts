@@ -4,13 +4,14 @@ import { Pool } from "pg";
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 async function migrate() {
-  try {
-    await pool.query(`ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'super_admin' BEFORE 'admin'`);
-    console.log("Enum migration applied successfully");
-  } catch (e) {
-    console.log("Migration result:", (e as Error).message);
-  }
+  await pool.query(`ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'super_admin' BEFORE 'admin'`);
+  console.log("Enum migration applied successfully");
   await pool.end();
 }
 
-migrate();
+migrate().catch(async (e) => {
+  // Non-zero exit: CI and deploy pipelines must be able to see this fail.
+  console.error("❌ Migration failed:", e instanceof Error ? e.message : e);
+  await pool.end();
+  process.exit(1);
+});

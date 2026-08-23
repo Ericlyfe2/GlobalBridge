@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { rateLimit, clientIp, tooMany } from "@/lib/rate-limit";
+import { requireAiUser, tooLarge, totalChars } from "@/lib/ai-auth";
 import { extractJson, normalize, mockFallback, type ScamResult } from "./logic";
 import { getAiConfig } from "@/lib/aiConfig";
 
@@ -74,6 +74,7 @@ export async function POST(req: Request) {
         score: 50, verdict: "Be cautious" as const,
         summary: "Scam Shield has been turned off by an admin — we can't analyze this right now.",
         flags: [], advice: ["Use your own judgement and the safety tips on the Scam Alerts page."],
+        engine: "disabled" as const,
         disabled: true,
       },
       { status: 200 },
@@ -81,12 +82,12 @@ export async function POST(req: Request) {
   }
 
   if (!apiKey) {
-    return Response.json(mockFallback(text), { status: 200 });
+    return Response.json({ ...mockFallback(text), engine: "heuristic" as const }, { status: 200 });
   }
 
-  // Cost-drain guard: 10 scam checks / minute / IP.
-  const rl = rateLimit(`scam-check:${clientIp(req)}`, 10, 60_000);
-  if (!rl.ok) return tooMany(rl.retryAfter);
+  // Authenticated + per-user rate limited: this call spends OpenAI credits.
+  const gate = await requireAiUser(req, { feature: "scam-check", limit: 10, body });
+  if ("response" in gate) return gate.response;
 
   const client = new OpenAI({ apiKey, baseURL });
 
@@ -103,15 +104,24 @@ export async function POST(req: Request) {
       ],
     });
 
+    // Book this call against the caller's daily budget. ai_usage_log is
+    // what the admin AI console reads and what the ceiling is computed from.
+    await gate.record({
+      model: aiConfig.ai_model,
+      input_tokens: completion.usage?.prompt_tokens ?? 0,
+      output_tokens: completion.usage?.completion_tokens ?? 0,
+    });
+
     const raw = completion.choices[0]?.message?.content?.trim() || "";
     const json = extractJson(raw) as ScamResult | null;
     if (!json || typeof json.score !== "number") {
       console.error("[/api/ai/scam-check] non-JSON response:", raw.slice(0, 200));
-      return Response.json(mockFallback(text), { status: 200 });
+      return Response.json({ ...mockFallback(text), engine: "heuristic" as const }, { status: 200 });
     }
 
     return Response.json({
       ...normalize(json),
+      engine: "ai" as const,
       usage: {
         input_tokens: completion.usage?.prompt_tokens ?? 0,
         output_tokens: completion.usage?.completion_tokens ?? 0,
@@ -120,6 +130,6 @@ export async function POST(req: Request) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     console.error("[/api/ai/scam-check] OpenAI error:", msg);
-    return Response.json(mockFallback(text), { status: 200 });
+    return Response.json({ ...mockFallback(text), engine: "heuristic" as const }, { status: 200 });
   }
 }

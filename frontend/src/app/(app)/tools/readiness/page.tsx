@@ -5,6 +5,7 @@ import {
   Gauge, Loader2, Bot, FileCheck, Wallet, Home, Briefcase, Users, ArrowRight, Sparkles,
 } from "lucide-react";
 import Link from "next/link";
+import { authFetch } from "@/lib/auth";
 
 type PillarKey = "documents" | "finances" | "housing" | "job" | "community";
 type Action = { title: string; detail: string; pillar: PillarKey };
@@ -42,7 +43,7 @@ export default function ReadinessPage() {
     setResult(null);
     setError(null);
     try {
-      const res = await fetch("/api/ai/readiness", {
+      const res = await authFetch("/api/ai/readiness", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pillars: scores }),

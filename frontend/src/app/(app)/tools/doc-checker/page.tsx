@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   FileCheck, Upload, AlertTriangle, CheckCircle2, X, Loader2, FileText, ShieldCheck, Bot,
 } from "lucide-react";
+import { authFetch } from "@/lib/auth";
 
 type Severity = "ok" | "warn" | "fail";
 
@@ -46,7 +47,7 @@ export default function DocCheckerPage() {
     setError(null);
 
     try {
-      const res = await fetch("/api/ai/doc-check", {
+      const res = await authFetch("/api/ai/doc-check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

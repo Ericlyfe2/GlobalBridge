@@ -65,6 +65,9 @@ describe("POST /register-profile", () => {
       id: "uuid-1", email: "user@example.com", full_name: "Alice Smith",
       role: "mentor", country_of_origin: "NG", trust_score: 0,
     };
+    // Two queries now: the profile_completed_at lookup that makes this a
+    // one-shot (GB-06), then the upsert.
+    queryOne.mockResolvedValueOnce({ id: "uuid-1", role: "student", profile_completed_at: null });
     queryOne.mockResolvedValueOnce(row); // the INSERT ... RETURNING
 
     const req: Partial<Request> = {
@@ -75,7 +78,8 @@ describe("POST /register-profile", () => {
     const res = await callRoute("post", "/register-profile", req);
 
     expect(res._status).toBe(201);
-    expect(queryOne).toHaveBeenCalledOnce();
+    expect(queryOne).toHaveBeenCalledTimes(2);
+    expect(String(queryOne.mock.calls[1][0])).toContain("INSERT INTO users");
     expect(setCustomUserClaims).toHaveBeenCalledWith("fb-1", { role: "mentor" });
     expect(res._json).toMatchObject({ user: { id: "uuid-1", role: "mentor" } });
   });

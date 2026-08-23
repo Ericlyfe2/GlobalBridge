@@ -10,10 +10,18 @@ const envSchema = z.object({
   FIREBASE_PROJECT_ID: z.string().min(1, "FIREBASE_PROJECT_ID is required"),
   FIREBASE_CLIENT_EMAIL: z.string().email("FIREBASE_CLIENT_EMAIL must be a valid email"),
   FIREBASE_PRIVATE_KEY: z.string().min(1, "FIREBASE_PRIVATE_KEY is required"),
-  AI_SERVICE_URL: z.string().url().default("http://localhost:8000"),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_BASE_URL: z.string().url().optional(),
   CORS_ORIGIN: z.string().default("http://localhost:3000"),
+  // File storage. Absent S3_BUCKET the API falls back to the container
+  // filesystem, which lib/storage.ts refuses to do in production because that
+  // filesystem is destroyed on every deploy.
+  S3_BUCKET: z.string().optional(),
+  S3_REGION: z.string().optional(),
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
+  S3_ENDPOINT: z.string().url().optional(),
+  STORAGE_ALLOW_EPHEMERAL: z.string().optional(),
   // Legacy JWT secret for WebSocket — must be strong in production
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters").default("change-me-in-production-use-long-random-string"),
 });

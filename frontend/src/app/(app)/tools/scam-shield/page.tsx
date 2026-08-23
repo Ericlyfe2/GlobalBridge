@@ -15,6 +15,12 @@ type ScamResult = {
   summary: string;
   flags: ScamFlag[];
   advice: string[];
+  /**
+   * Which engine produced this verdict (GB-14). The heuristic fallback used to
+   * return the same shape as a real AI analysis with nothing to tell them
+   * apart, so a rule-based score looked like a model's judgement.
+   */
+  engine?: "ai" | "heuristic" | "disabled";
 };
 
 const kinds = [
@@ -49,7 +55,7 @@ export default function ScamShieldPage() {
     // Atlas visibly reads the listing while the check runs.
     emit("DOCUMENT_SCANNING");
     try {
-      const res = await fetch("/api/ai/scam-check", {
+      const res = await authFetch("/api/ai/scam-check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text, kind }),
@@ -108,7 +114,11 @@ export default function ScamShieldPage() {
         <div>
           <h1 className="text-3xl font-display font-semibold text-ink-900 flex items-center gap-2">
             AI Scam Shield
-            <span className="badge badge-clay text-[10px]"><Bot size={10} /> AI</span>
+            {result?.engine === "heuristic" ? (
+              <span className="badge !bg-cream-200 !text-ink-700 text-[10px]"><ShieldCheck size={10} /> Rule-based check</span>
+            ) : (
+              <span className="badge badge-clay text-[10px]"><Bot size={10} /> AI</span>
+            )}
           </h1>
           <p className="text-sm text-ink-600 mt-1">
             Paste a suspicious listing, job offer, or message. We spot the red flags newcomers get caught by — in seconds.
@@ -195,6 +205,21 @@ export default function ScamShieldPage() {
                 <div className="min-w-0">
                   <span className={`badge ${tone.badge}`}>{result.verdict}</span>
                   <p className="text-sm text-ink-700 mt-2 leading-relaxed">{result.summary}</p>
+                  {/* Provenance, stated where the verdict is read rather than
+                      buried in a header badge. A user acting on this deserves
+                      to know which engine judged their listing. */}
+                  {result.engine === "heuristic" && (
+                    <p className="text-xs text-ink-500 mt-2">
+                      Checked against known scam patterns, not by the AI model — the AI was
+                      unavailable. Treat this as a first pass, not a full analysis.
+                    </p>
+                  )}
+                  {result.engine === "ai" && (
+                    <p className="text-xs text-ink-500 mt-2">
+                      Analysed by AI. It can be wrong — verify anything involving money or
+                      documents against an official source.
+                    </p>
+                  )}
                 </div>
               </div>
 

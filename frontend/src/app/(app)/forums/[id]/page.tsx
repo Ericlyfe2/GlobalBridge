@@ -16,7 +16,7 @@ type Reply = {
 type Thread = {
   id: string; title: string; category: string;
   author: string; authorInitials: string; verified: boolean;
-  posted: string; views: number; upvotes: number; pinned?: boolean; hot?: boolean;
+  posted: string; upvotes: number; pinned?: boolean; hot?: boolean;
   body: string;
   replies: Reply[];
 };
@@ -55,10 +55,9 @@ function mapThread(post: RawPost): Thread {
     authorInitials: initialsOf(post.author_name),
     verified: post.author_role === "mentor" || post.author_role === "admin",
     posted: relativeTime(post.created_at),
-    views: post.upvotes * 30,
     upvotes: post.upvotes,
     pinned: /megathread/i.test(post.title),
-    hot: post.upvotes >= 80,
+    hot: post.upvotes >= 20,
     body: post.body,
     replies: [],
   };
@@ -87,6 +86,51 @@ export default function ForumThread({ params }: { params: Promise<{ id: string }
   const [posting, setPosting] = useState(false);
   const [postErr, setPostErr] = useState<string | null>(null);
   const [reportedIds, setReportedIds] = useState<Set<string>>(new Set());
+  // Which way this user voted on each target, so the control can show state and
+  // a second click can clear it (GB-18).
+  const [myVotes, setMyVotes] = useState<Record<string, number>>({});
+  const [votingId, setVotingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await authFetch(`/api/forums/posts/${id}/my-votes`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        const map: Record<string, number> = {};
+        for (const v of data.votes ?? []) map[v.target_id] = v.value;
+        setMyVotes(map);
+      } catch {
+        /* not signed in, or offline — the thread still reads fine */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [id]);
+
+  async function vote(targetType: "post" | "reply", targetId: string, value: 1 | -1 | 0) {
+    setVotingId(targetId);
+    const previous = myVotes[targetId] ?? 0;
+    setMyVotes((m) => ({ ...m, [targetId]: value }));   // optimistic
+    try {
+      const res = await authFetch(`/api/forums/vote/${targetId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_type: targetType, value }),
+      });
+      if (!res.ok) throw new Error("vote failed");
+      const data = await res.json();
+      // Take the server's tally rather than guessing locally.
+      if (targetType === "post") setT((cur) => (cur ? { ...cur, upvotes: data.score } : cur));
+      else setReplies((rs) => rs.map((r) => (r.id === targetId ? { ...r, upvotes: data.score } : r)));
+    } catch {
+      setMyVotes((m) => ({ ...m, [targetId]: previous }));   // roll back, say nothing was saved
+    } finally {
+      setVotingId(null);
+    }
+  }
+
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -182,7 +226,12 @@ export default function ForumThread({ params }: { params: Promise<{ id: string }
       {/* Thread header */}
       <article className="card">
         <div className="flex items-start gap-4">
-          <VoteColumn upvotes={t.upvotes} />
+          <VoteColumn
+            upvotes={t.upvotes}
+            myVote={myVotes[t.id] ?? 0}
+            busy={votingId === t.id}
+            onVote={(v) => vote("post", t.id, v)}
+          />
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center flex-wrap gap-2 mb-1">
@@ -199,7 +248,7 @@ export default function ForumThread({ params }: { params: Promise<{ id: string }
                   {t.author}
                   {t.verified && <ShieldCheck size={12} className="text-leaf-600" />}
                 </p>
-                <p className="text-xs text-ink-500">Posted {t.posted} · {t.views.toLocaleString()} views</p>
+                <p className="text-xs text-ink-500">Posted {t.posted}</p>
               </div>
             </div>
 
@@ -227,7 +276,13 @@ export default function ForumThread({ params }: { params: Promise<{ id: string }
           <li key={r.id}>
             <article className={`card ${r.trusted ? "border-leaf-300 dark:border-leaf-900/40" : ""}`}>
               <div className="flex items-start gap-3">
-                <VoteColumn upvotes={r.upvotes} compact />
+                <VoteColumn
+                  upvotes={r.upvotes}
+                  myVote={myVotes[r.id] ?? 0}
+                  busy={votingId === r.id}
+                  onVote={(v) => vote("reply", r.id, v)}
+                  compact
+                />
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -292,12 +347,54 @@ function Avatar({ initials }: { initials: string }) {
   );
 }
 
-function VoteColumn({ upvotes, compact = false }: { upvotes: number; compact?: boolean }) {
+/**
+ * Vote control (GB-18).
+ *
+ * These buttons used to render with hover states, no onClick, and no endpoint
+ * behind them — a control that looked interactive and did nothing. Now each
+ * click persists, and clicking the direction you already chose clears the vote.
+ */
+function VoteColumn({
+  upvotes,
+  myVote,
+  onVote,
+  busy,
+  compact = false,
+}: {
+  upvotes: number;
+  myVote: number;
+  onVote: (value: 1 | -1 | 0) => void;
+  busy?: boolean;
+  compact?: boolean;
+}) {
+  const size = compact ? 12 : 14;
   return (
     <div className={`flex flex-col items-center text-xs text-ink-500 shrink-0 ${compact ? "w-8" : "w-10"}`}>
-      <button aria-label="Upvote" className="p-0.5 rounded hover:bg-cream-200 hover:text-clay-600"><ArrowUp size={compact ? 12 : 14} /></button>
-      <span className="font-semibold text-ink-900">{upvotes}</span>
-      <button aria-label="Downvote" className="p-0.5 rounded hover:bg-cream-200 hover:text-red-600"><ArrowDown size={compact ? 12 : 14} /></button>
+      <button
+        type="button"
+        aria-label={myVote === 1 ? "Remove your upvote" : "Upvote"}
+        aria-pressed={myVote === 1}
+        disabled={busy}
+        onClick={() => onVote(myVote === 1 ? 0 : 1)}
+        className={`p-0.5 rounded transition-colors disabled:opacity-40 ${
+          myVote === 1 ? "text-clay-600 bg-cream-200" : "hover:bg-cream-200 hover:text-clay-600"
+        }`}
+      >
+        <ArrowUp size={size} />
+      </button>
+      <span className="font-semibold text-ink-900 tabular-nums">{upvotes}</span>
+      <button
+        type="button"
+        aria-label={myVote === -1 ? "Remove your downvote" : "Downvote"}
+        aria-pressed={myVote === -1}
+        disabled={busy}
+        onClick={() => onVote(myVote === -1 ? 0 : -1)}
+        className={`p-0.5 rounded transition-colors disabled:opacity-40 ${
+          myVote === -1 ? "text-red-600 bg-cream-200" : "hover:bg-cream-200 hover:text-red-600"
+        }`}
+      >
+        <ArrowDown size={size} />
+      </button>
     </div>
   );
 }
