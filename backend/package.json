@@ -28,7 +28,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.1",
     "express-rate-limit": "^7.4.1",
-    "firebase-admin": "^13.10.0",
+    "firebase-admin": "^14.3.0",
     "helmet": "^8.0.0",
     "ioredis": "^5.4.1",
     "jsonwebtoken": "^9.0.2",
@@ -37,6 +37,9 @@
     "web-push": "^3.6.7",
     "ws": "^8.18.0",
     "zod": "^3.23.8"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
