@@ -1,4 +1,6 @@
-export { i18nMiddleware as default } from "@/i18n/middleware";
+import { i18nMiddleware } from "@/i18n/middleware";
+
+export default i18nMiddleware;
 
 export const config = {
   matcher: [

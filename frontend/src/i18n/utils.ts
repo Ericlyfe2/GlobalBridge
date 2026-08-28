@@ -38,26 +38,6 @@ export function saveLang(lang: Lang) {
   } catch {}
 }
 
-export function getCookieLang(): Lang | null {
-  if (typeof window === "undefined") {
-    try {
-      const { cookies } = require("next/headers");
-      const cookieStore = cookies();
-      const val = cookieStore.get(COOKIE_NAME)?.value as Lang | undefined;
-      if (val && SUPPORTED_LANGUAGES.some((l) => l.code === val)) return val;
-    } catch {}
-    return null;
-  }
-  try {
-    const match = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]*)`));
-    if (match) {
-      const val = match[1] as Lang;
-      if (SUPPORTED_LANGUAGES.some((l) => l.code === val)) return val;
-    }
-  } catch {}
-  return null;
-}
-
 export function detectLanguage(preferredFromProfile?: Lang): Lang {
   const profile = preferredFromProfile;
   if (profile) return profile;

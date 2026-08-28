@@ -133,11 +133,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  // ESLint is not yet configured in this project, so linting stays disabled during
-  // builds until an eslint config is added (tracked separately).
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 };
 
 export default nextConfig;
