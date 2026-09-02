@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import { chatComplete, isAiConfigured } from "@/lib/ai-client";
 import { requireAiUser, tooLarge, totalChars } from "@/lib/ai-auth";
 import { getAiConfig } from "@/lib/aiConfig";
 import {
@@ -37,8 +37,6 @@ type Body = {
 };
 
 export async function POST(req: Request) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  const baseURL = process.env.OPENAI_BASE_URL;
   const aiConfig = await getAiConfig();
 
   let body: Body;
@@ -51,7 +49,7 @@ export async function POST(req: Request) {
   const scores = normalizePillars(body?.pillars);
   const overall = Math.round(PILLARS.reduce((s, k) => s + scores[k], 0) / PILLARS.length);
 
-  if (!apiKey) {
+  if (!isAiConfigured()) {
     return Response.json(mockFallback(scores, overall), { status: 200 });
   }
 
@@ -59,12 +57,10 @@ export async function POST(req: Request) {
   const gate = await requireAiUser(req, { feature: "readiness", limit: 8, body });
   if ("response" in gate) return gate.response;
 
-  const client = new OpenAI({ apiKey, baseURL });
-
   try {
-    const completion = await client.chat.completions.create({
+    const completion = await chatComplete({
       model: aiConfig.ai_model,
-      max_tokens: 900,
+      maxTokens: 900,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         {
@@ -78,10 +74,10 @@ export async function POST(req: Request) {
     // what the admin AI console reads and what the ceiling is computed from.
     await gate.record({
       model: aiConfig.ai_model,
-      input_tokens: completion.usage?.prompt_tokens ?? 0,
-      output_tokens: completion.usage?.completion_tokens ?? 0,
+      input_tokens: completion.inputTokens,
+      output_tokens: completion.outputTokens,
     });
-    const raw = completion.choices[0]?.message?.content?.trim() || "";
+    const raw = completion.text;
     const json = extractJson(raw) as { actions?: Action[]; notes?: Record<string, string> } | null;
     if (!json || !Array.isArray(json.actions)) {
       console.error("[/api/ai/readiness] non-JSON response:", raw.slice(0, 200));
@@ -98,13 +94,13 @@ export async function POST(req: Request) {
       pillars,
       actions: json.actions.slice(0, 3),
       usage: {
-        input_tokens: completion.usage?.prompt_tokens ?? 0,
-        output_tokens: completion.usage?.completion_tokens ?? 0,
+        input_tokens: completion.inputTokens,
+        output_tokens: completion.outputTokens,
       },
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
-    console.error("[/api/ai/readiness] OpenAI error:", msg);
+    console.error("[/api/ai/readiness] AI provider error:", msg);
     return Response.json(mockFallback(scores, overall), { status: 200 });
   }
 }

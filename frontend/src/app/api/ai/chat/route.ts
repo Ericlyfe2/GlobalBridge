@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import { chatComplete, isAiConfigured } from "@/lib/ai-client";
 import { requireAiUser, tooLarge, totalChars, extractToken } from "@/lib/ai-auth";
 import { getAiConfig } from "@/lib/aiConfig";
 import { buildCitations } from "@/lib/citations";
@@ -135,14 +135,12 @@ async function saveMessage(token: string, conversationId: string, role: string, 
 }
 
 export async function POST(req: Request) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  const baseURL = process.env.OPENAI_BASE_URL;
   const aiConfig = await getAiConfig();
 
-  if (!apiKey) {
+  if (!isAiConfigured()) {
     return Response.json(
       {
-        reply: "AI is not configured yet. Ask the admin to add `OPENAI_API_KEY` to `frontend/.env.local` and restart the dev server.\n\nMeanwhile: you can still browse verified opportunities, check the document checklist, or read forum threads.",
+        reply: "AI is not configured yet. Ask the admin to add `GOOGLE_GENERATIVE_AI_API_KEY` to `frontend/.env.local` and restart the dev server.\n\nMeanwhile: you can still browse verified opportunities, check the document checklist, or read forum threads.",
         sources: [],
       },
       { status: 200 },
@@ -270,15 +268,13 @@ export async function POST(req: Request) {
   ];
 
   // =====================
-  // 5. Call OpenAI
+  // 5. Call the model
   // =====================
-  const client = new OpenAI({ apiKey, baseURL });
-
   try {
     const startTime = Date.now();
-    const completion = await client.chat.completions.create({
+    const completion = await chatComplete({
       model: aiConfig.ai_model,
-      max_tokens: 1024,
+      maxTokens: 1024,
       temperature: aiConfig.ai_temperature,
       messages: [
         { role: "system", content: systemContent },
@@ -287,7 +283,7 @@ export async function POST(req: Request) {
     });
     const responseTime = Date.now() - startTime;
 
-    const text = completion.choices[0]?.message?.content?.trim() || "";
+    const text = completion.text;
 
     // =====================
     // 6. Extract & structure sources
@@ -319,8 +315,8 @@ export async function POST(req: Request) {
     // =====================
     // 8. Return response
     // =====================
-    const inputTokens = completion.usage?.prompt_tokens ?? 0;
-    const outputTokens = completion.usage?.completion_tokens ?? 0;
+    const inputTokens = completion.inputTokens;
+    const outputTokens = completion.outputTokens;
 
     // Book this call against the caller's daily budget. ai_usage_log is what
     // the admin AI console reads and what the ceiling is computed from.
@@ -344,7 +340,7 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
-    console.error("[/api/ai/chat] OpenAI error:", msg);
+    console.error("[/api/ai/chat] AI provider error:", msg);
     return Response.json(
       {
         reply: "The AI assistant is temporarily unavailable — our AI provider is having an outage. Meanwhile you can browse verified Opportunities, check Housing listings, or post in Community. Please try again shortly.",

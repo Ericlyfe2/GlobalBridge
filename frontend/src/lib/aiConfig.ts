@@ -17,7 +17,7 @@ export type AiConfig = {
 };
 
 const DEFAULTS: AiConfig = {
-  ai_model: process.env.OPENAI_MODEL || "gpt-4o",
+  ai_model: process.env.GEMINI_MODEL || "gemini-3.5-flash",
   ai_temperature: 0.3,
   ai_system_prompt: "",
   ai_chat_enabled: true,

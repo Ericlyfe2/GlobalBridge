@@ -12,7 +12,7 @@ export const contentRouter = Router();
 // temperature/feature-toggles from platform_settings. None of these values
 // are secret — they're the same things shown in the admin Settings UI.
 const AI_DEFAULTS = {
-  ai_model: "gpt-4o",
+  ai_model: "gemini-3.5-flash",
   ai_temperature: 0.3,
   ai_system_prompt: "",
   ai_chat_enabled: true,

@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import { chatComplete, isAiConfigured } from "@/lib/ai-client";
 import { requireAiUser, tooLarge, totalChars } from "@/lib/ai-auth";
 import { getAiConfig } from "@/lib/aiConfig";
 
@@ -32,12 +32,10 @@ export async function POST(req: Request) {
     return Response.json({ translations: texts });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  const baseURL = process.env.OPENAI_BASE_URL;
   const aiConfig = await getAiConfig();
   // Graceful fallback: echo source (so UI still works without a key, or when
   // an admin has turned translation off)
-  if (!apiKey || !aiConfig.ai_translation_enabled) {
+  if (!isAiConfigured() || !aiConfig.ai_translation_enabled) {
     return Response.json({ translations: texts, note: "translation-disabled" });
   }
 
@@ -57,12 +55,11 @@ export async function POST(req: Request) {
   const langName = LANG_NAMES[target] ?? target;
 
   try {
-    const client = new OpenAI({ apiKey, baseURL });
     // Batch: number each string, ask for a JSON array back to preserve order + count.
     const numbered = texts.map((t, i) => `${i}: ${t}`).join("\n");
-    const msg = await client.chat.completions.create({
+    const msg = await chatComplete({
       model: aiConfig.ai_model,
-      max_tokens: 4096,
+      maxTokens: 4096,
       messages: [
         {
           role: "system",
@@ -78,11 +75,11 @@ export async function POST(req: Request) {
     // what the admin AI console reads and what the ceiling is computed from.
     await gate.record({
       model: aiConfig.ai_model,
-      input_tokens: msg.usage?.prompt_tokens ?? 0,
-      output_tokens: msg.usage?.completion_tokens ?? 0,
+      input_tokens: msg.inputTokens,
+      output_tokens: msg.outputTokens,
     });
 
-    const raw = msg.choices[0]?.message?.content?.trim() || "[]";
+    const raw = msg.text || "[]";
     // Strip markdown fences if present
     const jsonStr = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
     let translations: string[];

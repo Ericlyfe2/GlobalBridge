@@ -50,7 +50,7 @@ export function extractJson(text: string): unknown | null {
 }
 
 /**
- * Heuristic fallback used when there is no OPENAI_API_KEY or the API fails.
+ * Heuristic fallback used when there is no GOOGLE_GENERATIVE_AI_API_KEY or the API fails.
  * Scans for well-known scam signals so the demo is meaningful even offline.
  */
 export function mockFallback(text: string): ScamResult {

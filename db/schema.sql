@@ -623,7 +623,7 @@ INSERT INTO platform_settings (key, value) VALUES
     ('ai_doc_check_enabled', 'true'),
     ('ai_scam_detection_enabled', 'true'),
     ('ai_translation_enabled', 'true'),
-    ('ai_model', '"claude-haiku-4-5"'),
+    ('ai_model', '"gemini-3.5-flash"'),
     ('ai_temperature', '0.3'),
     ('ai_escalation_threshold', '0.6'),
     ('ai_system_prompt', '"You are GlobalBridge''s immigration assistant. Always cite the official government source URL when you quote a rule. If you are not 100% sure, say so and escalate to a verified human mentor. Never give legal advice. Be concise — short sentences, numbered steps."'),

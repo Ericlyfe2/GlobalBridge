@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import { chatComplete, isAiConfigured } from "@/lib/ai-client";
 import { requireAiUser, tooLarge, totalChars } from "@/lib/ai-auth";
 import { extractJson, mockFallback, type Roadmap } from "./logic";
 import { getAiConfig } from "@/lib/aiConfig";
@@ -40,8 +40,6 @@ move all the way to arrival and settling in.
 type Body = { origin?: string; destination?: string; purpose?: string };
 
 export async function POST(req: Request) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  const baseURL = process.env.OPENAI_BASE_URL;
   const aiConfig = await getAiConfig();
 
   let body: Body;
@@ -57,7 +55,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "origin and destination required" }, { status: 400 });
   }
 
-  if (!apiKey) {
+  if (!isAiConfigured()) {
     return Response.json(mockFallback(origin, destination, purpose), { status: 200 });
   }
 
@@ -68,12 +66,10 @@ export async function POST(req: Request) {
   const gate = await requireAiUser(req, { feature: "visa-roadmap", limit: 8, body });
   if ("response" in gate) return gate.response;
 
-  const client = new OpenAI({ apiKey, baseURL });
-
   try {
-    const completion = await client.chat.completions.create({
+    const completion = await chatComplete({
       model: aiConfig.ai_model,
-      max_tokens: 1600,
+      maxTokens: 1600,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         {
@@ -87,10 +83,10 @@ export async function POST(req: Request) {
     // what the admin AI console reads and what the ceiling is computed from.
     await gate.record({
       model: aiConfig.ai_model,
-      input_tokens: completion.usage?.prompt_tokens ?? 0,
-      output_tokens: completion.usage?.completion_tokens ?? 0,
+      input_tokens: completion.inputTokens,
+      output_tokens: completion.outputTokens,
     });
-    const raw = completion.choices[0]?.message?.content?.trim() || "";
+    const raw = completion.text;
     const json = extractJson(raw) as Roadmap | null;
     if (!json || !Array.isArray(json.phases) || json.phases.length === 0) {
       console.error("[/api/ai/visa-roadmap] non-JSON response:", raw.slice(0, 200));
@@ -99,13 +95,13 @@ export async function POST(req: Request) {
     return Response.json({
       ...json,
       usage: {
-        input_tokens: completion.usage?.prompt_tokens ?? 0,
-        output_tokens: completion.usage?.completion_tokens ?? 0,
+        input_tokens: completion.inputTokens,
+        output_tokens: completion.outputTokens,
       },
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
-    console.error("[/api/ai/visa-roadmap] OpenAI error:", msg);
+    console.error("[/api/ai/visa-roadmap] AI provider error:", msg);
     return Response.json(mockFallback(origin, destination, purpose), { status: 200 });
   }
 }

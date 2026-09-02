@@ -12,20 +12,17 @@
  *     day. Nothing capped cost.
  *
  * These tests drive the real scam-check route handler with a verified user and
- * a stubbed OpenAI client.
+ * a stubbed AI SDK generateText call.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-const chatCreate = vi.fn();
-vi.mock("openai", () => ({
-  default: class {
-    chat = { completions: { create: (...a: unknown[]) => chatCreate(...a) } };
-  },
-}));
+const generateTextMock = vi.fn();
+vi.mock("ai", () => ({ generateText: (...a: unknown[]) => generateTextMock(...a) }));
+vi.mock("@ai-sdk/google", () => ({ google: (model: string) => ({ modelId: model }) }));
 vi.mock("@/lib/aiConfig", () => ({
   getAiConfig: async () => ({
-    ai_model: "gpt-4o-mini",
+    ai_model: "gemini-3.5-flash-lite",
     ai_temperature: 0.3,
     ai_system_prompt: "",
     ai_chat_enabled: true,
@@ -93,17 +90,17 @@ beforeEach(() => {
   vi.resetModules();
   recorded = [];
   spentUsd = 0;
-  process.env.OPENAI_API_KEY = "sk-test";
-  chatCreate.mockResolvedValue({
-    choices: [{ message: { content: JSON.stringify({ score: 90, verdict: "High scam risk", summary: "s", flags: [], advice: ["a"] }) } }],
-    usage: { prompt_tokens: 1200, completion_tokens: 800 },
+  process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
+  generateTextMock.mockResolvedValue({
+    text: JSON.stringify({ score: 90, verdict: "High scam risk", summary: "s", flags: [], advice: ["a"] }),
+    usage: { inputTokens: 1200, outputTokens: 800 },
   });
   installFetch();
 });
 
 afterEach(() => {
   vi.unstubAllGlobals();
-  delete process.env.OPENAI_API_KEY;
+  delete process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 });
 
 describe("per-user daily AI spend ceiling", () => {
@@ -115,7 +112,7 @@ describe("per-user daily AI spend ceiling", () => {
     expect(usageWrites, "a completed AI call must be written to ai_usage_log").toHaveLength(1);
     expect(usageWrites[0].body).toMatchObject({
       feature: "scam-check",
-      model: "gpt-4o-mini",
+      model: "gemini-3.5-flash-lite",
       input_tokens: 1200,
       output_tokens: 800,
     });
@@ -125,7 +122,7 @@ describe("per-user daily AI spend ceiling", () => {
     await callScamCheck();
     const checkIdx = recorded.findIndex((r) => r.url.includes("/api/ai/usage/today"));
     expect(checkIdx, "the ceiling must be read before the model is called").toBeGreaterThanOrEqual(0);
-    expect(chatCreate).toHaveBeenCalledTimes(1);
+    expect(generateTextMock).toHaveBeenCalledTimes(1);
   });
 
   it("returns 429 once the daily ceiling is reached, without calling the model", async () => {
@@ -133,7 +130,7 @@ describe("per-user daily AI spend ceiling", () => {
     const res = await callScamCheck();
 
     expect(res.status).toBe(429);
-    expect(chatCreate, "no model call may be made once the ceiling is hit").not.toHaveBeenCalled();
+    expect(generateTextMock, "no model call may be made once the ceiling is hit").not.toHaveBeenCalled();
     // The response has to tell the user what happened and when it clears —
     // a bare 429 is indistinguishable from the per-minute burst limit.
     const body = await res.json();

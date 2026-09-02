@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import { chatComplete, isAiConfigured } from "@/lib/ai-client";
 import { requireAiUser, tooLarge, totalChars } from "@/lib/ai-auth";
 import { getAiConfig } from "@/lib/aiConfig";
 
@@ -38,12 +38,10 @@ type ComparisonResult = {
 };
 
 export async function POST(req: Request) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  const baseURL = process.env.OPENAI_BASE_URL;
   const aiConfig = await getAiConfig();
-  if (!apiKey) {
+  if (!isAiConfigured()) {
     return Response.json(
-      { error: "AI comparison is not configured yet. Add OPENAI_API_KEY to .env.local" },
+      { error: "AI comparison is not configured yet. Add GOOGLE_GENERATIVE_AI_API_KEY to .env.local" },
       { status: 503 },
     );
   }
@@ -69,8 +67,6 @@ export async function POST(req: Request) {
   // Authenticated + per-user rate limited: this call spends OpenAI credits.
   const gate = await requireAiUser(req, { feature: "compare", limit: 15, body });
   if ("response" in gate) return gate.response;
-
-  const client = new OpenAI({ apiKey, baseURL });
 
   const langInstruction =
     lang !== "en"
@@ -143,9 +139,9 @@ Rules:
 - icons must be one of: dollar, passport, briefcase, home, graduation, heart, shield, bank.${langInstruction}`;
 
   try {
-    const msg = await client.chat.completions.create({
+    const msg = await chatComplete({
       model: aiConfig.ai_model,
-      max_tokens: 2048,
+      maxTokens: 2048,
       messages: [
         { role: "system", content: system },
         { role: "user", content: `Compare ${name1} (${country1}) vs ${name2} (${country2}) for an international student/immigrant.` },
@@ -156,11 +152,11 @@ Rules:
     // what the admin AI console reads and what the ceiling is computed from.
     await gate.record({
       model: aiConfig.ai_model,
-      input_tokens: msg.usage?.prompt_tokens ?? 0,
-      output_tokens: msg.usage?.completion_tokens ?? 0,
+      input_tokens: msg.inputTokens,
+      output_tokens: msg.outputTokens,
     });
 
-    const raw = msg.choices[0]?.message?.content?.trim() || "";
+    const raw = msg.text;
     const jsonStr = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
 
     let result: ComparisonResult;
@@ -191,7 +187,7 @@ Rules:
     });
   } catch (err) {
     const msgError = err instanceof Error ? err.message : "Unknown error";
-    console.error("[/api/ai/compare-countries] OpenAI error:", msgError);
+    console.error("[/api/ai/compare-countries] AI provider error:", msgError);
     return Response.json(
       {
         categories: [],
