@@ -26,9 +26,16 @@ export async function chatComplete(params: {
   maxTokens: number;
   temperature?: number;
 }): Promise<ChatCompleteResult> {
+  // generateText rejects a "system" role inside messages[] ("Use the
+  // instructions option instead") — every call site here builds its
+  // messages as [{role: "system", ...}, ...rest], so pull that out.
+  const systemParts = params.messages.filter((m) => m.role === "system").map((m) => m.content);
+  const rest = params.messages.filter((m) => m.role !== "system");
+
   const { text, usage } = await generateText({
     model: google(params.model),
-    messages: params.messages,
+    ...(systemParts.length > 0 ? { instructions: systemParts.join("\n\n") } : {}),
+    messages: rest,
     maxOutputTokens: params.maxTokens,
     ...(params.temperature !== undefined ? { temperature: params.temperature } : {}),
   });
