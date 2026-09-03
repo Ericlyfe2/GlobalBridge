@@ -215,8 +215,12 @@ export async function register(payload: {
 }) {
   try {
     const cred = await createUserWithEmailAndPassword(auth, payload.email, payload.password);
-    await updateProfile(cred.user, { displayName: payload.full_name });
-    const token = await cred.user.getIdToken(true);
+    // Neither call depends on the other's result, so run them concurrently
+    // instead of stacking two Firebase round trips back to back.
+    const [, token] = await Promise.all([
+      updateProfile(cred.user, { displayName: payload.full_name }),
+      cred.user.getIdToken(),
+    ]);
 
     const res = await fetch("/api/auth/register-profile", {
       method: "POST",
@@ -233,7 +237,16 @@ export async function register(payload: {
       throw new Error(data.error || "Failed to create profile");
     }
 
-    await syncProfile(cred.user.uid, token, { email: payload.email, full_name: payload.full_name });
+    // register-profile already returns the freshly-created row in the same
+    // shape /api/auth/me does (PROFILE_COLUMNS on both) — use it directly
+    // instead of a second round trip that would just re-fetch the same row.
+    const { user } = await res.json() as { user: Partial<SessionUser> & { full_name?: string; role?: SessionUser["role"] } };
+    setSession(token, {
+      id: user.id ?? cred.user.uid,
+      email: user.email ?? payload.email,
+      full_name: user.full_name ?? payload.full_name,
+      role: user.role ?? payload.role,
+    });
   } catch (err) {
     throw friendlyError(err);
   }
