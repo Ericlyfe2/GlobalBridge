@@ -32,7 +32,6 @@ function AuthContent() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [role, setRole] = useState<"student" | "mentor" | "employer">("student");
-  const [signinRole, setSigninRole] = useState<"student" | "mentor" | "employer" | null>(null);
   const [origin, setOrigin] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
@@ -56,11 +55,11 @@ function AuthContent() {
       } else {
         await login(email, password);
       }
-      // After auth, get the actual role from the stored user session
+      // Route by the role the account actually has, not one picked at the
+      // login form — that's the whole point of accounts having a role.
       const { getUser: getStoredUser } = await import("@/lib/auth");
       const storedUser = getStoredUser();
-      const actualRole = storedUser?.role || (mode === "signup" ? role : signinRole) || "student";
-      router.push(roleHome(actualRole));
+      router.push(roleHome(storedUser?.role ?? "student"));
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"));
@@ -103,6 +102,9 @@ function AuthContent() {
   ];
 
   const isSignup = mode === "signup";
+  // Hiring managers aren't on the same journey as a student picking a visa
+  // pathway — the pitch, not the data model, should say so.
+  const employerMode = isSignup && role === "employer";
 
   return (
     <div className="min-h-screen grid md:grid-cols-2 bg-white dark:bg-[var(--color-surface)] dark:bg-gray-950">
@@ -126,8 +128,8 @@ function AuthContent() {
             maskImage: "radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)",
           }}
         />
-        <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full bg-emerald-500/20 blur-3xl" />
-        <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl" />
+        <div aria-hidden className={`pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full blur-3xl ${employerMode ? "bg-amber-500/20" : "bg-emerald-500/20"}`} />
+        <div aria-hidden className={`pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full blur-3xl ${employerMode ? "bg-slate-400/20" : "bg-blue-500/20"}`} />
 
         <div className="relative z-10">
           <Link href="/" className="inline-flex items-center gap-2">
@@ -140,28 +142,32 @@ function AuthContent() {
 
         <div className="relative z-10 max-w-md">
           <h2 className="text-3xl font-bold leading-tight">
-            {t("auth.heroTitle")}
+            {employerMode ? "Hire the talent moving the world forward." : t("auth.heroTitle")}
           </h2>
           <p className="mt-4 text-white/70 leading-relaxed">
-            {t("auth.heroDescription")}
+            {employerMode
+              ? "Post roles and reach visa-ready candidates with verified credentials — no sifting through unverifiable resumes."
+              : t("auth.heroDescription")}
           </p>
 
           <dl className="mt-10 grid grid-cols-3 gap-4">
             {stats.map((s) => (
               <div key={s.label} className="rounded-xl border border-white/10 bg-white/5 px-3 py-4 backdrop-blur-sm">
-                <dt className="text-2xl font-bold text-emerald-400">{s.value}</dt>
+                <dt className={`text-2xl font-bold ${employerMode ? "text-amber-400" : "text-emerald-400"}`}>{s.value}</dt>
                 <dd className="mt-1 text-xs text-white/60">{s.label}</dd>
               </div>
             ))}
           </dl>
 
           <figure className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
-            <Quote size={18} className="text-emerald-400" />
+            <Quote size={18} className={employerMode ? "text-amber-400" : "text-emerald-400"} />
             <blockquote className="mt-2 text-sm text-white/85 leading-relaxed">
-              &ldquo;{t("auth.testimonial")}&rdquo;
+              &ldquo;{employerMode
+                ? "We had three sponsorship-ready engineers shortlisted within a month — all pre-verified before we scheduled a single call."
+                : t("auth.testimonial")}&rdquo;
             </blockquote>
             <figcaption className="mt-3 text-xs text-white/60">
-              {t("auth.testimonialAuthor")}
+              {employerMode ? "Talent Lead, remote-first startup" : t("auth.testimonialAuthor")}
             </figcaption>
           </figure>
         </div>
@@ -182,18 +188,18 @@ function AuthContent() {
           <Lightfall
             colors={["#14b8a6", "#5eead4", "#0d9488"]}
             backgroundColor="#0a2540"
-            speed={0.4}
-            streakCount={4}
-            streakWidth={0.8}
-            streakLength={1.2}
-            glow={0.9}
-            density={0.5}
-            twinkle={0.6}
+            speed={0.3}
+            streakCount={3}
+            streakWidth={0.7}
+            streakLength={1.1}
+            glow={0.4}
+            density={0.3}
+            twinkle={0.3}
             zoom={3}
-            backgroundGlow={0.35}
-            opacity={0.5}
+            backgroundGlow={0.12}
+            opacity={0.22}
             mouseInteraction
-            mouseStrength={0.4}
+            mouseStrength={0.2}
             mouseRadius={0.8}
           />
         </div>
@@ -212,14 +218,22 @@ function AuthContent() {
         <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-8 lg:px-10">
           <div className="w-full max-w-md">
             <div className="mb-8">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-clay-500/10 px-3 py-1 text-xs font-medium text-clay-700 dark:text-clay-400">
-                <ShieldCheck size={13} /> {isSignup ? t("auth.createFreeAccount") : t("auth.secureSignIn")}
-              </span>
+              {employerMode ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-500/10 px-3 py-1 text-xs font-medium text-slate-700 dark:text-slate-300">
+                  <Briefcase size={13} /> Employer account
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-clay-500/10 px-3 py-1 text-xs font-medium text-clay-700 dark:text-clay-400">
+                  <ShieldCheck size={13} /> {isSignup ? t("auth.createFreeAccount") : t("auth.secureSignIn")}
+                </span>
+              )}
               <h1 className="mt-4 text-3xl font-bold tracking-tight text-[#0A2540] dark:text-white">
                 {isSignup ? t("auth.createAccount") : t("auth.welcomeBack")}
               </h1>
               <p className="mt-2 text-sm text-ink-500 dark:text-gray-400">
-                {isSignup ? t("auth.signupSubtitle") : t("auth.signinSubtitle")}
+                {employerMode
+                  ? "Set up your hiring account and start reaching verified candidates in minutes."
+                  : isSignup ? t("auth.signupSubtitle") : t("auth.signinSubtitle")}
               </p>
             </div>
 
@@ -256,11 +270,13 @@ function AuthContent() {
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               {isSignup && (
                 <>
-                  <Field label={t("auth.fullName")} htmlFor="full-name" icon={User}>
+                  <Field label={employerMode ? "Your name" : t("auth.fullName")} htmlFor="full-name" icon={User}>
                     <input
                       id="full-name" type="text" required minLength={2}
                       value={fullName} onChange={(e) => setFullName(e.target.value)}
-                      className={inputCls} placeholder={t("auth.fullNamePlaceholder")} autoComplete="name"
+                      className={inputCls}
+                      placeholder={employerMode ? "e.g. Amara Chen" : t("auth.fullNamePlaceholder")}
+                      autoComplete="name"
                     />
                   </Field>
 
@@ -287,13 +303,20 @@ function AuthContent() {
                         );
                       })}
                     </div>
+                    {employerMode && (
+                      <p className="mt-2 text-xs text-ink-400 dark:text-gray-500">
+                        You&apos;ll add your company profile right after signing up.
+                      </p>
+                    )}
                   </fieldset>
 
-                  <Field label={t("auth.countryOfOrigin")} htmlFor="origin" icon={Globe}>
+                  <Field label={employerMode ? "Where you're hiring from" : t("auth.countryOfOrigin")} htmlFor="origin" icon={Globe}>
                     <input
                       id="origin" type="text" required minLength={2}
                       value={origin} onChange={(e) => setOrigin(e.target.value)}
-                      className={inputCls} placeholder={t("auth.countryPlaceholder")} autoComplete="country-name"
+                      className={inputCls}
+                      placeholder={employerMode ? "e.g. United States" : t("auth.countryPlaceholder")}
+                      autoComplete="country-name"
                     />
                   </Field>
                 </>
@@ -306,33 +329,6 @@ function AuthContent() {
                   className={inputCls} placeholder={t("auth.emailPlaceholder")} autoComplete="email"
                 />
               </Field>
-
-              {!isSignup && (
-                <fieldset>
-                  <legend className="mb-1.5 block text-sm font-medium text-ink-700 dark:text-gray-300">
-                    I am a
-                  </legend>
-                  <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Account type">
-                    {roles.map((r) => {
-                      const selected = signinRole === r.value;
-                      return (
-                        <button
-                          type="button" key={r.value} role="radio" aria-checked={selected}
-                          onClick={() => setSigninRole(r.value)}
-                          className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 text-sm font-medium transition-all ${
-                            selected
-                              ? "border-clay-500 bg-clay-500/10 text-clay-700 dark:text-clay-400 ring-2 ring-clay-500/30"
-                              : "border-cream-200 dark:border-gray-700 text-ink-700 dark:text-gray-300 hover:border-clay-300 hover:bg-cream-50 dark:hover:bg-gray-800"
-                          }`}
-                        >
-                          <r.icon size={20} />
-                          {r.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </fieldset>
-              )}
 
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
