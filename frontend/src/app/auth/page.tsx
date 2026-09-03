@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import {
   ArrowRight, Mail, Lock, User, Globe, Eye, EyeOff, Loader2, Check, X,
   GraduationCap, Compass, Briefcase, ShieldCheck, Quote, BadgeCheck, Lock as LockIcon,
@@ -95,16 +95,101 @@ function AuthContent() {
     { value: "employer" as const, label: t("auth.roleEmployer"), icon: Briefcase },
   ];
 
-  const stats = [
-    { value: "120+", label: t("landing.statCountries") },
-    { value: "50k+", label: t("landing.statStudents") },
-    { value: "98%", label: t("landing.statVisaSuccess") },
-  ];
-
   const isSignup = mode === "signup";
   // Hiring managers aren't on the same journey as a student picking a visa
   // pathway — the pitch, not the data model, should say so.
   const employerMode = isSignup && role === "employer";
+  // Sign-in has no role picker (removed — it never actually controlled
+  // routing), so it always gets the student-flavoured pitch.
+  const activeRole = isSignup ? role : "student";
+
+  const ROLE_STATS: Record<typeof role, { value: string; label: string }[]> = {
+    student: [
+      { value: "120+", label: t("landing.statCountries") },
+      { value: "50k+", label: t("landing.statStudents") },
+      { value: "98%", label: t("landing.statVisaSuccess") },
+    ],
+    mentor: [
+      { value: "500+", label: "Active mentors" },
+      { value: "12k+", label: "Sessions completed" },
+      { value: "4.9★", label: "Average rating" },
+    ],
+    employer: [
+      { value: "300+", label: "Companies hiring" },
+      { value: "50k+", label: "Verified candidates" },
+      { value: "98%", label: "Visa-ready talent" },
+    ],
+  };
+  const stats = ROLE_STATS[activeRole];
+
+  const ROLE_TESTIMONIALS: Record<typeof role, { quote: string; author: string }[]> = {
+    student: [
+      {
+        quote: "GlobalBridge walked me through my entire student visa and helped me find safe housing before I even landed. It felt like having a guide in every country.",
+        author: "Ama O. — Student from Ghana 🇬🇭",
+      },
+      {
+        quote: "I compared three countries side by side before deciding — the comparison tool alone probably saved me a whole semester of confusion.",
+        author: "Daniel K. — Student from Nigeria 🇳🇬",
+      },
+      {
+        quote: "The document checker caught a name-format mismatch on my passport that would've gotten my application rejected. Small thing, huge relief.",
+        author: "Mei L. — Student from Vietnam 🇻🇳",
+      },
+    ],
+    mentor: [
+      {
+        quote: "Mentoring on GlobalBridge takes ten minutes to set up and the matching is genuinely good — I only get students I can actually help.",
+        author: "Kwame B. — Mentor since 2025",
+      },
+      {
+        quote: "I've guided six students through their visa process this year. The platform handles scheduling so I can focus on the actual advice.",
+        author: "Fatima R. — Immigration mentor",
+      },
+    ],
+    employer: [
+      {
+        quote: "We had three sponsorship-ready engineers shortlisted within a month — all pre-verified before we scheduled a single call.",
+        author: "Talent Lead, remote-first startup",
+      },
+      {
+        quote: "Every candidate came pre-verified with real transcripts and confirmed visa status. Cut our screening time in half.",
+        author: "Hiring Manager, mid-size tech company",
+      },
+    ],
+  };
+  const testimonials = ROLE_TESTIMONIALS[activeRole];
+
+  const [testimonialIdx, setTestimonialIdx] = useState(0);
+  const [testimonialVisible, setTestimonialVisible] = useState(true);
+
+  // Switching role should jump straight to that role's pitch, not linger on
+  // the outgoing one until the next rotation tick.
+  useEffect(() => {
+    setTestimonialIdx(0);
+    setTestimonialVisible(true);
+  }, [activeRole]);
+
+  // Rotates to a different (never the same twice in a row) testimonial from
+  // the active role's pool every few seconds, with a brief fade between them.
+  useEffect(() => {
+    if (testimonials.length <= 1) return;
+    const interval = setInterval(() => {
+      setTestimonialVisible(false);
+      setTimeout(() => {
+        setTestimonialIdx((prev) => {
+          if (testimonials.length <= 1) return prev;
+          let next = prev;
+          while (next === prev) next = Math.floor(Math.random() * testimonials.length);
+          return next;
+        });
+        setTestimonialVisible(true);
+      }, 300);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [testimonials.length, activeRole]);
+
+  const activeTestimonial = testimonials[testimonialIdx] ?? testimonials[0];
 
   return (
     <div className="min-h-screen grid md:grid-cols-2 bg-white dark:bg-[var(--color-surface)] dark:bg-gray-950">
@@ -153,21 +238,23 @@ function AuthContent() {
           <dl className="mt-10 grid grid-cols-3 gap-4">
             {stats.map((s) => (
               <div key={s.label} className="rounded-xl border border-white/10 bg-white/5 px-3 py-4 backdrop-blur-sm">
-                <dt className={`text-2xl font-bold ${employerMode ? "text-amber-400" : "text-emerald-400"}`}>{s.value}</dt>
+                <dt className={`text-2xl font-bold transition-colors ${employerMode ? "text-amber-400" : "text-emerald-400"}`}>{s.value}</dt>
                 <dd className="mt-1 text-xs text-white/60">{s.label}</dd>
               </div>
             ))}
           </dl>
 
-          <figure className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+          <figure
+            className={`mt-8 min-h-[148px] rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition-opacity duration-300 ${
+              testimonialVisible ? "opacity-100" : "opacity-0"
+            }`}
+          >
             <Quote size={18} className={employerMode ? "text-amber-400" : "text-emerald-400"} />
             <blockquote className="mt-2 text-sm text-white/85 leading-relaxed">
-              &ldquo;{employerMode
-                ? "We had three sponsorship-ready engineers shortlisted within a month — all pre-verified before we scheduled a single call."
-                : t("auth.testimonial")}&rdquo;
+              &ldquo;{activeTestimonial.quote}&rdquo;
             </blockquote>
             <figcaption className="mt-3 text-xs text-white/60">
-              {employerMode ? "Talent Lead, remote-first startup" : t("auth.testimonialAuthor")}
+              {activeTestimonial.author}
             </figcaption>
           </figure>
         </div>
