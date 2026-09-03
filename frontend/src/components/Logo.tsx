@@ -44,7 +44,7 @@ export function Logo({ className = "" }: { className?: string }) {
           </defs>
         </svg>
       </div>
-      <span className="font-display text-xl font-semibold tracking-tight text-ink-900">
+      <span className="font-display text-lg sm:text-xl font-semibold tracking-tight text-ink-900 whitespace-nowrap">
         GlobalBridge
       </span>
     </div>
