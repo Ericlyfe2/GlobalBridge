@@ -61,7 +61,9 @@ const WS_ORIGIN = process.env.NEXT_PUBLIC_WS_URL ?? "";
 const CSP = [
   "default-src 'self'",
   // See the note above — inline scripts are required by the current bootstrap.
-  "script-src 'self' 'unsafe-inline'",
+  // apis.google.com is Firebase Auth's Google-sign-in popup helper (gapi) —
+  // without it, "Sign in with Google" loads a script the CSP then blocks.
+  "script-src 'self' 'unsafe-inline' https://apis.google.com",
   // Tailwind and the animation layer both set styles inline.
   "style-src 'self' 'unsafe-inline'",
   // next/font self-hosts at build time, so no external font origin is needed.
