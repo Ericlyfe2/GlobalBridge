@@ -71,7 +71,15 @@ function ProfileSection({ profile, setProfile }: { profile: Profile | null; setP
     try {
       const res = await authFetch("/api/users/me", {
         method: "PATCH",
-        body: JSON.stringify({ full_name: fullName, bio, country_of_residence: country, avatar_url: avatarUrl }),
+        // avatar_url is z.string().optional() server-side, which accepts a
+        // missing key but not an explicit null -- omit it entirely rather
+        // than send null for the (typical) user who has no avatar set.
+        body: JSON.stringify({
+          full_name: fullName,
+          bio,
+          country_of_residence: country,
+          ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Failed to save");
