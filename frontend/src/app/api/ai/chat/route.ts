@@ -274,7 +274,7 @@ export async function POST(req: Request) {
     const startTime = Date.now();
     const completion = await chatComplete({
       model: aiConfig.ai_model,
-      maxTokens: 1024,
+      maxTokens: 1536,
       temperature: aiConfig.ai_temperature,
       messages: [
         { role: "system", content: systemContent },

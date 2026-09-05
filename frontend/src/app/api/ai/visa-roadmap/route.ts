@@ -69,7 +69,7 @@ export async function POST(req: Request) {
   try {
     const completion = await chatComplete({
       model: aiConfig.ai_model,
-      maxTokens: 1600,
+      maxTokens: 2400,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         {
