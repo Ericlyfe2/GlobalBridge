@@ -36,7 +36,7 @@ I am applying to the MSc CS at University of Toronto because it offers world-cla
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ docType, target, essay }),
-      });
+      }, 30000); // model generation regularly exceeds the default 8s fetch timeout
       const data = await res.json();
       if (!res.ok || data?.error) {
         setError(data?.error || `Request failed (${res.status})`);

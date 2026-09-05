@@ -84,7 +84,7 @@ export default function AssistantPage() {
           conversation_id: conversationId,
           token,
         }),
-      });
+      }, 30000); // RAG retrieval + model generation regularly exceeds the default 8s fetch timeout
       const data = await res.json();
       if (data.conversation_id && !conversationId) {
         setConversationId(data.conversation_id);

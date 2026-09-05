@@ -56,7 +56,7 @@ export default function DocCheckerPage() {
           fileSize: file.size,
           notes,
         }),
-      });
+      }, 30000); // model generation regularly exceeds the default 8s fetch timeout
       const data = await res.json();
       if (!res.ok || data?.error) {
         setError(data?.error || `Request failed (${res.status})`);
