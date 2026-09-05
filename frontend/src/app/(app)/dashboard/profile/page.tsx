@@ -25,7 +25,8 @@ export default function ProfilePage() {
   const [bio, setBio] = useState("");
   const [languages, setLanguages] = useState("");
 
-  // Prefill from localStorage (set during register / onboarding)
+  // Prefill from localStorage first (set during register / onboarding) so the
+  // form isn't blank while the network request below is in flight.
   useEffect(() => {
     try {
       setFullName(localStorage.getItem("user-name") || "");
@@ -35,6 +36,29 @@ export default function ProfilePage() {
       setField(localStorage.getItem("user-field") || "");
       setAvatarUrl(localStorage.getItem("user-avatar"));
     } catch { /* ignore */ }
+  }, []);
+
+  // Then overwrite with the server's copy -- this page previously never
+  // fetched it at all, so bio (and everything else not separately mirrored
+  // to localStorage) always rendered blank even when correctly saved,
+  // making a successful save look broken the moment you left the page.
+  useEffect(() => {
+    if (!getToken()) return;
+    (async () => {
+      try {
+        const res = await authFetch("/api/auth/me");
+        if (!res.ok) return;
+        const data = await res.json();
+        const u = data.user;
+        if (!u) return;
+        if (u.full_name) setFullName(u.full_name);
+        if (u.email) setEmail(u.email);
+        if (u.country_of_origin) setOrigin(u.country_of_origin);
+        if (u.country_of_residence) setDestination(u.country_of_residence);
+        if (typeof u.bio === "string") setBio(u.bio);
+        if (u.avatar_url) setAvatarUrl(u.avatar_url);
+      } catch { /* localStorage prefill above still stands */ }
+    })();
   }, []);
 
   async function onAvatar(file: File | undefined) {
