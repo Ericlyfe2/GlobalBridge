@@ -140,7 +140,7 @@ export default function UniSuccessPage() {
         <div>
           <h1 className="text-3xl font-display font-semibold text-ink-900">University Success Dashboard</h1>
           <p className="text-sm text-ink-600 mt-0.5">
-            Real data from verified GlobalBridge community submissions. Visa approval, housing wait, employment, satisfaction.
+            Illustrative benchmarks — visa approval, housing wait, employment and satisfaction — for comparing destinations.
           </p>
         </div>
       </header>
@@ -181,7 +181,9 @@ export default function UniSuccessPage() {
       </div>
 
       <p className="text-xs text-ink-500 mt-6">
-        Data from verified GlobalBridge user submissions (last 24 months). Visa approval rates cross-checked with IRCC, UKVI, BAMF, USCIS where possible.
+        Sample figures shown to demonstrate the comparison model. They are not
+        survey results, and will be replaced by real community submissions once
+        enough graduates have reported their outcomes.
       </p>
     </div>
   );

@@ -102,21 +102,30 @@ export function subscribeIdTokenChanges() {
   });
 }
 
-const FETCH_TIMEOUT = 8000;
+// The backend sleeps when idle and its first request back measures ~8s, so an
+// 8s budget failed exactly the request most likely to be someone's first one.
+const FETCH_TIMEOUT = 20000;
 
 async function timedFetch(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = FETCH_TIMEOUT) {
   const ctrl = new AbortController();
   const id = setTimeout(() => ctrl.abort(), timeoutMs);
+  // Spreading init before the signal used to drop the caller's own signal, so
+  // every `authFetch(url, { signal })` unmount-cleanup silently did nothing.
+  const caller = init.signal;
+  const onCallerAbort = () => ctrl.abort(caller?.reason);
+  if (caller?.aborted) ctrl.abort(caller.reason);
+  else caller?.addEventListener("abort", onCallerAbort, { once: true });
   try {
     return await fetch(input, { ...init, signal: ctrl.signal });
   } finally {
     clearTimeout(id);
+    caller?.removeEventListener("abort", onCallerAbort);
   }
 }
 
 /**
  * Fetch wrapper that attaches a fresh Firebase ID token as Bearer.
- * `timeoutMs` defaults to 8s; pass a larger value for calls that may hit a
+ * `timeoutMs` defaults to 20s; pass a larger value for calls that may hit a
  * cold-starting backend (e.g. Render free tier wakes in ~50s).
  *
  * Retries once with a force-refreshed token on 401: a tab left backgrounded

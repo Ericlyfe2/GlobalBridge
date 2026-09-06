@@ -40,10 +40,18 @@ export default function ScholarshipMatcher() {
     return () => ctrl.abort();
   }, []);
 
+  // Built from the scholarships actually on the board. The old list was a
+  // fixed taxonomy ("STEM", "Business", ...) that no real field_of_study value
+  // contained, so every option but "Any" matched nothing.
+  const fieldOptions = useMemo(() => {
+    const seen = new Set((pool ?? []).map((s) => s.field_of_study).filter((f): f is string => !!f));
+    return [...seen].sort((a, b) => a.localeCompare(b));
+  }, [pool]);
+
   const matches = useMemo(() => {
     return (pool ?? []).filter((s) => {
       if (destination !== "any" && s.country !== COUNTRY_NAME[destination]) return false;
-      if (field !== "all" && !(s.field_of_study ?? "").toLowerCase().includes(field)) return false;
+      if (field !== "all" && s.field_of_study !== field) return false;
       if (q && !`${s.title} ${s.institution ?? ""}`.toLowerCase().includes(q.toLowerCase())) return false;
       return true;
     });
@@ -77,10 +85,7 @@ export default function ScholarshipMatcher() {
           <Field label="Field of study">
             <select value={field} onChange={(e) => setField(e.target.value)} className="input">
               <option value="all">Any</option>
-              <option value="stem">STEM</option>
-              <option value="engineering">Engineering</option>
-              <option value="business">Business</option>
-              <option value="arts">Arts &amp; Humanities</option>
+              {fieldOptions.map((f) => <option key={f} value={f}>{f}</option>)}
             </select>
           </Field>
 

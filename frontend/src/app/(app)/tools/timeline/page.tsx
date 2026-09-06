@@ -50,7 +50,10 @@ export default function TimelinePage() {
   }
 
   const items = useMemo(() => {
+    // Clearing the date input yields "", and the NaN that followed made
+    // target.toISOString() throw during render, blanking the whole page.
     const arrivalMs = new Date(arrival).getTime();
+    if (Number.isNaN(arrivalMs)) return [];
     return milestones.map((m) => {
       const target = new Date(arrivalMs - m.daysBefore * 86400000);
       const targetDate = target.toISOString().slice(0, 10);
@@ -116,6 +119,13 @@ export default function TimelinePage() {
         {/* Timeline */}
         <div className="lg:col-span-2 relative">
           <div className="absolute left-[19px] top-2 bottom-2 w-px bg-cream-200" />
+
+          {items.length === 0 && (
+            <div className="card text-center py-10 text-sm text-ink-500">
+              <Calendar size={20} className="mx-auto mb-2 opacity-50" />
+              Pick a target arrival date to build your timeline.
+            </div>
+          )}
 
           <ul className="space-y-3">
             {items.map((m) => {

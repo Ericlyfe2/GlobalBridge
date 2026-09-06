@@ -212,9 +212,18 @@ adminRouter.get("/users", requireAuth, requireAdmin(), async (req, res, next) =>
 
     if (role && role !== "all") { conditions.push(`u.role = $${idx++}`); params.push(role); }
     if (status && status !== "all") {
-      if (status === "suspended") conditions.push(`u.verification_status = 'rejected'`);
-      else if (status === "active") conditions.push(`u.verification_status = 'verified'`);
-      else conditions.push(`u.verification_status = $${idx++}`); params.push(status);
+      // The `else` was unbraced, so params.push(status) ran on all three
+      // branches. The two literal branches add no placeholder but still grew
+      // the params array, so ?status=suspended bound one parameter more than
+      // the statement declared and threw before returning any users.
+      if (status === "suspended") {
+        conditions.push(`u.verification_status = 'rejected'`);
+      } else if (status === "active") {
+        conditions.push(`u.verification_status = 'verified'`);
+      } else {
+        conditions.push(`u.verification_status = $${idx++}`);
+        params.push(status);
+      }
     }
     if (search) { conditions.push(`(u.full_name ILIKE $${idx} OR u.email ILIKE $${idx})`); params.push(`%${escapeLike(search)}%`); idx++; }
 

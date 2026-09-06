@@ -65,7 +65,12 @@ export default function AdminSettingsPage() {
         throw new Error(data?.error || `Request failed (${res.status})`);
       }
       const data = await res.json();
-      setSettings((data.settings ?? data) as PlatformSettings);
+      // The server returns only the rows that exist, so a database with no
+      // settings saved yet sends {} -- which replaced the defaults wholesale
+      // and left every field undefined, crashing the page on the first render
+      // that called a method on one (e.g. ai_temperature.toFixed).
+      const stored = (data.settings ?? data) as Partial<PlatformSettings>;
+      setSettings({ ...DEFAULT_SETTINGS, ...stored });
     } catch (e) {
       setFetchErr(e instanceof Error ? e.message : "Network error");
     } finally {

@@ -28,6 +28,9 @@ type MySubmission = {
   reviews_count: number; avg_score: string | null; created_at: string;
 };
 
+// Mirrors MIN_COMMENT_CHARS in backend/src/routes/peerReview.ts.
+const MIN_COMMENT_CHARS = 120;
+
 function hoursAgo(iso: string): number {
   return Math.round((Date.now() - new Date(iso).getTime()) / 3600000);
 }
@@ -171,6 +174,9 @@ function ReviewForm({ submission, onDone, onCancel }: { submission: QueueItem; o
   const [comments, setComments] = useState("");
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // The server rejects a review under this length. The field used to be
+  // labelled "optional", so the form invited exactly the input it refused.
+  const commentsLeft = Math.max(0, MIN_COMMENT_CHARS - comments.trim().length);
 
   async function submit() {
     setSending(true);
@@ -217,7 +223,12 @@ function ReviewForm({ submission, onDone, onCancel }: { submission: QueueItem; o
       </div>
 
       <label className="block mb-4">
-        <span className="block text-xs font-medium text-ink-600 mb-1.5">Comments (optional)</span>
+        <span className="flex items-center justify-between text-xs font-medium text-ink-600 mb-1.5">
+          <span>Comments</span>
+          <span className={commentsLeft > 0 ? "text-ink-400" : "text-leaf-600"}>
+            {commentsLeft > 0 ? `${commentsLeft} more characters` : "Long enough ✓"}
+          </span>
+        </span>
         <textarea value={comments} onChange={(e) => setComments(e.target.value)} className="input min-h-[80px]" placeholder="Specific, actionable feedback..." />
       </label>
 
@@ -225,7 +236,7 @@ function ReviewForm({ submission, onDone, onCancel }: { submission: QueueItem; o
 
       <div className="flex gap-2">
         <button onClick={onCancel} className="btn-ghost border border-cream-300 text-sm">Cancel</button>
-        <button onClick={submit} disabled={sending} className="btn-accent text-sm disabled:opacity-50">
+        <button onClick={submit} disabled={sending || commentsLeft > 0} className="btn-accent text-sm disabled:opacity-50">
           {sending ? <><Loader2 size={13} className="animate-spin" /> Submitting...</> : "Submit review"}
         </button>
       </div>
@@ -328,7 +339,7 @@ function SubmitView({ onSubmitted }: { onSubmitted: () => void }) {
 
       {err && <p className="text-sm text-red-600 mb-3">{err}</p>}
 
-      <button onClick={submit} disabled={!canSubmit || sending || body.trim().length < 50} className="btn-accent w-full disabled:opacity-50">
+      <button onClick={submit} disabled={!canSubmit || sending || body.trim().length < 50 || !target.trim()} className="btn-accent w-full disabled:opacity-50">
         {sending ? <><Loader2 size={13} className="animate-spin" /> Submitting...</> : <><Upload size={13} /> Submit for review</>} <ArrowRight size={13} />
       </button>
     </div>
