@@ -65,7 +65,12 @@ const CSP = [
   // without it, "Sign in with Google" loads a script the CSP then blocks.
   // vercel.live is Vercel's own live-feedback/toolbar widget, auto-injected
   // on Vercel-hosted deployments regardless of this app's own script tags.
-  "script-src 'self' 'unsafe-inline' https://apis.google.com https://vercel.live",
+  // 'unsafe-eval' is dev-only: React's dev-mode debugging (component stack
+  // reconstruction, Fast Refresh) calls eval(), which the same CSP shipped to
+  // production would rightly still block -- React never uses eval() in prod.
+  `script-src 'self' 'unsafe-inline' https://apis.google.com https://vercel.live${
+    process.env.NODE_ENV !== "production" ? " 'unsafe-eval'" : ""
+  }`,
   // Tailwind and the animation layer both set styles inline.
   "style-src 'self' 'unsafe-inline'",
   // next/font self-hosts at build time, so no external font origin is needed.
