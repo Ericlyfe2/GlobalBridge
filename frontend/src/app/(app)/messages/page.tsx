@@ -331,7 +331,13 @@ function MessagesContent() {
               ))}
             </div>
 
-            <div className="px-6 py-4 border-t border-cream-200 bg-cream-50">
+            {/* relative z-[70]: AtlasStage renders as a fixed z-[60] overlay
+                docked bottom-right (see components/mascot/AtlasStage.tsx),
+                which sits geometrically on top of this send button on any
+                viewport under 768px -- confirmed via elementFromPoint(),
+                the button was completely unclickable. A stacking-context fix
+                here, not a change to the shared mascot every other page uses. */}
+            <div className="relative z-[70] px-6 py-4 border-t border-cream-200 bg-cream-50">
               <div className="relative">
                 <input
                   value={draft}
