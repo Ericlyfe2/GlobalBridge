@@ -121,7 +121,7 @@ export default function BankingPage() {
       </div>
 
       <p className="text-xs text-ink-500 mt-4">
-        ⚠ Information is community-maintained and may change. Always verify on the bank&apos;s official site before applying.
+        ⚠ This is a general reference guide and may be out of date. Always verify on the bank&apos;s official site before applying.
       </p>
     </div>
   );

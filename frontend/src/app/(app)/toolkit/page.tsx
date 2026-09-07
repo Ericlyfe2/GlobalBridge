@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 const tools = [
-  { href: "/toolkit/cost",          icon: Calculator,  title: "Cost of Living Calculator", desc: "Compare rent, food, transport, utilities across cities. Real data.", tone: "clay",  ready: true },
+  { href: "/toolkit/cost",          icon: Calculator,  title: "Cost of Living Calculator", desc: "Compare rent, food, transport, utilities across cities.", tone: "clay",  ready: true },
   { href: "/toolkit/banking",       icon: Landmark,    title: "Banking Setup",             desc: "Which banks accept international students. Required docs. Account comparison.", tone: "sky",   ready: true },
   { href: "/toolkit/healthcare",    icon: Stethoscope, title: "Healthcare Navigation",     desc: "How to register with NHS, OHIP, GKV. Insurance options. Step-by-step.", tone: "leaf",  ready: true },
   { href: "/toolkit/sos",           icon: PhoneCall,   title: "Emergency SOS",             desc: "One-tap alert. Embassy contacts. Mental health hotlines. By country.", tone: "red",   ready: true },

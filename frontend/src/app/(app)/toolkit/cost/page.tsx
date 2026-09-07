@@ -83,7 +83,7 @@ export default function CostCalcPage() {
           </label>
 
           <div className="pt-2 border-t border-cream-200 text-xs text-ink-500">
-            Data: {city.country} · {city.currency}. Updated quarterly from community submissions + official statistics.
+            Data: {city.country} · {city.currency}. Reference estimates for budgeting -- not live pricing; check current rates before committing to a lease or budget.
           </div>
         </div>
 

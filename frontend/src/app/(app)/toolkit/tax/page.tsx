@@ -244,7 +244,7 @@ export default function TaxPage() {
       </div>
 
       <p className="text-xs text-ink-500 mt-6">
-        ⚠ Tax law changes yearly. This guide is community-maintained — always verify against official portals before filing.
+        ⚠ Tax law changes yearly. This is a general reference guide — always verify against official portals before filing.
       </p>
     </div>
   );
