@@ -123,7 +123,10 @@ export async function POST(req: Request) {
   try {
     const completion = await chatComplete({
       model: aiConfig.ai_model,
-      maxTokens: 2200,
+      // Measured 2196/2200 tokens used in production (99.8% of cap) -- the
+      // model was being cut off mid-JSON, forcing every real call into the
+      // heuristic fallback. Raised with real headroom, not another sliver.
+      maxTokens: 3200,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         {

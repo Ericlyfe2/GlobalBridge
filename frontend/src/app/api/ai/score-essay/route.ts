@@ -84,7 +84,9 @@ export async function POST(req: Request) {
   try {
     const completion = await chatComplete({
       model: aiConfig.ai_model,
-      maxTokens: 2000,
+      // Measured 1996/2000 tokens in production (99.8% of cap) -- truncated
+      // mid-JSON on real calls, forcing the heuristic fallback every time.
+      maxTokens: 3000,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         {

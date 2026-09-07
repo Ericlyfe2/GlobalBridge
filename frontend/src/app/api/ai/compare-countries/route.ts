@@ -141,7 +141,9 @@ Rules:
   try {
     const msg = await chatComplete({
       model: aiConfig.ai_model,
-      maxTokens: 2048,
+      // A prior production call measured 2671 output tokens against this
+      // same 2048 cap -- already over it, meaning normal calls truncate.
+      maxTokens: 3200,
       messages: [
         { role: "system", content: system },
         { role: "user", content: `Compare ${name1} (${country1}) vs ${name2} (${country2}) for an international student/immigrant.` },
