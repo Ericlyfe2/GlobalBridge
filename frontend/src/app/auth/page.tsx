@@ -15,6 +15,28 @@ import { useTranslation } from "@/i18n/hooks/useTranslation";
 import { AtlasPortrait } from "@/components/mascot/AtlasPortrait";
 import AuthVideo from "@/components/AuthVideo";
 import Lightfall from "@/components/Lightfall";
+import { FlagSelect } from "@/components/FlagSelect";
+
+// Values are full country names, not ISO codes -- country_of_origin is stored
+// and displayed as a name everywhere else in the app (e.g. dashboard/profile's
+// own country select), so the dropdown must match that convention exactly.
+const ORIGIN_COUNTRIES = [
+  { value: "Ghana", label: "Ghana", flag: "gh" },
+  { value: "Nigeria", label: "Nigeria", flag: "ng" },
+  { value: "Kenya", label: "Kenya", flag: "ke" },
+  { value: "India", label: "India", flag: "in" },
+  { value: "Pakistan", label: "Pakistan", flag: "pk" },
+  { value: "Bangladesh", label: "Bangladesh", flag: "bd" },
+  { value: "China", label: "China", flag: "cn" },
+  { value: "Egypt", label: "Egypt", flag: "eg" },
+  { value: "United States", label: "United States", flag: "us" },
+  { value: "United Kingdom", label: "United Kingdom", flag: "gb" },
+  { value: "Canada", label: "Canada", flag: "ca" },
+  { value: "Germany", label: "Germany", flag: "de" },
+  { value: "France", label: "France", flag: "fr" },
+  { value: "Australia", label: "Australia", flag: "au" },
+  { value: "other", label: "Other" },
+];
 
 function AuthContent() {
   const { t } = useTranslation();
@@ -33,6 +55,10 @@ function AuthContent() {
   const [fullName, setFullName] = useState("");
   const [role, setRole] = useState<"student" | "mentor" | "employer">("student");
   const [origin, setOrigin] = useState("");
+  // FlagSelect's own selected key. Separate from `origin` because picking
+  // "other" must reveal a free-text field rather than submit the literal
+  // string "other" as someone's country.
+  const [originPick, setOriginPick] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,6 +71,12 @@ function AuthContent() {
       const passwordErrors = validatePassword(password);
       if (passwordErrors.length > 0) {
         setError(`Password needs: ${passwordErrors.join(", ")}`);
+        return;
+      }
+      // FlagSelect is a button, not a native form control, so the `required`
+      // attribute the old text input had no longer applies -- enforce it here.
+      if (origin.trim().length < 2) {
+        setError("Select or enter your country of origin.");
         return;
       }
     }
@@ -397,15 +429,29 @@ function AuthContent() {
                     )}
                   </fieldset>
 
-                  <Field label={employerMode ? "Where you're hiring from" : t("auth.countryOfOrigin")} htmlFor="origin" icon={Globe}>
-                    <input
-                      id="origin" type="text" required minLength={2}
-                      value={origin} onChange={(e) => setOrigin(e.target.value)}
-                      className={inputCls}
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-ink-700 dark:text-gray-300">
+                      {employerMode ? "Where you're hiring from" : t("auth.countryOfOrigin")}
+                    </label>
+                    <FlagSelect
+                      value={originPick}
+                      onChange={(v) => {
+                        setOriginPick(v);
+                        setOrigin(v === "other" ? "" : v);
+                      }}
+                      options={ORIGIN_COUNTRIES}
                       placeholder={employerMode ? "e.g. United States" : t("auth.countryPlaceholder")}
-                      autoComplete="country-name"
                     />
-                  </Field>
+                    {originPick === "other" && (
+                      <input
+                        type="text" required minLength={2}
+                        value={origin} onChange={(e) => setOrigin(e.target.value)}
+                        className={`${inputCls} mt-2 !pl-4`}
+                        placeholder="Type your country"
+                        autoComplete="country-name"
+                      />
+                    )}
+                  </div>
                 </>
               )}
 
