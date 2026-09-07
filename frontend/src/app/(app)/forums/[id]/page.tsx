@@ -5,7 +5,7 @@ import { use, useEffect, useState } from "react";
 import {
   ArrowLeft, ArrowUp, ArrowDown, ShieldCheck, MessageSquare, Flag, Share2, Pin, Flame, Award, Loader2,
 } from "lucide-react";
-import { authFetch, getToken } from "@/lib/auth";
+import { authFetch, getToken, getUser } from "@/lib/auth";
 
 type Reply = {
   id: string; author: string; initials: string; verified: boolean; mentor?: boolean;
@@ -165,8 +165,12 @@ export default function ForumThread({ params }: { params: Promise<{ id: string }
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Couldn't post reply");
+      // Was hardcoded to author: "You", initials: "?" regardless of who
+      // actually posted -- every fresh reply showed a bare "?" avatar even
+      // for a signed-in user with a real name, until the next full refetch.
+      const me = getUser();
       setReplies((arr) => [...arr, {
-        id: data.reply.id, author: "You", initials: "?", verified: false,
+        id: data.reply.id, author: me?.full_name?.trim() || "You", initials: initialsOf(me?.full_name?.trim() || ""), verified: false,
         posted: "now", upvotes: 0, body: reply,
       }]);
       setReply("");
@@ -268,7 +272,7 @@ export default function ForumThread({ params }: { params: Promise<{ id: string }
 
       {/* Replies */}
       <h2 className="text-lg font-display font-semibold text-ink-900 mt-8 mb-3 flex items-center gap-2">
-        <MessageSquare size={16} className="text-clay-500" /> {replies.length} replies
+        <MessageSquare size={16} className="text-clay-500" /> {replies.length} {replies.length === 1 ? "reply" : "replies"}
       </h2>
 
       <ul className="space-y-3">

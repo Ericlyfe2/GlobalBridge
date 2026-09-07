@@ -99,13 +99,39 @@ const hubs: Record<string, Hub> = {
 
 export default function CommunityCountryPage({ params }: { params: Promise<{ country: string }> }) {
   const { country } = use(params);
-  const h = hubs[country.toLowerCase()] ?? hubs["ghana"];
+  const h = hubs[country.toLowerCase()];
+
+  const backLink = (
+    <Link href="/community" className="text-sm text-ink-600 hover:text-clay-600 inline-flex items-center gap-1 mb-4">
+      <ArrowLeft size={13} /> Back to all communities
+    </Link>
+  );
+
+  // This silently rendered Ghana's specific named mentors, dated events, and
+  // real-sounding stats for ANY unrecognized slug -- including every origin
+  // country not yet in `hubs` -- with nothing telling a visitor they were
+  // looking at someone else's community.
+  if (!h) {
+    return (
+      <div className="max-w-6xl mx-auto px-6 py-10">
+        {backLink}
+        <div className="card text-center py-16">
+          <p className="text-ink-700 font-medium">We don&apos;t have a dedicated hub for this country yet.</p>
+          <p className="text-sm text-ink-500 mt-2">Try Ghana, Nigeria, or India, or browse the Forums for cross-country threads.</p>
+          <Link href="/forums" className="text-sm text-clay-600 font-medium hover:underline mt-4 inline-block">Go to Forums</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
-      <Link href="/community" className="text-sm text-ink-600 hover:text-clay-600 inline-flex items-center gap-1 mb-4">
-        <ArrowLeft size={13} /> Back to all communities
-      </Link>
+      {backLink}
+
+      {/* This hub's tips, events, mentors, and threads are illustrative
+          examples, not a live feed -- the mentor links below intentionally
+          resolve to a clean "not found" page rather than a real profile. */}
+      <p className="text-xs text-ink-500 mb-4 -mt-2">Example community content to show what this hub will look like.</p>
 
       {/* Header */}
       <header className="card mb-6 flex items-center gap-5">
