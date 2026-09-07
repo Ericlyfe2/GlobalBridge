@@ -52,11 +52,11 @@ export default function AssistantPage() {
   // Load conversation history for signed-in users
   useEffect(() => {
     if (!user) return;
-    const token = getToken();
-    if (!token) return;
-    fetch("/api/ai/conversations", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    if (!getToken()) return;
+    // authFetch attaches a freshly-refreshed Firebase token; the raw fetch
+    // this replaced sent whatever was cached in localStorage, which 401s
+    // forever the moment that token passes its 1-hour expiry.
+    authFetch("/api/ai/conversations")
       .then((r) => r.json())
       .then((d) => setConversations(d.conversations || []))
       .catch(() => {});
@@ -103,11 +103,8 @@ export default function AssistantPage() {
   }
 
   function loadConversation(convId: string) {
-    const token = getToken();
-    if (!token) return;
-    fetch(`/api/ai/conversations/${convId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    if (!getToken()) return;
+    authFetch(`/api/ai/conversations/${convId}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.messages) {

@@ -63,7 +63,9 @@ const CSP = [
   // See the note above — inline scripts are required by the current bootstrap.
   // apis.google.com is Firebase Auth's Google-sign-in popup helper (gapi) —
   // without it, "Sign in with Google" loads a script the CSP then blocks.
-  "script-src 'self' 'unsafe-inline' https://apis.google.com",
+  // vercel.live is Vercel's own live-feedback/toolbar widget, auto-injected
+  // on Vercel-hosted deployments regardless of this app's own script tags.
+  "script-src 'self' 'unsafe-inline' https://apis.google.com https://vercel.live",
   // Tailwind and the animation layer both set styles inline.
   "style-src 'self' 'unsafe-inline'",
   // next/font self-hosts at build time, so no external font origin is needed.
@@ -80,9 +82,13 @@ const CSP = [
     "https://www.googleapis.com",
     // Globe texture.
     "https://unpkg.com",
+    // Vercel's live-feedback widget polls/sockets back to vercel.live.
+    "https://vercel.live",
+    "wss://ws-us3.pusher.com",
   ].filter(Boolean).join(" "),
-  // Firebase Auth uses an iframe for some sign-in flows.
-  "frame-src 'self' https://*.firebaseapp.com",
+  // Firebase Auth uses an iframe for some sign-in flows; vercel.live opens
+  // its feedback panel the same way.
+  "frame-src 'self' https://*.firebaseapp.com https://vercel.live",
   "worker-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",
