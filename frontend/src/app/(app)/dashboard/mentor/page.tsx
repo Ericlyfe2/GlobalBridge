@@ -35,8 +35,15 @@ export default function MentorDashboard() {
   const [data, setData] = useState<MentorDashboard | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const firstName = (getUser()?.full_name || "Mentor").split(" ")[0];
+  const [firstName, setFirstName] = useState("Mentor");
   const { t } = useTranslation();
+
+  useEffect(() => {
+    const u = getUser();
+    if (u?.full_name) {
+      setFirstName(u.full_name.trim().split(/\s+/)[0] || "Mentor");
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;

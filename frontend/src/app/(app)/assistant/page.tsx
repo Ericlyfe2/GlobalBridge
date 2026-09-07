@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, FileCheck, Globe, Loader2, User, X, Download, Printer, History, CheckCircle, ShieldCheck } from "lucide-react";
+import { Send, Sparkles, FileCheck, Globe, Loader2, User, X, Download, Printer, History, CheckCircle, ShieldCheck, Plus } from "lucide-react";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
 import { authFetch, getToken, getUser } from "@/lib/auth";
 import { useEscapeToClose } from "@/lib/useEscapeToClose";
@@ -30,7 +30,7 @@ type Msg = { role: "user" | "assistant"; content: string; sources?: Source[] };
 export default function AssistantPage() {
   const { t, lang } = useTranslation();
   const { emit, dismiss } = useMascot();
-  const user = getUser();
+  const [user, setUser] = useState<ReturnType<typeof getUser>>(null);
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: "assistant",
@@ -46,13 +46,16 @@ export default function AssistantPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setUser(getUser());
+  }, []);
+
+  useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
   // Load conversation history for signed-in users
   useEffect(() => {
-    if (!user) return;
-    if (!getToken()) return;
+    if (!user || !getToken()) return;
     // authFetch attaches a freshly-refreshed Firebase token; the raw fetch
     // this replaced sent whatever was cached in localStorage, which 401s
     // forever the moment that token passes its 1-hour expiry.
@@ -85,11 +88,22 @@ export default function AssistantPage() {
           token,
         }),
       }, 30000); // RAG retrieval + model generation regularly exceeds the default 8s fetch timeout
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || data?.error) {
+        const fallbackErr = res.status === 401
+          ? "Please sign in to chat with the AI assistant."
+          : (data?.error || t("assistant.errorMessage"));
+        setMessages((m) => [...m, { role: "assistant", content: fallbackErr }]);
+        emit("ERROR");
+        return;
+      }
+
       if (data.conversation_id && !conversationId) {
         setConversationId(data.conversation_id);
       }
-      setMessages((m) => [...m, { role: "assistant", content: data.reply, sources: data.sources }]);
+      const replyContent = data.reply || t("assistant.errorMessage");
+      setMessages((m) => [...m, { role: "assistant", content: replyContent, sources: data.sources || [] }]);
       dismiss();
     } catch {
       setMessages((m) => [
@@ -102,10 +116,24 @@ export default function AssistantPage() {
     }
   }
 
+  function startNewChat() {
+    setConversationId(null);
+    setMessages([
+      {
+        role: "assistant",
+        content: t("assistant.welcomeMessage"),
+      },
+    ]);
+    setShowHistory(false);
+  }
+
   function loadConversation(convId: string) {
     if (!getToken()) return;
     authFetch(`/api/ai/conversations/${convId}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to load conversation");
+        return r.json();
+      })
       .then((data) => {
         if (data.messages) {
           setMessages(data.messages.map((m: { role: string; content: string; sources?: Source[] }) => ({
@@ -160,6 +188,11 @@ export default function AssistantPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {conversationId && (
+            <button onClick={startNewChat} className="btn-ghost text-sm border border-cream-300">
+              <Plus size={14} /> New Chat
+            </button>
+          )}
           {user && conversations.length > 0 && (
             <button onClick={() => setShowHistory(!showHistory)} className="btn-ghost text-sm border border-cream-300">
               <History size={14} /> History

@@ -21,7 +21,8 @@ export default function EmployerDashboard() {
   const [data, setData] = useState<EmployerDashboard | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const company = (data?.company) || (getUser()?.full_name || "Employer").split(" ")[0];
+  const [userTitle, setUserTitle] = useState("Employer");
+  const company = data?.company || userTitle;
   const { t } = useTranslation();
   const MANAGE = [
     { href: "/jobs", icon: Plus, label: "Create job" },
@@ -29,6 +30,13 @@ export default function EmployerDashboard() {
     { href: "/community", icon: UserCheck, label: t("nav.candidates") },
     { href: "/messages", icon: CalendarPlus, label: "Schedule interviews" },
   ];
+
+  useEffect(() => {
+    const u = getUser();
+    if (u?.full_name) {
+      setUserTitle(u.full_name.trim().split(/\s+/)[0] || "Employer");
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;

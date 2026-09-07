@@ -194,6 +194,9 @@ export default function HousingDetail({ params }: { params: Promise<{ id: string
 
           <div className="card">
             <h2 className="font-display text-lg font-semibold text-ink-900 mb-3">What&apos;s nearby</h2>
+            {l.nearby.length === 0 && (
+              <p className="text-sm text-ink-500">Distance info not provided for this listing.</p>
+            )}
             <ul className="space-y-2">
               {l.nearby.map((n) => (
                 <li key={n.label} className="flex items-center justify-between text-sm">

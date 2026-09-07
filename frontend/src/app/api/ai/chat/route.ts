@@ -254,8 +254,8 @@ export async function POST(req: Request) {
     ? `\n\n## Language requirement\nYou MUST respond entirely in ${langName}. The user's platform language is ${langName}. Every sentence must be in ${langName}. Only URLs, brand names (GlobalBridge), and untranslatable terms may remain in English.`
     : "";
 
-  const adminGuidance = aiConfig.ai_system_prompt.trim()
-    ? `\n\n## Admin-configured guidance\n${aiConfig.ai_system_prompt.trim()}`
+  const adminGuidance = (aiConfig.ai_system_prompt || "").trim()
+    ? `\n\n## Admin-configured guidance\n${(aiConfig.ai_system_prompt || "").trim()}`
     : "";
   const systemContent = BASE_SYSTEM + adminGuidance + ragBlock + userBlock + langInstruction;
 

@@ -24,9 +24,11 @@ type PlatformSettings = {
 };
 
 const AI_MODELS = [
-  { value: "claude-haiku-4-5", label: "Claude Haiku 4.5 (fast, cheap)" },
-  { value: "claude-sonnet-4-6", label: "Claude Sonnet 4.6 (balanced)" },
-  { value: "claude-opus-4-7", label: "Claude Opus 4.7 (highest quality)" },
+  { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash (default, fast, efficient)" },
+  { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash (ultra-fast)" },
+  { value: "gemini-2.0-flash-lite", label: "Gemini 2.0 Flash Lite (low cost)" },
+  { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro (complex reasoning)" },
+  { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash (stable fallback)" },
 ] as const;
 
 const DEFAULT_SETTINGS: PlatformSettings = {
@@ -39,7 +41,7 @@ const DEFAULT_SETTINGS: PlatformSettings = {
   ai_scam_detection_enabled: true,
   ai_translation_enabled: true,
   ai_temperature: 0.3,
-  ai_model: "gpt-4o-mini",
+  ai_model: "gemini-2.5-flash",
   ai_system_prompt: "",
   max_login_attempts: 5,
   session_timeout_minutes: 60,

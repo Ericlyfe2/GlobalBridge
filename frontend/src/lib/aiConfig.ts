@@ -17,7 +17,7 @@ export type AiConfig = {
 };
 
 const DEFAULTS: AiConfig = {
-  ai_model: process.env.GEMINI_MODEL || "gemini-3.5-flash",
+  ai_model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
   ai_temperature: 0.3,
   ai_system_prompt: "",
   ai_chat_enabled: true,
@@ -36,7 +36,15 @@ export async function getAiConfig(): Promise<AiConfig> {
     const res = await fetch(`${base}/api/content/ai-config`, { cache: "no-store" });
     if (!res.ok) throw new Error(`ai-config fetch failed: ${res.status}`);
     const data = (await res.json()) as Partial<AiConfig>;
-    const value: AiConfig = { ...DEFAULTS, ...data };
+    const value: AiConfig = {
+      ai_model: data.ai_model || DEFAULTS.ai_model,
+      ai_temperature: typeof data.ai_temperature === "number" ? data.ai_temperature : DEFAULTS.ai_temperature,
+      ai_system_prompt: typeof data.ai_system_prompt === "string" ? data.ai_system_prompt : DEFAULTS.ai_system_prompt,
+      ai_chat_enabled: data.ai_chat_enabled ?? DEFAULTS.ai_chat_enabled,
+      ai_doc_check_enabled: data.ai_doc_check_enabled ?? DEFAULTS.ai_doc_check_enabled,
+      ai_scam_detection_enabled: data.ai_scam_detection_enabled ?? DEFAULTS.ai_scam_detection_enabled,
+      ai_translation_enabled: data.ai_translation_enabled ?? DEFAULTS.ai_translation_enabled,
+    };
     cached = { value, expires: Date.now() + CACHE_TTL_MS };
     return value;
   } catch {

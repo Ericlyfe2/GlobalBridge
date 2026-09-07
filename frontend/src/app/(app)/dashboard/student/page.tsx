@@ -31,11 +31,18 @@ export default function StudentDashboard() {
   const [opps, setOpps] = useState<Opportunity[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const firstName = (getUser()?.full_name || "there").split(" ")[0];
+  const [firstName, setFirstName] = useState("there");
   const { t } = useTranslation();
   const { emit, setJourney } = useMascot();
   // Atlas greets once per visit, not on every re-render (spec §27).
   const greeted = useRef(false);
+
+  useEffect(() => {
+    const u = getUser();
+    if (u?.full_name) {
+      setFirstName(u.full_name.trim().split(/\s+/)[0] || "there");
+    }
+  }, []);
 
   const QUICK_ACTIONS = [
     { href: "/opportunities", icon: Award, label: t("dashboard.browseOpportunities") },
