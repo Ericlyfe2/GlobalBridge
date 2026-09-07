@@ -15,6 +15,13 @@ type CheckResult = {
   label: string;
   summary: string;
   findings: Finding[];
+  /**
+   * Which engine produced this (GB-14, extended from Scam Shield). The
+   * fallback findings are specific-sounding canned text ("OCR confidence:
+   * 98%") for a document nobody actually scanned, so the UI must disclose
+   * when that's what's being shown rather than a real model analysis.
+   */
+  engine?: "ai" | "heuristic" | "disabled";
 };
 
 const docTypes = [
@@ -66,6 +73,7 @@ export default function DocCheckerPage() {
           label: data.label,
           summary: data.summary,
           findings: data.findings ?? [],
+          engine: data.engine,
         });
       }
     } catch (e) {
@@ -87,7 +95,11 @@ export default function DocCheckerPage() {
         <div>
           <h1 className="text-3xl font-display font-semibold text-ink-900 flex items-center gap-2">
             AI Document Validity Checker
-            <span className="badge badge-clay text-[10px]"><Bot size={10} /> AI</span>
+            {result?.engine === "heuristic" ? (
+              <span className="badge !bg-cream-200 !text-ink-700 text-[10px]"><ShieldCheck size={10} /> Sample checklist</span>
+            ) : (
+              <span className="badge badge-clay text-[10px]"><Bot size={10} /> AI</span>
+            )}
           </h1>
           <p className="text-sm text-ink-600 mt-1">
             Upload your document. We check for common rejection triggers before you submit to the government.
@@ -168,7 +180,7 @@ export default function DocCheckerPage() {
             <p className="font-medium text-ink-900 mb-2 flex items-center gap-1.5">
               <ShieldCheck size={13} className="text-leaf-600" /> Private &amp; encrypted
             </p>
-            Files are scanned in-memory only. Nothing is stored on our servers. AI runs on-device for OCR; final analysis hits our secure API.
+            We check the file name, size and any notes you add against common rejection triggers for this document type. The file&apos;s actual contents are never read, scanned or stored.
           </div>
         </div>
 
@@ -217,6 +229,18 @@ export default function DocCheckerPage() {
                   />
                 </div>
                 <p className="text-xs text-ink-500 mt-3">{score.summary}</p>
+                {/* Provenance stated where the score is read, not buried in a
+                    header badge — mirrors Scam Shield (GB-14). */}
+                {result?.engine === "heuristic" && (
+                  <p className="text-xs text-ink-500 mt-2 flex items-center gap-1">
+                    <ShieldCheck size={11} /> Sample checklist — not an analysis of your file. The AI checker is temporarily unavailable.
+                  </p>
+                )}
+                {result?.engine === "ai" && (
+                  <p className="text-xs text-ink-500 mt-2">
+                    Based on the details you entered, not the file&apos;s actual contents. Always verify against the official checklist.
+                  </p>
+                )}
               </div>
 
               {/* Findings list */}

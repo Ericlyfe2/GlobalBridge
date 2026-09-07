@@ -56,7 +56,9 @@ export async function POST(req: Request) {
   }
 
   if (!isAiConfigured()) {
-    return Response.json(mockFallback(origin, destination, purpose), { status: 200 });
+    // engine mirrors scam-check's GB-14 fix: without it the static template
+    // below is indistinguishable from a roadmap the model actually built.
+    return Response.json({ ...mockFallback(origin, destination, purpose), engine: "heuristic" as const }, { status: 200 });
   }
 
   if (totalChars(origin, destination, purpose) > MAX_FIELD_CHARS) {
@@ -90,10 +92,11 @@ export async function POST(req: Request) {
     const json = extractJson(raw) as Roadmap | null;
     if (!json || !Array.isArray(json.phases) || json.phases.length === 0) {
       console.error("[/api/ai/visa-roadmap] non-JSON response:", raw.slice(0, 200));
-      return Response.json(mockFallback(origin, destination, purpose), { status: 200 });
+      return Response.json({ ...mockFallback(origin, destination, purpose), engine: "heuristic" as const }, { status: 200 });
     }
     return Response.json({
       ...json,
+      engine: "ai" as const,
       usage: {
         input_tokens: completion.inputTokens,
         output_tokens: completion.outputTokens,
@@ -102,6 +105,6 @@ export async function POST(req: Request) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     console.error("[/api/ai/visa-roadmap] AI provider error:", msg);
-    return Response.json(mockFallback(origin, destination, purpose), { status: 200 });
+    return Response.json({ ...mockFallback(origin, destination, purpose), engine: "heuristic" as const }, { status: 200 });
   }
 }

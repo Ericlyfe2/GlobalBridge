@@ -68,6 +68,15 @@ type DocCheckResult = {
   findings: DocFinding[];
 };
 
+/**
+ * Which engine produced this result (mirrors scam-check's GB-14 fix). The
+ * mock findings below are specific-sounding but entirely canned — "OCR
+ * confidence: 98%" for a document nobody uploaded an image of — so the
+ * frontend must be able to tell them apart from a real model analysis
+ * instead of presenting fabricated findings as if they were real.
+ */
+type Engine = "ai" | "heuristic" | "disabled";
+
 export async function POST(req: Request) {
   const aiConfig = await getAiConfig();
 
@@ -83,13 +92,13 @@ export async function POST(req: Request) {
 
   if (!aiConfig.ai_doc_check_enabled) {
     return Response.json(
-      { score: 0, label: "Needs fixes" as const, summary: "The document checker has been turned off by an admin.", findings: [], disabled: true },
+      { score: 0, label: "Needs fixes" as const, summary: "The document checker has been turned off by an admin.", findings: [], disabled: true, engine: "disabled" as Engine },
       { status: 200 },
     );
   }
 
   if (!isAiConfigured()) {
-    return Response.json(mockFallback(body.docType), { status: 200 });
+    return Response.json({ ...mockFallback(body.docType), engine: "heuristic" as Engine }, { status: 200 });
   }
 
   const userPrompt = JSON.stringify(
@@ -137,11 +146,12 @@ export async function POST(req: Request) {
     const json = extractJson(text);
     if (!json) {
       console.error("[/api/ai/doc-check] non-JSON response:", text.slice(0, 200));
-      return Response.json(mockFallback(body.docType), { status: 200 });
+      return Response.json({ ...mockFallback(body.docType), engine: "heuristic" as Engine }, { status: 200 });
     }
 
     return Response.json({
       ...json,
+      engine: "ai" as Engine,
       usage: {
         input_tokens: completion.inputTokens,
         output_tokens: completion.outputTokens,
@@ -150,7 +160,7 @@ export async function POST(req: Request) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     console.error("[/api/ai/doc-check] AI provider error:", msg);
-    return Response.json(mockFallback(body.docType), { status: 200 });
+    return Response.json({ ...mockFallback(body.docType), engine: "heuristic" as Engine }, { status: 200 });
   }
 }
 

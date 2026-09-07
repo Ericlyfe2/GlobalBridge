@@ -22,7 +22,7 @@ function phaseIcon(title: string) {
 }
 
 type Phase = { id: string; title: string; timeframe: string; cost: string; documents: string[]; tip: string };
-type Roadmap = { title: string; totalWeeks: number; phases: Phase[] };
+type Roadmap = { title: string; totalWeeks: number; phases: Phase[]; engine?: "ai" | "heuristic" };
 
 const purposes = [
   { value: "study",  label: "Study" },
@@ -163,7 +163,11 @@ export default function VisaRoadmapPage() {
         <div>
           <h1 className="text-3xl font-display font-semibold text-ink-900 flex items-center gap-2">
             AI Visa Roadmap
-            <span className="badge badge-clay text-[10px]"><Bot size={10} /> AI</span>
+            {roadmap?.engine === "heuristic" ? (
+              <span className="badge !bg-cream-200 !text-ink-700 text-[10px]"><CalendarClock size={10} /> General template</span>
+            ) : (
+              <span className="badge badge-clay text-[10px]"><Bot size={10} /> AI</span>
+            )}
           </h1>
           <p className="text-sm text-ink-600 mt-1">
             Tell us where you&apos;re coming from and where you&apos;re headed. We map every phase, deadline, cost, and document.
@@ -221,7 +225,12 @@ export default function VisaRoadmapPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
-              <h2 className="text-xl font-display font-semibold text-ink-900">{roadmap.title}</h2>
+              <div>
+                <h2 className="text-xl font-display font-semibold text-ink-900">{roadmap.title}</h2>
+                {roadmap.engine === "heuristic" && (
+                  <p className="text-xs text-ink-500 mt-0.5">General template for this route — the AI planner is temporarily unavailable.</p>
+                )}
+              </div>
               <div className="flex items-center gap-2">
                 {roadmap.totalWeeks > 0 && (
                   <span className="badge badge-clay"><CalendarClock size={12} /> ~{roadmap.totalWeeks} weeks end-to-end</span>

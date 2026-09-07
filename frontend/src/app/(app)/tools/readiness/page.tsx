@@ -10,7 +10,7 @@ import { authFetch } from "@/lib/auth";
 type PillarKey = "documents" | "finances" | "housing" | "job" | "community";
 type Action = { title: string; detail: string; pillar: PillarKey };
 type PillarOut = { key: PillarKey; label: string; score: number; note: string };
-type ReadinessResult = { overall: number; pillars: PillarOut[]; actions: Action[] };
+type ReadinessResult = { overall: number; pillars: PillarOut[]; actions: Action[]; engine?: "ai" | "heuristic" };
 
 const PILLAR_META: Record<PillarKey, { icon: typeof FileCheck; hint: string }> = {
   documents: { icon: FileCheck, hint: "Passport, transcripts, letters" },
@@ -67,7 +67,11 @@ export default function ReadinessPage() {
         <div>
           <h1 className="text-3xl font-display font-semibold text-ink-900 flex items-center gap-2">
             GlobalBridge Readiness Score
-            <span className="badge badge-clay text-[10px]"><Bot size={10} /> AI</span>
+            {result?.engine === "heuristic" ? (
+              <span className="badge !bg-cream-200 !text-ink-700 text-[10px]"><Gauge size={10} /> Rule-based actions</span>
+            ) : (
+              <span className="badge badge-clay text-[10px]"><Bot size={10} /> AI</span>
+            )}
           </h1>
           <p className="text-sm text-ink-600 mt-1">
             Rate how ready you feel across five pillars. We score your overall readiness and tell you exactly what to do next.
@@ -153,6 +157,9 @@ export default function ReadinessPage() {
       {result && (
         <div className="mt-6">
           <h2 className="text-lg font-display font-semibold text-ink-900 mb-3">Your top 3 next actions</h2>
+          {result.engine === "heuristic" && (
+            <p className="text-xs text-ink-500 -mt-2 mb-3">Picked by rule from your lowest scores — the AI coach is temporarily unavailable.</p>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {result.actions.map((a, i) => (
               <Link key={i} href={ACTION_LINK[a.pillar] ?? "/dashboard"} className="card hover:border-clay-500 transition group">

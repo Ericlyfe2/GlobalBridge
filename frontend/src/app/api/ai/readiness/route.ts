@@ -50,7 +50,9 @@ export async function POST(req: Request) {
   const overall = Math.round(PILLARS.reduce((s, k) => s + scores[k], 0) / PILLARS.length);
 
   if (!isAiConfigured()) {
-    return Response.json(mockFallback(scores, overall), { status: 200 });
+    // engine mirrors scam-check's GB-14 fix: the fixed action library below
+    // is otherwise indistinguishable from a model-authored recommendation.
+    return Response.json({ ...mockFallback(scores, overall), engine: "heuristic" as const }, { status: 200 });
   }
 
   // Authenticated + per-user rate limited: this call spends OpenAI credits.
@@ -81,7 +83,7 @@ export async function POST(req: Request) {
     const json = extractJson(raw) as { actions?: Action[]; notes?: Record<string, string> } | null;
     if (!json || !Array.isArray(json.actions)) {
       console.error("[/api/ai/readiness] non-JSON response:", raw.slice(0, 200));
-      return Response.json(mockFallback(scores, overall), { status: 200 });
+      return Response.json({ ...mockFallback(scores, overall), engine: "heuristic" as const }, { status: 200 });
     }
     const pillars: PillarOut[] = PILLARS.map((k) => ({
       key: k,
@@ -93,6 +95,7 @@ export async function POST(req: Request) {
       overall,
       pillars,
       actions: json.actions.slice(0, 3),
+      engine: "ai" as const,
       usage: {
         input_tokens: completion.inputTokens,
         output_tokens: completion.outputTokens,
@@ -101,6 +104,6 @@ export async function POST(req: Request) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     console.error("[/api/ai/readiness] AI provider error:", msg);
-    return Response.json(mockFallback(scores, overall), { status: 200 });
+    return Response.json({ ...mockFallback(scores, overall), engine: "heuristic" as const }, { status: 200 });
   }
 }
