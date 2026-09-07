@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Send, Search, MoreVertical, Loader2, MessageSquare, LogIn } from "lucide-react";
 import { authFetch, getToken, getUser } from "@/lib/auth";
 
@@ -34,6 +35,14 @@ function timeOf(iso: string): string {
 }
 
 export default function MessagesPage() {
+  return (
+    <Suspense fallback={null}>
+      <MessagesContent />
+    </Suspense>
+  );
+}
+
+function MessagesContent() {
   // Start false to match the server (no localStorage there), then sync after mount —
   // reading getToken()/getUser() during the initial render causes a hydration mismatch
   // when the client already has a session but the server can't know that.
@@ -51,6 +60,30 @@ export default function MessagesPage() {
   const [draft, setDraft] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // "Message" buttons across the app (mentor cards, profiles) link here as
+  // /messages?to=<userId>. Conversations only exist once a message has been
+  // sent, so this id never matches anything in `convos` on first contact --
+  // without this, the link silently dropped the user on the empty state with
+  // no way to actually start the conversation they clicked through for.
+  const to = useSearchParams().get("to");
+  const [pending, setPending] = useState<{ id: string; name: string; avatar: string | null } | null>(null);
+
+  useEffect(() => {
+    if (!to || !authed || convos === null) return;
+    if (convos.some((c) => c.partner_id === to)) return; // already a real conversation
+    const ctrl = new AbortController();
+    (async () => {
+      try {
+        const res = await authFetch(`/api/users/mentors/${to}`, { signal: ctrl.signal });
+        if (!res.ok) return;
+        const data = await res.json();
+        const m = data.mentor;
+        if (m) setPending({ id: m.id, name: m.full_name, avatar: m.avatar_url ?? null });
+      } catch { /* ignore -- falls back to the normal empty state */ }
+    })();
+    return () => ctrl.abort();
+  }, [to, authed, convos]);
 
   // Load conversations
   useEffect(() => {
@@ -166,11 +199,16 @@ export default function MessagesPage() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages]);
 
-  const activeConvo = convos?.find((c) => c.id === active) ?? null;
+  // A pending target (no conversation row yet) renders exactly like a real
+  // one -- send() only ever needs partner_id -- until the first message
+  // creates it for real server-side.
+  const activeConvo = convos?.find((c) => c.id === active)
+    ?? (pending ? { id: "pending", partner_id: pending.id, partner_name: pending.name, partner_avatar: pending.avatar, last_message_at: new Date().toISOString() } : null);
 
   async function send() {
     if (!draft.trim() || !activeConvo) return;
     const body = draft;
+    const isPending = activeConvo.id === "pending";
     setDraft("");
     const tempId = `local_${Date.now()}`;
     // optimistic
@@ -180,9 +218,20 @@ export default function MessagesPage() {
         method: "POST",
         body: JSON.stringify({ recipient_id: activeConvo.partner_id, body }),
       });
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
         // Remove optimistic message on failure
         setMessages((m) => m.filter((msg) => msg.id !== tempId));
+      } else if (isPending && data?.conversation_id) {
+        // The conversation now exists for real -- pull the fresh list so the
+        // sidebar shows it, and switch `active` off the synthetic "pending" id.
+        setPending(null);
+        const convRes = await authFetch("/api/messages/conversations");
+        const convData = await convRes.json().catch(() => null);
+        if (convRes.ok && convData?.conversations) {
+          setConvos(convData.conversations);
+          setActive(data.conversation_id);
+        }
       }
     } catch {
       setMessages((m) => m.filter((msg) => msg.id !== tempId));
