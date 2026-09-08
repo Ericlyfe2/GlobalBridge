@@ -11,7 +11,8 @@ type Severity = "ok" | "warn" | "fail";
 type Finding = { id: string; label: string; detail: string; severity: Severity };
 
 type CheckResult = {
-  score: number;
+  /** Absent on the offline checklist path — nothing was assessed, so nothing is scored. */
+  score?: number;
   label: string;
   summary: string;
   findings: Finding[];
@@ -84,6 +85,8 @@ export default function DocCheckerPage() {
   }
 
   const score = result ? deriveTone(result) : null;
+  // The offline path returns a fixed checklist with no score at all.
+  const isChecklist = result?.engine === "heuristic";
   const findings = result?.findings ?? null;
 
   return (
@@ -202,51 +205,60 @@ export default function DocCheckerPage() {
           {checking && (
             <div className="card text-center py-16">
               <Loader2 size={32} className="mx-auto mb-3 text-clay-500 animate-spin" />
-              <p className="text-sm text-ink-700">Scanning {docTypes.find((d) => d.value === docType)?.label}...</p>
-              <p className="text-xs text-ink-500 mt-2">Checking expiry, name match, format, MRZ, watermarks...</p>
+              <p className="text-sm text-ink-700">Reviewing your {docTypes.find((d) => d.value === docType)?.label} details...</p>
+              {/* Was "Checking expiry, name match, format, MRZ, watermarks..." —
+                  none of which happens: the file itself is never read. */}
+              <p className="text-xs text-ink-500 mt-2">Matching the document type and your notes against common rejection reasons...</p>
             </div>
           )}
 
-          {findings && score && (
+          {findings && (
             <div className="space-y-4">
-              {/* Score */}
-              <div className="card">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-ink-500">Validity score</p>
-                    <p className="text-4xl font-display font-semibold text-ink-900 mt-1">
-                      {score.value}<span className="text-base text-ink-500">/100</span>
-                    </p>
-                  </div>
-                  <ScoreBadge tone={score.tone} label={score.label} />
-                </div>
-                <div className="h-2 rounded-full bg-cream-200 overflow-hidden">
-                  <div
-                    className={`h-full transition-all ${
-                      score.tone === "leaf" ? "bg-leaf-500" : score.tone === "amber" ? "bg-amber-500" : "bg-red-600"
-                    }`}
-                    style={{ width: `${score.value}%` }}
-                  />
-                </div>
-                <p className="text-xs text-ink-500 mt-3">{score.summary}</p>
-                {/* Provenance stated where the score is read, not buried in a
-                    header badge — mirrors Scam Shield (GB-14). */}
-                {result?.engine === "heuristic" && (
-                  <p className="text-xs text-ink-500 mt-2 flex items-center gap-1">
-                    <ShieldCheck size={11} /> Sample checklist — not an analysis of your file. The AI checker is temporarily unavailable.
+              {/* A score is only meaningful on the AI path, which reasons about
+                  the details you typed. The offline path is a fixed checklist
+                  for the document type — scoring it would be inventing an
+                  assessment of a file this tool never receives. */}
+              {isChecklist ? (
+                <div className="card">
+                  <p className="text-xs uppercase tracking-wider text-ink-500">Pre-submission checklist</p>
+                  <p className="text-sm text-ink-700 mt-2">{result?.summary}</p>
+                  <p className="text-xs text-ink-500 mt-3 flex items-start gap-1.5">
+                    <ShieldCheck size={12} className="mt-0.5 shrink-0" />
+                    The AI checker is unavailable right now, so nothing about your file has been assessed. These are the standard checks for this document type.
                   </p>
-                )}
-                {result?.engine === "ai" && (
+                </div>
+              ) : score && (
+                <div className="card">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wider text-ink-500">Validity score</p>
+                      <p className="text-4xl font-display font-semibold text-ink-900 mt-1">
+                        {score.value}<span className="text-base text-ink-500">/100</span>
+                      </p>
+                    </div>
+                    <ScoreBadge tone={score.tone} label={score.label} />
+                  </div>
+                  <div className="h-2 rounded-full bg-cream-200 overflow-hidden">
+                    <div
+                      className={`h-full transition-all ${
+                        score.tone === "leaf" ? "bg-leaf-500" : score.tone === "amber" ? "bg-amber-500" : "bg-red-600"
+                      }`}
+                      style={{ width: `${score.value}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-ink-500 mt-3">{score.summary}</p>
                   <p className="text-xs text-ink-500 mt-2">
                     Based on the details you entered, not the file&apos;s actual contents. Always verify against the official checklist.
                   </p>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Findings list */}
               <div className="card !p-0 overflow-hidden">
                 <div className="px-5 py-3 border-b border-cream-200">
-                  <h2 className="font-display text-lg font-semibold text-ink-900">{findings.length} checks performed</h2>
+                  <h2 className="font-display text-lg font-semibold text-ink-900">
+                    {isChecklist ? `${findings.length} things to check yourself` : `${findings.length} checks performed`}
+                  </h2>
                 </div>
                 <ul className="divide-y divide-cream-200">
                   {findings.map((f) => (

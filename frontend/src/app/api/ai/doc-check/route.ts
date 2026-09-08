@@ -180,8 +180,13 @@ function extractJson(text: string): unknown | null {
   }
 }
 
-function mockFallback(docType: string) {
-  const map: Record<string, DocCheckResult> = {
+/**
+ * Deliberately a Checklist, not a DocCheckResult: there is no `score`, because
+ * scoring a document this route never received is exactly the fabrication being
+ * removed. The UI branches on `engine` and renders these without a gauge.
+ */
+function mockFallback(docType: string): Checklist {
+  const map: Record<string, Checklist> = {
     passport: passportMock(),
     bank_statement: bankMock(),
     transcript: transcriptMock(),
@@ -192,83 +197,106 @@ function mockFallback(docType: string) {
   return map[docType] ?? passportMock();
 }
 
-function passportMock() {
+/**
+ * ── Why these are checklists and not findings ───────────────────────────────
+ * This route never receives the file. It gets docType, fileName, fileSize and
+ * the user's own notes — nothing else. So nothing here can legitimately report
+ * what a document *contains*.
+ *
+ * These previously read as observations of the uploaded file: "OCR confidence:
+ * 98%. MRZ readable", "Document reads 'ADU SARFO, KWAKU'", "Top-right glare",
+ * "Watermark continuous, hash-based forgery scan clean", "Registrar stamp
+ * visible". Every one of those was invented, and marking them severity "ok"
+ * asserted the check had *passed* on a document nobody opened.
+ *
+ * Rewritten as instructions the applicant performs themselves. Everything is
+ * severity "warn" — an open action item — because nothing here has been
+ * verified and a green tick would be the same lie in a different shape. The
+ * score is omitted for this path; the UI renders these as a checklist rather
+ * than a validity gauge.
+ */
+type ChecklistItem = { id: string; label: string; detail: string; severity: "warn" };
+type Checklist = { label: "Pre-submission checklist"; summary: string; findings: ChecklistItem[] };
+
+const CHECKLIST_SUMMARY =
+  "We can't read your file — this is the standard checklist for this document type. Work through it against the document yourself.";
+
+function passportMock(): Checklist {
   return {
-    score: 78,
-    label: "Review warnings" as const,
-    summary: "Most standard checks pass. 2 warnings worth fixing before submission.",
+    label: "Pre-submission checklist",
+    summary: CHECKLIST_SUMMARY,
     findings: [
-      { id: "p1", label: "Document type detected: Passport",        detail: "OCR confidence: 98%. MRZ readable.",                                            severity: "ok"   as const },
-      { id: "p2", label: "Expiry > 6 months out",                    detail: "Required by most embassies including UK, Canada, Schengen.",                  severity: "ok"   as const },
-      { id: "p3", label: "Photo quality acceptable",                 detail: "Eyes visible, neutral expression, ~70% of biometric area.",                    severity: "ok"   as const },
-      { id: "p4", label: "Name format may not match application",   detail: "Document reads 'ADU SARFO, KWAKU'. Some forms expect 'KWAKU ADU SARFO'.",      severity: "warn" as const },
-      { id: "p5", label: "Reflection on bio page",                   detail: "Top-right glare. Reshoot in even lighting if possible.",                       severity: "warn" as const },
-      { id: "p6", label: "No tampering signs",                        detail: "Watermark continuous, hash-based forgery scan clean.",                         severity: "ok"   as const },
+      { id: "p1", label: "Check expiry is at least 6 months past your intended arrival", detail: "Required by most embassies including the UK, Canada and Schengen states.", severity: "warn" },
+      { id: "p2", label: "Check the name order matches your application exactly",        detail: "Passports often print SURNAME, GIVEN NAMES while forms expect the reverse. A mismatch is a common rejection reason.", severity: "warn" },
+      { id: "p3", label: "Check the bio page scan is evenly lit and uncropped",          detail: "Glare across the photo or the machine-readable lines at the bottom is the most common reason a scan is rejected.", severity: "warn" },
+      { id: "p4", label: "Check all four corners of the page are visible",               detail: "Cropped edges are frequently rejected by automated intake systems.", severity: "warn" },
+      { id: "p5", label: "Check the scan is in colour",                                  detail: "Greyscale or black-and-white copies are often refused.", severity: "warn" },
     ],
   };
 }
 
-function bankMock() {
+function bankMock(): Checklist {
   return {
-    score: 65, label: "Review warnings" as const,
-    summary: "Two soft issues. Resolve before visa submission.",
+    label: "Pre-submission checklist",
+    summary: CHECKLIST_SUMMARY,
     findings: [
-      { id: "b1", label: "Account holder name visible",     detail: "Matches profile.",                                                                  severity: "ok"   as const },
-      { id: "b2", label: "Statement dated within 3 months", detail: "Most embassies reject statements older than 3 months.",                              severity: "ok"   as const },
-      { id: "b3", label: "Balance currency unclear",         detail: "Statement lists amounts without currency code. Add a bank letter clarifying GHS.",   severity: "warn" as const },
-      { id: "b4", label: "No bank letterhead detected",      detail: "Print on official letterhead or attach bank-confirmation letter.",                   severity: "warn" as const },
-      { id: "b5", label: "Multi-month transaction history",  detail: "6 months of history visible. Strong signal for IRCC.",                                severity: "ok"   as const },
+      { id: "b1", label: "Check the account holder name matches your application", detail: "It must match your passport spelling, not a shortened or informal version.", severity: "warn" },
+      { id: "b2", label: "Check the statement is dated within the last 3 months",  detail: "Most embassies reject statements older than three months.", severity: "warn" },
+      { id: "b3", label: "Check the currency is stated explicitly",                detail: "Amounts printed without a currency code cause avoidable queries. A bank letter can clarify it.", severity: "warn" },
+      { id: "b4", label: "Check it is on official bank letterhead",                detail: "Print on letterhead or attach a bank-confirmation letter.", severity: "warn" },
+      { id: "b5", label: "Check enough history is shown",                          detail: "Several months of transaction history is a stronger signal than a single closing balance.", severity: "warn" },
     ],
   };
 }
 
-function transcriptMock() {
+function transcriptMock(): Checklist {
   return {
-    score: 82, label: "Looks great" as const,
-    summary: "Strong submission. One soft suggestion.",
+    label: "Pre-submission checklist",
+    summary: CHECKLIST_SUMMARY,
     findings: [
-      { id: "t1", label: "Official seal + signature present", detail: "Registrar stamp visible.",                                                        severity: "ok"   as const },
-      { id: "t2", label: "GPA scale stated",                   detail: "4.0 scale noted at bottom.",                                                       severity: "ok"   as const },
-      { id: "t3", label: "Course-by-course breakdown",         detail: "All semesters listed.",                                                            severity: "ok"   as const },
-      { id: "t4", label: "Sealed envelope info missing",       detail: "If applying to US, transcript must arrive in sealed registrar envelope.",          severity: "warn" as const },
+      { id: "t1", label: "Check the official seal and registrar signature are present", detail: "An unsealed transcript is usually treated as unofficial.", severity: "warn" },
+      { id: "t2", label: "Check the grading scale is stated",                           detail: "A GPA without its scale cannot be interpreted by an admissions officer.", severity: "warn" },
+      { id: "t3", label: "Check every semester is included",                            detail: "Gaps invite questions about withdrawn or failed terms.", severity: "warn" },
+      { id: "t4", label: "Check whether a sealed envelope is required",                 detail: "Some institutions, particularly in the US, require the transcript to arrive sealed by the registrar.", severity: "warn" },
+      { id: "t5", label: "Check whether a certified translation is needed",             detail: "Required if the transcript is not in the destination country's official language.", severity: "warn" },
     ],
   };
 }
 
-function acceptanceMock() {
+function acceptanceMock(): Checklist {
   return {
-    score: 88, label: "Looks great" as const,
-    summary: "Looks production-ready.",
+    label: "Pre-submission checklist",
+    summary: CHECKLIST_SUMMARY,
     findings: [
-      { id: "a1", label: "DLI / SEVP code listed", detail: "Required by IRCC + USCIS.",                                       severity: "ok" as const },
-      { id: "a2", label: "Program + start date",   detail: "Both clearly stated.",                                              severity: "ok" as const },
-      { id: "a3", label: "Unconditional offer",     detail: "No outstanding conditions — strong for visa officer.",              severity: "ok" as const },
-      { id: "a4", label: "Tuition cost stated",     detail: "Helps explain proof-of-funds calculation.",                         severity: "ok" as const },
+      { id: "a1", label: "Check the institution's DLI or SEVP code is shown", detail: "Required by IRCC (Canada) and USCIS (US) respectively.", severity: "warn" },
+      { id: "a2", label: "Check the programme name and start date appear",    detail: "Both are needed to establish study intent.", severity: "warn" },
+      { id: "a3", label: "Check whether the offer is conditional",            detail: "Outstanding conditions weaken a visa application — resolve them first if you can.", severity: "warn" },
+      { id: "a4", label: "Check the tuition amount is stated",                detail: "It anchors your proof-of-funds calculation.", severity: "warn" },
     ],
   };
 }
 
-function permitMock() {
+function permitMock(): Checklist {
   return {
-    score: 72, label: "Review warnings" as const,
-    summary: "Valid but watch the work-hour conditions.",
+    label: "Pre-submission checklist",
+    summary: CHECKLIST_SUMMARY,
     findings: [
-      { id: "v1", label: "Permit expiry > 6 months after arrival", detail: "Required by airline carriers.",                       severity: "ok"   as const },
-      { id: "v2", label: "Work-hour condition stated",              detail: "20 hours/week during term, full-time on breaks.",     severity: "ok"   as const },
-      { id: "v3", label: "Biometrics collected confirmation",       detail: "VAC receipt visible.",                                 severity: "ok"   as const },
-      { id: "v4", label: "Co-op work permit absent",                 detail: "If your program requires co-op, request alongside.",   severity: "warn" as const },
+      { id: "v1", label: "Check the permit runs past your intended arrival date", detail: "Airlines can refuse boarding on a permit close to expiry.", severity: "warn" },
+      { id: "v2", label: "Check the work-hour conditions printed on it",          detail: "Study permits usually cap term-time work — know your limit before you accept a job.", severity: "warn" },
+      { id: "v3", label: "Check you have your biometrics receipt",                detail: "Keep the visa application centre receipt with the permit.", severity: "warn" },
+      { id: "v4", label: "Check whether your programme needs a co-op permit",     detail: "A separate permit is required for placements in some countries — request it alongside, not after.", severity: "warn" },
     ],
   };
 }
 
-function nationalIdMock() {
+function nationalIdMock(): Checklist {
   return {
-    score: 70, label: "Review warnings" as const,
-    summary: "Front clear; back needed for some uses.",
+    label: "Pre-submission checklist",
+    summary: CHECKLIST_SUMMARY,
     findings: [
-      { id: "n1", label: "Front of ID legible",      detail: "All fields readable.",                                  severity: "ok"   as const },
-      { id: "n2", label: "Back of ID not provided",   detail: "Some embassies require both sides.",                    severity: "warn" as const },
-      { id: "n3", label: "Expiry > 12 months",         detail: "Plenty of validity.",                                    severity: "ok"   as const },
+      { id: "n1", label: "Check every field on the front is legible", detail: "Reshoot rather than submit a blurred or shadowed scan.", severity: "warn" },
+      { id: "n2", label: "Check whether both sides are required",     detail: "Many embassies require the reverse side as well.", severity: "warn" },
+      { id: "n3", label: "Check the expiry date",                     detail: "An ID expiring during your application window may be refused.", severity: "warn" },
     ],
   };
 }

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { User, Globe, GraduationCap, Languages, Camera, Save, Loader2 } from "lucide-react";
+import { User, Globe, GraduationCap, Camera, Save, Loader2 } from "lucide-react";
 import { authFetch, getToken } from "@/lib/auth";
 import { uploadFile } from "@/lib/upload";
 
@@ -17,13 +17,11 @@ export default function ProfilePage() {
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [origin, setOrigin] = useState("Ghana");
   const [destination, setDestination] = useState("Canada");
   const [level, setLevel] = useState("Undergraduate (Year 3)");
   const [field, setField] = useState("");
   const [bio, setBio] = useState("");
-  const [languages, setLanguages] = useState("");
 
   // Prefill from localStorage first (set during register / onboarding) so the
   // form isn't blank while the network request below is in flight.
@@ -165,7 +163,11 @@ export default function ProfilePage() {
         <Section icon={<User size={16} />} title="Identity">
           <Field label="Full name"><input value={fullName} onChange={(e) => setFullName(e.target.value)} className="input" placeholder="e.g. Ada Lovelace" /></Field>
           <Field label="Email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input" placeholder="you@example.com" /></Field>
-          <Field label="Phone (optional)"><input value={phone} onChange={(e) => setPhone(e.target.value)} className="input" placeholder="+233 ..." /></Field>
+          {/* Phone removed: `users` has no phone column, PATCH /api/users/me
+              neither accepts nor whitelists the field, so anything typed here
+              was discarded on save with no error. Restoring it needs a schema
+              migration plus updateMeSchema/pickAllowed support — until then,
+              not collecting it is the honest option. */}
         </Section>
 
         {/* About */}
@@ -201,10 +203,10 @@ export default function ProfilePage() {
           <Field label="Field of study"><input value={field} onChange={(e) => setField(e.target.value)} className="input" placeholder="e.g. Computer Science" /></Field>
         </Section>
 
-        {/* Languages */}
-        <Section icon={<Languages size={16} />} title="Languages">
-          <Field label="Spoken languages"><input value={languages} onChange={(e) => setLanguages(e.target.value)} className="input" placeholder="English, Twi, French..." /></Field>
-        </Section>
+        {/* Spoken languages removed for the same reason as phone: the column
+            is languages_spoken on mentor_profiles, not on users, so a student
+            editing this saw it silently discarded. `preferred_language` on
+            users is the UI locale, not the languages someone speaks. */}
 
         <div className="flex items-center justify-end gap-3 sticky bottom-4">
           {err && <span className="text-sm text-red-600">{err}</span>}
