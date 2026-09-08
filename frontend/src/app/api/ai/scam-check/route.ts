@@ -56,7 +56,11 @@ export async function POST(req: Request) {
   } catch {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
-  const text = (body?.text ?? "").trim();
+  // `?? ""` only substitutes for null/undefined, so a JSON number or array
+  // reached .trim() and threw an unhandled TypeError -> empty 500. The `text?:
+  // string` annotation is compile-time only and buys nothing against arbitrary
+  // request bodies.
+  const text = (typeof body?.text === "string" ? body.text : "").trim();
   if (!text) {
     return Response.json({ error: "text required" }, { status: 400 });
   }

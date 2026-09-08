@@ -66,7 +66,9 @@ export async function POST(req: Request) {
   } catch {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
-  if (!body?.essay?.trim()) {
+  // Optional chaining guards null/undefined but not a wrong type: a JSON
+  // number reached .trim() and threw an unhandled TypeError -> empty 500.
+  if (typeof body?.essay !== "string" || !body.essay.trim()) {
     return Response.json({ error: "essay required" }, { status: 400 });
   }
 

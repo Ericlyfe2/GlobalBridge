@@ -48,9 +48,12 @@ export async function POST(req: Request) {
   } catch {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
-  const origin = (body?.origin ?? "").trim();
-  const destination = (body?.destination ?? "").trim();
-  const purpose = (body?.purpose ?? "study").trim();
+  // `?? ""` only substitutes for null/undefined, so a JSON number, array or
+  // object reached .trim() and threw an unhandled TypeError -> empty 500.
+  const str = (v: unknown, fallback = "") => (typeof v === "string" ? v : fallback).trim();
+  const origin = str(body?.origin);
+  const destination = str(body?.destination);
+  const purpose = str(body?.purpose, "study") || "study";
   if (!origin || !destination) {
     return Response.json({ error: "origin and destination required" }, { status: 400 });
   }
