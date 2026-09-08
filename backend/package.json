@@ -16,6 +16,7 @@
     "seed:opportunities": "tsx src/seed-opportunities.ts",
     "seed:admin": "tsx src/seed-admin.ts",
     "migrate:decode-entities": "tsx src/migrate-decode-html-entities.ts",
+    "migrate:fk-indexes": "tsx src/migrate-fk-indexes.ts",
     "verify:clean-install": "tsx src/verify-clean-install.ts",
     "verify:s3": "tsx src/verify-s3.ts"
   },

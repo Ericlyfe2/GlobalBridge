@@ -969,3 +969,29 @@ CREATE TABLE IF NOT EXISTS forum_votes (
     PRIMARY KEY (user_id, target_type, target_id)
 );
 CREATE INDEX IF NOT EXISTS idx_forum_votes_target ON forum_votes(target_type, target_id);
+
+-- ── Foreign-key indexes ─────────────────────────────────────────────────────
+-- Postgres creates an index automatically for PRIMARY KEY and UNIQUE, but not
+-- for a foreign key. An audit of pg_constraint against pg_index found these 12
+-- FK columns with no leading index, so every join or lookup on them is a
+-- sequential scan, and a DELETE on the referenced row has to scan the child
+-- table to enforce the constraint.
+--
+-- Invisible at current row counts (Postgres correctly prefers a seq scan on a
+-- tiny table) and expensive to discover later, when it presents as "the app got
+-- slow" rather than as anything pointing here.
+--
+-- For an existing database, `npm run migrate:fk-indexes` applies the same set
+-- with CREATE INDEX CONCURRENTLY so it takes no write lock.
+CREATE INDEX IF NOT EXISTS idx_safe_space_replies_post_id ON safe_space_replies(post_id);
+CREATE INDEX IF NOT EXISTS idx_safe_space_replies_user_id ON safe_space_replies(user_id);
+CREATE INDEX IF NOT EXISTS idx_safe_space_posts_user_id ON safe_space_posts(user_id);
+CREATE INDEX IF NOT EXISTS idx_safe_space_upvotes_user_id ON safe_space_upvotes(user_id);
+CREATE INDEX IF NOT EXISTS idx_safe_space_support_user_id ON safe_space_support(user_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_participant_b ON conversations(participant_b);
+CREATE INDEX IF NOT EXISTS idx_peer_review_submissions_user_id ON peer_review_submissions(user_id);
+CREATE INDEX IF NOT EXISTS idx_peer_review_reviews_reviewer_id ON peer_review_reviews(reviewer_id);
+CREATE INDEX IF NOT EXISTS idx_mentor_profiles_verified_by ON mentor_profiles(verified_by);
+CREATE INDEX IF NOT EXISTS idx_knowledge_base_created_by ON knowledge_base(created_by);
+CREATE INDEX IF NOT EXISTS idx_platform_settings_updated_by ON platform_settings(updated_by);
+CREATE INDEX IF NOT EXISTS idx_library_items_contributor_id ON library_items(contributor_id);
