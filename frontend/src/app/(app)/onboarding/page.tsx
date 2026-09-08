@@ -194,7 +194,7 @@ export default function OnboardingPage() {
               icon={<Languages className="text-clay-500" />}
               kicker="Step 5 of 5"
               title="What language do you prefer?"
-              sub="AI assistant + auto-translated forums will use this. You can switch any time."
+              sub="The AI assistant will use this language. UI text comes from bundled translations (14 locales)."
             >
               <select value={language} onChange={(e) => setLanguage(e.target.value)} className="input">
                 <option value="en">English</option>

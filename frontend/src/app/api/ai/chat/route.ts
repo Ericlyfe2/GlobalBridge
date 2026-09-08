@@ -2,6 +2,7 @@ import { chatComplete, isAiConfigured } from "@/lib/ai-client";
 import { requireAiUser, tooLarge, totalChars, extractToken } from "@/lib/ai-auth";
 import { getAiConfig } from "@/lib/aiConfig";
 import { buildCitations } from "@/lib/citations";
+import { aiError, type AiChatSuccess } from "@/lib/ai-response";
 
 /** Ceiling on prompt text per request. max_tokens only caps the reply. */
 const MAX_INPUT_CHARS = 24_000;
@@ -137,26 +138,11 @@ async function saveMessage(token: string, conversationId: string, role: string, 
 export async function POST(req: Request) {
   const aiConfig = await getAiConfig();
 
-  if (!isAiConfigured()) {
-    return Response.json(
-      {
-        reply: "AI is not configured yet. Ask the admin to add `GOOGLE_GENERATIVE_AI_API_KEY` to `frontend/.env.local` and restart the dev server.\n\nMeanwhile: you can still browse verified opportunities, check the document checklist, or read forum threads.",
-        sources: [],
-      },
-      { status: 200 },
-    );
-  }
-
-  if (!aiConfig.ai_chat_enabled) {
-    return Response.json(
-      {
-        reply: "The AI assistant has been turned off by an admin. Meanwhile: you can still browse verified opportunities, check the document checklist, or read forum threads.",
-        sources: [],
-      },
-      { status: 200 },
-    );
-  }
-
+  // Shape of the request is judged before the state of the service. A malformed
+  // body is the caller's error whatever the server's configuration, and when
+  // the availability checks ran first every bad request came back as
+  // 503 not_configured — which hid client mistakes behind a server excuse and
+  // made validation impossible to exercise in an unconfigured environment.
   let body: {
     messages: { role: "user" | "assistant"; content: string }[];
     lang?: string;
@@ -180,6 +166,22 @@ export async function POST(req: Request) {
   }
   if (totalChars(body.messages.map((m) => m?.content ?? "")) > MAX_INPUT_CHARS) {
     return tooLarge(MAX_INPUT_CHARS);
+  }
+
+  if (!isAiConfigured()) {
+    return aiError(
+      "not_configured",
+      "AI is not configured yet. Ask the admin to add GOOGLE_GENERATIVE_AI_API_KEY to frontend/.env.local and restart the dev server.",
+      503,
+    );
+  }
+
+  if (!aiConfig.ai_chat_enabled) {
+    return aiError(
+      "disabled",
+      "The AI assistant has been turned off by an admin.",
+      503,
+    );
   }
 
   // Authenticate before spending anything. Rate limit is keyed on the verified
@@ -328,6 +330,7 @@ export async function POST(req: Request) {
     });
 
     return Response.json({
+      success: true,
       reply: text || "I couldn't generate a response. Try rephrasing.",
       sources,
       lang: targetLang,
@@ -337,17 +340,15 @@ export async function POST(req: Request) {
         output_tokens: outputTokens,
         response_time_ms: responseTime,
       },
-    });
+    } satisfies AiChatSuccess);
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     console.error("[/api/ai/chat] AI provider error:", msg);
-    return Response.json(
-      {
-        reply: "The AI assistant is temporarily unavailable — our AI provider is having an outage. Meanwhile you can browse verified Opportunities, check Housing listings, or post in Community. Please try again shortly.",
-        sources: [],
-        conversation_id: conversationId,
-      },
-      { status: 200 },
+    return aiError(
+      "provider_error",
+      "The AI assistant is temporarily unavailable. Please try again shortly.",
+      503,
+      { conversation_id: conversationId ?? null },
     );
   }
 }

@@ -36,9 +36,9 @@ const hubs: Record<string, Hub> = {
       { id: "e3", title: "Jollof cook-off + Afrobeats night",  date: "Jun 8, 2026 · 7pm", city: "Manchester", rsvp: 38 },
     ],
     mentors: [
-      { id: "m_ama",  name: "Ama Owusu",    initials: "AO", bio: "Software engineer at Shopify. 5 yrs in Toronto.",  dest: "Toronto",    destFlag: "ca" },
-      { id: "m_kwame", name: "Kwame Adjei", initials: "KA", bio: "MSc Finance, Alliance Manchester. Banking + housing tips.", dest: "Manchester", destFlag: "gb" },
-      { id: "m_yaa",  name: "Yaa Boateng",  initials: "YB", bio: "PhD candidate at TU Berlin. DAAD scholar, German language coach.", dest: "Berlin", destFlag: "de" },
+      { id: "11111111-1111-1111-1111-111111111111", name: "Ama Owusu",    initials: "AO", bio: "Software engineer at Shopify. 5 yrs in Toronto.",  dest: "Toronto",    destFlag: "ca" },
+      { id: "22222222-2222-2222-2222-222222222222", name: "Kwame Adjei", initials: "KA", bio: "MSc Finance, Alliance Manchester. Banking + housing tips.", dest: "Manchester", destFlag: "gb" },
+      { id: "33333333-3333-3333-3333-333333333333", name: "Yaa Boateng",  initials: "YB", bio: "PhD candidate at TU Berlin. DAAD scholar, German language coach.", dest: "Berlin", destFlag: "de" },
     ],
     threads: [
       { id: "t1", title: "Getting your passport back from Ghanaian embassy in Toronto",    replies: 18, lastReply: "2h ago" },
@@ -63,8 +63,8 @@ const hubs: Record<string, Hub> = {
       { id: "e2", title: "Lagos → Toronto career mixer", date: "Apr 12, 2026 · 6pm", city: "Toronto", rsvp: 84 },
     ],
     mentors: [
-      { id: "m_tunde", name: "Tunde Adebayo",  initials: "TA", bio: "Software engineer at Shopify, Lagos → Toronto.", dest: "Toronto", destFlag: "ca" },
-      { id: "m_amara", name: "Amara Okafor",   initials: "AO", bio: "MSc Imperial College, Bain consulting in London.", dest: "London", destFlag: "gb" },
+      { id: "66666666-6666-6666-6666-666666666666", name: "Tunde Adebayo",  initials: "TA", bio: "Software engineer at Shopify, Lagos → Toronto.", dest: "Toronto", destFlag: "ca" },
+      { id: "55555555-5555-5555-5555-555555555555", name: "Priya Sharma",   initials: "PS", bio: "MSc Imperial College, Bain consulting in London.", dest: "London", destFlag: "gb" },
     ],
     threads: [
       { id: "t1", title: "BVN + opening Nigerian dom account before leaving",   replies: 92, lastReply: "1h ago" },
@@ -89,7 +89,7 @@ const hubs: Record<string, Hub> = {
       { id: "e2", title: "Holi festival in Berlin",     date: "Mar 14, 2026 · 12pm", city: "Berlin", rsvp: 178 },
     ],
     mentors: [
-      { id: "m_priya", name: "Priya Sharma", initials: "PS", bio: "MSc Data Science Imperial. Now data scientist at Revolut.", dest: "London", destFlag: "gb" },
+      { id: "55555555-5555-5555-5555-555555555555", name: "Priya Sharma", initials: "PS", bio: "MSc Data Science Imperial. Now data scientist at Revolut.", dest: "London", destFlag: "gb" },
     ],
     threads: [
       { id: "t1", title: "Cooking Indian food in tiny student kitchens — survival guide", replies: 56, lastReply: "3h ago" },
@@ -129,8 +129,7 @@ export default function CommunityCountryPage({ params }: { params: Promise<{ cou
       {backLink}
 
       {/* This hub's tips, events, mentors, and threads are illustrative
-          examples, not a live feed -- the mentor links below intentionally
-          resolve to a clean "not found" page rather than a real profile. */}
+          examples, not a live feed. Mentor links use seed UUIDs from db/seed.sql. */}
       <p className="text-xs text-ink-500 mb-4 -mt-2">Example community content to show what this hub will look like.</p>
 
       {/* Header */}

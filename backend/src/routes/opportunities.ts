@@ -40,8 +40,8 @@ opportunitiesRouter.get("/", async (req, res, next) => {
 
     const rows = await query(
       `SELECT id, type, title, description, country, institution, field_of_study,
-              funding_amount, currency, eligibility, deadline, sponsors_visa,
-              view_count, created_at
+              funding_amount, currency, eligibility, application_url, deadline,
+              sponsors_visa, is_verified, view_count, created_at
        FROM opportunities ${where}
        ORDER BY deadline ASC NULLS LAST, created_at DESC
        LIMIT $${i} OFFSET $${i + 1}`,
@@ -60,7 +60,7 @@ opportunitiesRouter.get("/:id", async (req, res, next) => {
       `UPDATE opportunities SET view_count = view_count + 1 WHERE id = $1
        RETURNING id, type, title, description, country, institution, field_of_study,
                  funding_amount, currency, eligibility, application_url, deadline,
-                 sponsors_visa, view_count, created_at, posted_by`,
+                 sponsors_visa, is_verified, view_count, created_at, posted_by`,
       [req.params.id]
     );
     if (!opp) return res.status(404).json({ error: "Not found" });

@@ -53,7 +53,7 @@ export default function CostCalcPage() {
         </div>
         <div>
           <h1 className="text-3xl font-display font-semibold text-ink-900">Cost of Living Calculator</h1>
-          <p className="text-sm text-ink-600 mt-0.5">Monthly estimate for an international student. Real averages, not guesses.</p>
+          <p className="text-sm text-ink-600 mt-0.5">Monthly estimate for an international student. Representative averages for demo — verify locally before budgeting.</p>
         </div>
       </header>
 

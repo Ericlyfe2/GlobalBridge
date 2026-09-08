@@ -80,7 +80,7 @@ export default function PrivacyPage() {
               <p>We share your information only in these specific cases:</p>
               <ul className="list-disc pl-5 space-y-1.5 mt-3">
                 <li><strong>Mentors / employers / landlords:</strong> only the profile info you choose to share. Your contact info stays hidden until you message them first.</li>
-                <li><strong>Stripe / Paystack:</strong> payment info for transactions only. They handle PCI compliance.</li>
+                <li><strong>Stripe / Paystack (planned):</strong> not implemented in this release — no payment data is collected today.</li>
                 <li><strong>SendGrid / Twilio:</strong> email and SMS delivery. Content is templated, no marketing.</li>
                 <li><strong>Anthropic Claude:</strong> AI chats are sent to Anthropic for processing. Anthropic does not train on your data per their API ToS.</li>
                 <li><strong>Law enforcement:</strong> only with a valid subpoena, and we publish an annual transparency report.</li>

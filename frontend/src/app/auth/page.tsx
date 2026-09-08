@@ -138,18 +138,18 @@ function AuthContent() {
   const ROLE_STATS: Record<typeof role, { value: string; label: string }[]> = {
     student: [
       { value: "120+", label: t("landing.statCountries") },
-      { value: "50k+", label: t("landing.statStudents") },
-      { value: "98%", label: t("landing.statVisaSuccess") },
+      { value: "14", label: "Languages supported" },
+      { value: "AI", label: "Visa guidance tools" },
     ],
     mentor: [
-      { value: "500+", label: "Active mentors" },
-      { value: "12k+", label: "Sessions completed" },
-      { value: "4.9★", label: "Average rating" },
+      { value: "500+", label: "Mentor slots (goal)" },
+      { value: "—", label: "Sessions (growing)" },
+      { value: "4.9★", label: "Target rating" },
     ],
     employer: [
-      { value: "300+", label: "Companies hiring" },
-      { value: "50k+", label: "Verified candidates" },
-      { value: "98%", label: "Visa-ready talent" },
+      { value: "—", label: "Hiring partners (pilot)" },
+      { value: "—", label: "Candidate pool (beta)" },
+      { value: "Filter", label: "Visa sponsorship search" },
     ],
   };
   const stats = ROLE_STATS[activeRole];

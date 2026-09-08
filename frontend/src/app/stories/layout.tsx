@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Success Stories",
   description:
-    "Real students, real outcomes — verified success stories from GlobalBridge members who landed admissions, scholarships, jobs, and visa-sponsored housing abroad.",
+    "Representative success stories from GlobalBridge members — admissions, scholarships, jobs, and housing outcomes. Stories require admin review before they are marked verified.",
   alternates: { canonical: "/stories" },
 };
 

@@ -151,7 +151,7 @@ export default function PricingPage() {
               { q: "Is GlobalBridge really free for students?", a: "Yes. We commit to keeping core visa guidance, opportunity listings, scam alerts, and basic AI free forever. Verified tier is optional and exists to support the platform." },
               { q: "Can I downgrade later?", a: "Yes, any time. Downgrades take effect at the end of the current billing cycle. No questions asked." },
               { q: "Do you offer scholarships / free Verified?", a: "Yes. Students from low-income countries can apply for sponsored Verified access via the application form on /contact." },
-              { q: "What payment methods do you accept?", a: "Cards via Stripe (most countries). Paystack for Nigeria, Ghana, Kenya. M-Pesa support coming Q3 2026." },
+              { q: "What payment methods do you accept?", a: "Payments are not live in this version. Pricing tiers describe planned billing — no checkout or card processing is wired up yet." },
               { q: "Is my data sold to advertisers?", a: "No. Read our /privacy policy — your profile, documents, and chats are never sold or shared with third parties." },
             ].map((f) => (
               <details key={f.q} className="card group">

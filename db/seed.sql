@@ -24,6 +24,16 @@ VALUES
   ('66666666-6666-6666-6666-666666666666', 'tunde@globalbridge.app',   '$2b$10$pK5tW8T0js44bI.aeJin2.H8SNcEciQVW23kJwXdr2pUTxRyDQPPG', 'Tunde Adebayo', 'mentor',   'verified', 'Nigeria', 'Canada',         'Software engineer at Shopify, Toronto.',   91)
 ON CONFLICT (id) DO NOTHING;
 
+-- Mentor extended profiles (required for /api/users/mentors and community hub links)
+INSERT INTO mentor_profiles (user_id, expertise_areas, years_abroad, languages_spoken, universities_attended, available_for_mentoring)
+VALUES
+  ('11111111-1111-1111-1111-111111111111', ARRAY['Visa applications', 'Tech careers'], 5, ARRAY['English', 'Twi'], ARRAY['University of Toronto'], true),
+  ('22222222-2222-2222-2222-222222222222', ARRAY['UK banking', 'Housing'], 4, ARRAY['English'], ARRAY['Alliance Manchester'], true),
+  ('33333333-3333-3333-3333-333333333333', ARRAY['Germany study', 'DAAD'], 3, ARRAY['English', 'German'], ARRAY['TU Berlin'], true),
+  ('55555555-5555-5555-5555-555555555555', ARRAY['Data science', 'UK jobs'], 4, ARRAY['English', 'Hindi'], ARRAY['Imperial College London'], true),
+  ('66666666-6666-6666-6666-666666666666', ARRAY['Canada tech', 'Visa'], 5, ARRAY['English'], ARRAY['University of Toronto'], true)
+ON CONFLICT (user_id) DO NOTHING;
+
 -- Success stories
 INSERT INTO success_stories (author_id, name, origin, origin_flag, destination, dest_flag, program, outcome, year, quote, before_text, after_text, body)
 VALUES
@@ -60,43 +70,43 @@ VALUES
     'Comprehensive scholarship for academically talented African students with leadership potential and financial need. Covers tuition, accommodation, books, travel, and mentorship.',
     'Multi', 'MasterCard Foundation', 'All', 50000, 'USD',
     'African citizens, GPA 3.5+, demonstrated leadership, financial need, under 29.',
-    'https://mastercardfdn.org/scholars/', '2026-09-15', false, true, 1402),
+    'https://mastercardfdn.org/scholars/', '2026-09-15', false, false, 1402),
 
   ('44444444-4444-4444-4444-444444444444', 'scholarship', 'Chevening Scholarships 2026',
     'UK government fully funded master''s degree scholarship for outstanding students from around the world.',
     'United Kingdom', 'UK Government', 'All', 18000, 'GBP',
     'Bachelor''s degree, 2+ years work experience, leadership potential.',
-    'https://www.chevening.org/scholarship/', '2026-11-01', false, true, 2104),
+    'https://www.chevening.org/scholarship/', '2026-11-01', false, false, 2104),
 
   ('44444444-4444-4444-4444-444444444444', 'scholarship', 'DAAD WISE Scholarship',
     'Working Internships in Science and Engineering for undergraduate students. Includes monthly stipend, insurance, and travel.',
     'Germany', 'DAAD', 'STEM', 934, 'EUR',
     'STEM undergraduate, GPA 3.0+, English or German B2.',
-    'https://www.daad.de/wise/', '2026-12-15', false, true, 612),
+    'https://www.daad.de/wise/', '2026-12-15', false, false, 612),
 
   ('44444444-4444-4444-4444-444444444444', 'scholarship', 'Fulbright Foreign Student Program',
     'Funding for foreign students to pursue a master''s or PhD in the United States. Covers tuition, living expenses, health insurance.',
     'United States', 'U.S. State Department', 'All', 50000, 'USD',
     'Bachelor''s degree, GPA 3.5+, English proficiency, demonstrated leadership.',
-    'https://foreign.fulbrightonline.org/', '2026-10-15', false, true, 1820),
+    'https://foreign.fulbrightonline.org/', '2026-10-15', false, false, 1820),
 
   ('44444444-4444-4444-4444-444444444444', 'job', 'Frontend Engineer Intern at TechCo',
     'Build the consumer-facing dashboard used by 200k+ users. Ship to production from week one. Visa sponsorship available.',
     'United Kingdom', 'TechCo Ltd', 'Computer Science', 32000, 'GBP',
     'TypeScript + React. Strong fundamentals. Currently enrolled in CS degree.',
-    'https://techco.example/careers/frontend-intern', '2026-06-30', true, true, 487),
+    'https://techco.example/careers/frontend-intern', '2026-06-30', true, false, 487),
 
   ('44444444-4444-4444-4444-444444444444', 'work_study', 'Research Assistant — University of Toronto AI Lab',
     'Part-time research role for graduate students. Work alongside leading ML researchers on alignment + safety problems.',
     'Canada', 'University of Toronto', 'Computer Science', 22, 'CAD',
     'Currently enrolled in a Master''s or PhD in CS/AI. Strong Python + PyTorch.',
-    'https://web.cs.toronto.edu/', '2026-08-30', false, true, 312),
+    'https://web.cs.toronto.edu/', '2026-08-30', false, false, 312),
 
   ('44444444-4444-4444-4444-444444444444', 'exchange', 'Erasmus Mundus Joint Masters',
     'Two-year joint master''s programme between 3+ European universities. Mobility built into programme.',
     'EU', 'EU Commission', 'All', 25000, 'EUR',
     'Bachelor''s degree. Apply per programme.',
-    'https://erasmus-plus.ec.europa.eu/', '2026-12-31', false, true, 924)
+    'https://erasmus-plus.ec.europa.eu/', '2026-12-31', false, false, 924)
 ON CONFLICT DO NOTHING;
 
 -- Housing listings

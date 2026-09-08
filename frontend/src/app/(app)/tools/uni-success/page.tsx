@@ -198,8 +198,8 @@ function ProgramRow({ program: p }: { program: Uni["programs"][number] }) {
           <h3 className="font-medium text-ink-900">{p.name}</h3>
         </div>
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-ink-500">Based on {p.submissions} submissions</span>
-          <span className="badge badge-verified"><ShieldCheck size={10} /> Verified</span>
+          <span className="text-ink-500">Based on {p.submissions} sample submissions</span>
+          <span className="badge !bg-cream-200 !text-ink-700"><ShieldCheck size={10} /> Representative</span>
         </div>
       </div>
 

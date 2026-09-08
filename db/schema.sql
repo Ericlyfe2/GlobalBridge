@@ -246,7 +246,7 @@ CREATE TABLE IF NOT EXISTS success_stories (
   before_text TEXT,
   after_text TEXT,
   body TEXT,
-  verified BOOLEAN DEFAULT TRUE,
+  verified BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -481,7 +481,6 @@ CREATE INDEX IF NOT EXISTS idx_reports_reporter ON reports(reporter_id);
 CREATE INDEX IF NOT EXISTS idx_reports_resolver ON reports(resolved_by);
 CREATE INDEX IF NOT EXISTS idx_scam_alerts_reporter ON scam_alerts(reported_by);
 CREATE INDEX IF NOT EXISTS idx_forum_posts_category_id ON forum_posts(category_id);
-CREATE INDEX IF NOT EXISTS idx_notifications_kind ON notifications(kind);
 
 -- =====================
 -- NOTIFICATIONS TABLE (if not already exists)
@@ -496,6 +495,10 @@ CREATE TABLE IF NOT EXISTS notifications (
     read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+-- Was declared ~5 lines above the CREATE TABLE, in the FK-index block. Existing
+-- databases already had the table so it never failed there; applying this file
+-- to an empty database died on "relation notifications does not exist".
+CREATE INDEX IF NOT EXISTS idx_notifications_kind ON notifications(kind);
 
 -- =====================
 -- SAVED ITEMS TABLE

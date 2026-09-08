@@ -24,7 +24,7 @@ const faqs: { topic: Exclude<Topic, "all">; q: string; a: string }[] = [
   { topic: "jobs",     q: "Are all listed jobs visa-sponsoring?",        a: "We mark each listing with whether the employer has a sponsorship history. The 'Sponsorship Tracker' page shows actual sponsored counts from the past 12 months." },
   { topic: "jobs",     q: "Can I apply if I don't have my permit yet?",  a: "Yes — most listings accept conditional applications. Be upfront about your visa timeline; sponsoring employers will work with you." },
 
-  { topic: "payments", q: "What payment methods are accepted?",          a: "Cards via Stripe (most countries). Paystack for Nigeria, Ghana, Kenya. M-Pesa support coming Q3 2026." },
+  { topic: "payments", q: "What payment methods are accepted?",          a: "Not implemented in this release. The pricing page describes planned tiers only — there is no live checkout." },
   { topic: "payments", q: "Do you charge transaction fees?",             a: "We don't take a cut of mentor sessions for Free tier. For housing deposits via Stripe Connect, there's a 0.5% fee to cover escrow." },
   { topic: "payments", q: "Can I get a refund on Verified subscription?",a: "Yes, within 14 days of purchase, no questions asked. Email billing@globalbridge.app." },
 

@@ -1,6 +1,7 @@
-import { chatComplete, isAiConfigured } from "@/lib/ai-client";
+import { generateStructured, isAiConfigured } from "@/lib/ai-client";
 import { requireAiUser, tooLarge, totalChars } from "@/lib/ai-auth";
 import { getAiConfig } from "@/lib/aiConfig";
+import { z } from "zod";
 
 export const runtime = "nodejs";
 
@@ -14,22 +15,8 @@ Analyze a document the user is preparing for an international application (passp
 ## Hard rules
 - NEVER fabricate that you can read the actual file contents. The user has not uploaded an image to you. You receive: doc type, optional metadata (name, expiry date, country of issue), and any free-text notes the user adds.
 - Run standard checks for that document type based on what governments commonly reject for. Be specific.
-- Output strict JSON. Nothing else. No prose, no markdown fences.
-
-## JSON schema
-{
-  "score": number 0-100 (validity confidence),
-  "label": "Looks great" | "Review warnings" | "Needs fixes",
-  "summary": string (one sentence explaining the score),
-  "findings": [
-    {
-      "id": string (short slug),
-      "label": string (one-line plain-English finding),
-      "detail": string (1-2 sentences of why this matters),
-      "severity": "ok" | "warn" | "fail"
-    }
-  ]
-}
+- Do NOT claim OCR, MRZ reads, or field values from the file — you only have metadata and user notes.
+- Include 6-10 findings, mixing ok/warn/fail where the user supplied enough detail; otherwise use warn for unknowns.
 
 ## Severity rules
 - ok      = check passed
@@ -61,12 +48,17 @@ type DocFinding = {
   severity: "ok" | "warn" | "fail";
 };
 
-type DocCheckResult = {
-  score: number;
-  label: "Looks great" | "Review warnings" | "Needs fixes";
-  summary: string;
-  findings: DocFinding[];
-};
+const docCheckSchema = z.object({
+  score: z.number().min(0).max(100),
+  label: z.enum(["Looks great", "Review warnings", "Needs fixes"]),
+  summary: z.string(),
+  findings: z.array(z.object({
+    id: z.string(),
+    label: z.string(),
+    detail: z.string(),
+    severity: z.enum(["ok", "warn", "fail"]),
+  })),
+});
 
 /**
  * Which engine produced this result (mirrors scam-check's GB-14 fix). The
@@ -121,39 +113,28 @@ export async function POST(req: Request) {
   if ("response" in gate) return gate.response;
 
   try {
-    const completion = await chatComplete({
+    const completion = await generateStructured({
       model: aiConfig.ai_model,
-      // Measured 2196/2200 tokens used in production (99.8% of cap) -- the
-      // model was being cut off mid-JSON, forcing every real call into the
-      // heuristic fallback. Raised with real headroom, not another sliver.
+      schema: docCheckSchema,
+      schemaName: "DocCheckResult",
       maxTokens: 3200,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         {
           role: "user",
-          content: `Run validity checks for this document. Return strict JSON per the schema.\n\n${userPrompt}`,
+          content: `Run validity checks for this document metadata (not the file contents):\n\n${userPrompt}`,
         },
       ],
     });
 
-    // Book this call against the caller's daily budget. ai_usage_log is
-    // what the admin AI console reads and what the ceiling is computed from.
     await gate.record({
       model: aiConfig.ai_model,
       input_tokens: completion.inputTokens,
       output_tokens: completion.outputTokens,
     });
 
-    const text = completion.text;
-
-    const json = extractJson(text);
-    if (!json) {
-      console.error("[/api/ai/doc-check] non-JSON response:", text.slice(0, 200));
-      return Response.json({ ...mockFallback(body.docType), engine: "heuristic" as Engine }, { status: 200 });
-    }
-
     return Response.json({
-      ...json,
+      ...completion.object,
       engine: "ai" as Engine,
       usage: {
         input_tokens: completion.inputTokens,
@@ -167,24 +148,6 @@ export async function POST(req: Request) {
   }
 }
 
-function extractJson(text: string): unknown | null {
-  // Strip markdown fences if present
-  const cleaned = text.replace(/```json\s*/gi, "").replace(/```\s*$/g, "").trim();
-  try {
-    return JSON.parse(cleaned);
-  } catch {
-    // Try to find first { ... } block
-    const m = cleaned.match(/\{[\s\S]*\}/);
-    if (!m) return null;
-    try { return JSON.parse(m[0]); } catch { return null; }
-  }
-}
-
-/**
- * Deliberately a Checklist, not a DocCheckResult: there is no `score`, because
- * scoring a document this route never received is exactly the fabrication being
- * removed. The UI branches on `engine` and renders these without a gauge.
- */
 function mockFallback(docType: string): Checklist {
   const map: Record<string, Checklist> = {
     passport: passportMock(),

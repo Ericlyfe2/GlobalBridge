@@ -8,7 +8,8 @@
  */
 
 import { google } from "@ai-sdk/google";
-import { generateText, type ModelMessage } from "ai";
+import { generateObject, generateText, type ModelMessage } from "ai";
+import type { z } from "zod";
 
 export function isAiConfigured(): boolean {
   return Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY);
@@ -72,6 +73,52 @@ export async function chatComplete(params: {
   });
   return {
     text: text.trim(),
+    inputTokens: usage.inputTokens ?? 0,
+    outputTokens: usage.outputTokens ?? 0,
+  };
+}
+
+export type StructuredResult<T> = {
+  object: T;
+  inputTokens: number;
+  outputTokens: number;
+};
+
+/** Schema-enforced output — prefer over prompt + JSON.parse for structured routes. */
+export async function generateStructured<T extends z.ZodType>(params: {
+  model: string;
+  schema: T;
+  schemaName: string;
+  messages: ModelMessage[];
+  maxTokens: number;
+  temperature?: number;
+}): Promise<StructuredResult<z.infer<T>>> {
+  const systemParts: string[] = [];
+  const rest: ModelMessage[] = [];
+
+  for (const m of params.messages) {
+    if (m.role === "system") {
+      const c = (m as { content?: unknown }).content;
+      if (typeof c === "string") systemParts.push(c);
+    } else {
+      rest.push(m);
+    }
+  }
+
+  const resolvedModel = normalizeModel(params.model);
+
+  const { object, usage } = await generateObject({
+    model: google(resolvedModel),
+    schema: params.schema,
+    schemaName: params.schemaName,
+    ...(systemParts.length > 0 ? { instructions: systemParts.join("\n\n") } : {}),
+    messages: rest,
+    maxOutputTokens: params.maxTokens,
+    ...(params.temperature !== undefined ? { temperature: params.temperature } : {}),
+  });
+
+  return {
+    object: object as z.infer<T>,
     inputTokens: usage.inputTokens ?? 0,
     outputTokens: usage.outputTokens ?? 0,
   };

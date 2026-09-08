@@ -90,11 +90,14 @@ export default function AssistantPage() {
       }, 30000); // RAG retrieval + model generation regularly exceeds the default 8s fetch timeout
       const data = await res.json().catch(() => ({}));
 
-      if (!res.ok || data?.error) {
-        const fallbackErr = res.status === 401
-          ? "Please sign in to chat with the AI assistant."
-          : (data?.error || t("assistant.errorMessage"));
-        setMessages((m) => [...m, { role: "assistant", content: fallbackErr }]);
+      if (!res.ok || data?.success === false || data?.error) {
+        const errMsg =
+          data?.error?.message ??
+          (typeof data?.error === "string" ? data.error : null) ??
+          (res.status === 401
+            ? "Please sign in to chat with the AI assistant."
+            : t("assistant.errorMessage"));
+        setMessages((m) => [...m, { role: "assistant", content: errMsg }]);
         emit("ERROR");
         return;
       }

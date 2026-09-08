@@ -23,8 +23,9 @@ npm run dev
 
 Starts both services together — frontend on **:3000**, backend on **:4000**.
 
-You'll need `backend/.env` and `frontend/.env.local` (see [ENV.md](ENV.md)) and a Postgres database.
-For a local one:
+You'll need `backend/.env` and `frontend/.env.local` (see [ENV.md](ENV.md) and [docs/DATABASE.md](docs/DATABASE.md)) and a **development** Postgres database (not production).
+
+For a local database:
 
 ```bash
 docker compose up -d
@@ -33,7 +34,26 @@ cd backend && npx tsx run-migration.ts ../db/migration_rag.sql
 npm run seed:admin
 ```
 
-Full setup, environment variables and deployment: **[docs/ARCHITECTURE.md §18–19](docs/ARCHITECTURE.md#18-running-locally)**.
+If you use Neon, point `DATABASE_URL` at a **dev branch** (e.g. `globalbridge_dev`), then run `npm run unverify:seeds` after loading seed data so representative listings are not marked verified.
+
+Full setup: **[docs/ARCHITECTURE.md §18–19](docs/ARCHITECTURE.md#18-running-locally)**.
+
+---
+
+## What is real vs representative
+
+| Area | Status |
+|------|--------|
+| Auth, forums, messages, housing CRUD, opportunities API | **Functional** (needs DB + Firebase) |
+| AI assistant, doc check, scam shield | **Functional** when Gemini key set; doc check reads metadata only, not file bytes |
+| Opportunities / jobs listings | Mix of **seed data** and user posts; `is_verified` only true after admin review |
+| Toolkit (cost, banking, uni success, sponsorship tracker) | **Representative static content** for demo |
+| Community country hubs | **Illustrative** events/stats; mentor cards link to seed profiles when present |
+| Payments (Stripe/Paystack) | **Not implemented** — pricing page describes planned tiers |
+| UI i18n | **Static locale JSON** (14 languages) — no live machine translation API |
+| Success stories | DB-backed; require admin `verified` before public display |
+
+The UI should match this table. Seed scripts default `is_verified = false`.
 
 ---
 

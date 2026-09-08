@@ -95,12 +95,12 @@ export default function HousingPage() {
     <div className="max-w-7xl mx-auto p-6 lg:p-10 space-y-8">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-sm font-medium text-clay-600">VERIFIED MARKETPLACE</p>
+          <p className="text-sm font-medium text-clay-600">STUDENT HOUSING</p>
           <h1 className="mt-1 text-4xl font-display font-semibold text-ink-900 tracking-tight">
             Housing for international students
           </h1>
           <p className="mt-2 text-ink-600">
-            Every landlord ID-verified. Every listing reviewed. Roommate matching included.
+            Listings from verified landlords when available. New listings are reviewed before going live.
           </p>
         </div>
         <Link href="/housing/new" className="btn-accent shrink-0">

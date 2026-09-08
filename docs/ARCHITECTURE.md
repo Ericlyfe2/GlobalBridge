@@ -150,7 +150,7 @@ There are deliberately **two** places AI is called:
 | Path | Runs in | Used for | Why |
 |---|---|---|---|
 | `/api/ai/*` route handlers | Next.js server | Scam Shield, Visa Roadmap, Readiness, Doc Check, Essay Score, Country Compare, Chat | Latency — no extra hop; key stays server-side; independent of Express uptime |
-| `/api/ai/*` on Express | Express | Conversation + message persistence, checklists, translate | Needs the database; conversations must be stored |
+| `/api/ai/*` on Next.js | Next.js | Chat, doc-check, scam-check, structured AI tools | Gemini via `/api/ai/*`; i18n uses static locale JSON (no translate API) |
 
 The Next chat route calls **back into** Express for RAG retrieval and conversation persistence, which
 is why the CSRF fix in §15 mattered so much.

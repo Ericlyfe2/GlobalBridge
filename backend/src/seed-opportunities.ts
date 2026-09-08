@@ -698,7 +698,7 @@ async function seed() {
         `INSERT INTO opportunities
            (type, title, description, country, institution, field_of_study, funding_amount, currency,
             eligibility, application_url, deadline, sponsors_visa, is_verified)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,true)`,
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,false)`,
         [
           e.type, e.title, e.description, e.country, e.institution ?? null, e.field_of_study ?? null,
           e.funding_amount ?? null, e.currency ?? null, e.eligibility ?? null, e.application_url ?? null,

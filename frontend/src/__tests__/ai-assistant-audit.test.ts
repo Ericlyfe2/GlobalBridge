@@ -73,6 +73,48 @@ describe("AI Red Team & Error Contract Audit", () => {
     expect(data.error).toBe("Sign in to use GlobalBridge AI tools.");
   });
 
+  // Ordering regression: the availability checks (isAiConfigured /
+  // ai_chat_enabled) once ran before the body was parsed, so with no provider
+  // key every malformed request came back 503 not_configured. That hides a
+  // caller's mistake behind a server excuse, and made request validation
+  // impossible to exercise locally. The tests above cannot catch it because
+  // beforeEach sets a key; this one deliberately removes it.
+  it("still reports malformed input as 400 when the AI is unconfigured", async () => {
+    delete process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    delete process.env.GEMINI_API_KEY;
+
+    const badJson = await chatPost(
+      new Request("http://localhost/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{ broken json",
+      }),
+    );
+    expect(badJson.status).toBe(400);
+
+    const empty = await chatPost(
+      new Request("http://localhost/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [] }),
+      }),
+    );
+    expect(empty.status).toBe(400);
+
+    // A well-formed request is the only one that should surface the outage.
+    const wellFormed = await chatPost(
+      new Request("http://localhost/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [{ role: "user", content: "hi" }] }),
+      }),
+    );
+    expect(wellFormed.status).toBe(503);
+    const body = await wellFormed.json();
+    expect(body.success).toBe(false);
+    expect(body.error.code).toBe("not_configured");
+  });
+
   it("rejects invalid JSON payloads with 400", async () => {
     const req = new Request("http://localhost/api/ai/chat", {
       method: "POST",
@@ -127,13 +169,14 @@ describe("AI Red Team & Error Contract Audit", () => {
     const res = await chatPost(req);
     expect(res.status).toBe(200);
     const data = await res.json();
+    expect(data.success).toBe(true);
     expect(data.reply).toContain("For a Canadian study permit");
     expect(Array.isArray(data.sources)).toBe(true);
     // scam-visa.com must NOT be in sources
     expect(data.sources.some((s: { url: string }) => s.url.includes("scam-visa.com"))).toBe(false);
   });
 
-  it("gracefully falls back when AI provider throws an outage error", async () => {
+  it("returns 503 with explicit error when AI provider throws an outage error", async () => {
     generateTextMock.mockRejectedValueOnce(new Error("Google Generative AI 503 Overloaded"));
 
     const req = new Request("http://localhost/api/ai/chat", {
@@ -145,8 +188,29 @@ describe("AI Red Team & Error Contract Audit", () => {
     });
 
     const res = await chatPost(req);
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(503);
     const data = await res.json();
-    expect(data.reply).toContain("temporarily unavailable");
+    expect(data.success).toBe(false);
+    expect(data.error.code).toBe("provider_error");
+    expect(data.error.message).toContain("temporarily unavailable");
+  });
+
+  it("returns 503 when AI is not configured", async () => {
+    delete process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    delete process.env.GEMINI_API_KEY;
+
+    const req = new Request("http://localhost/api/ai/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer test-token" },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: "Hello" }],
+      }),
+    });
+
+    const res = await chatPost(req);
+    expect(res.status).toBe(503);
+    const data = await res.json();
+    expect(data.success).toBe(false);
+    expect(data.error.code).toBe("not_configured");
   });
 });

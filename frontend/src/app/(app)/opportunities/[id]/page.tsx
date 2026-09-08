@@ -58,7 +58,7 @@ function mapOpp(r: RawOpp): Opportunity {
     id: r.id,
     title: r.title,
     type: r.type,
-    provider: r.institution ?? "GlobalBridge verified",
+    provider: r.institution ?? "Listing provider",
     country: r.country,
     flag: COUNTRY_FLAG[r.country] ?? "un",
     amount,

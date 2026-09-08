@@ -1,38 +1,34 @@
 # Environment Variables Reference
 
+See **[docs/DATABASE.md](docs/DATABASE.md)** for which Postgres host/database local development should use (never production).
+
 ## Backend (`backend/.env`)
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `NODE_ENV` | No | `development` | Environment mode (`development`, `production`, `test`) |
 | `PORT` | No | `4000` | Backend server port |
-| `DATABASE_URL` | No | — | Postgres connection string (Neon) |
+| `DATABASE_URL` | No | — | Postgres connection string. **Use a dev branch or local Docker Postgres — not production.** |
 | `REDIS_URL` | No | — | Redis connection string (graceful fallback if missing) |
 | `FIREBASE_PROJECT_ID` | **Yes** | — | Firebase Admin project ID |
 | `FIREBASE_CLIENT_EMAIL` | **Yes** | — | Firebase Admin client email |
 | `FIREBASE_PRIVATE_KEY` | **Yes** | — | Firebase Admin private key (with `\n` escaped) |
-| `AI_SERVICE_URL` | No | `http://localhost:8000` | AI microservice URL |
 | `CORS_ORIGIN` | No | `http://localhost:3000` | Allowed CORS origin |
 | `JWT_SECRET` | No | `change-me-in-production-…` | Legacy JWT signing secret (WS server only) |
-| `UPLOAD_DIR` | No | `./uploads` | Local file upload directory |
-| `GOOGLE_TRANSLATE_API_KEY` | No | — | Google Translate API key |
-| `STRIPE_SECRET_KEY` | No | — | Stripe secret key |
-| `PAYSTACK_SECRET_KEY` | No | — | Paystack secret key |
-| `SENDGRID_API_KEY` | No | — | SendGrid API key |
-| `TWILIO_ACCOUNT_SID` | No | — | Twilio account SID |
-| `TWILIO_AUTH_TOKEN` | No | — | Twilio auth token |
-| `CLOUDINARY_URL` | No | — | Cloudinary URL |
-| `AWS_S3_BUCKET` | No | — | AWS S3 bucket name |
+| `OPENAI_API_KEY` | No | — | OpenAI key for RAG embeddings (backend) |
+| `CLOUDINARY_URL` | No | — | Cloudinary URL (optional) |
+| `S3_BUCKET` | Prod | — | Durable uploads (required in production) |
 
-## AI Service (`ai/.env`)
+### Not implemented (variables do nothing today)
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `OPENAI_API_KEY` | **Yes\*** | — | OpenAI API key for OpenAI |
-| `GOOGLE_APPLICATION_CREDENTIALS` | No | — | Path to GCP service-account JSON |
-| `PORT` | No | `8001` | AI service port |
-
-\* Required for AI features — the service will start without it but AI endpoints will fail.
+| Variable | Status |
+|----------|--------|
+| `STRIPE_SECRET_KEY` | **NOT IMPLEMENTED** — no checkout or webhooks |
+| `PAYSTACK_SECRET_KEY` | **NOT IMPLEMENTED** — no payment code |
+| `SENDGRID_API_KEY` | **NOT IMPLEMENTED** — in-app notifications only |
+| `TWILIO_*` | **NOT IMPLEMENTED** — no SMS |
+| `GOOGLE_TRANSLATE_API_KEY` | **NOT IMPLEMENTED** — UI i18n uses static locale JSON |
+| `AWS_S3_BUCKET` | **Wrong name** — use `S3_BUCKET` instead |
 
 ## Frontend (`frontend/.env.local`)
 
@@ -40,25 +36,20 @@
 |----------|----------|---------|-------------|
 | `NEXT_PUBLIC_API_URL` | **Yes** | — | Backend API base URL |
 | `NEXT_PUBLIC_WS_URL` | No | `ws://localhost:4000/ws` | WebSocket server URL |
-| `NEXT_PUBLIC_FIREBASE_API_KEY` | **Yes\*** | — | Firebase Web API key |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | **Yes\*** | — | Firebase auth domain |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | **Yes\*** | — | Firebase project ID |
-| `NEXT_PUBLIC_FIREBASE_APP_ID` | **Yes\*** | — | Firebase app ID |
+| `NEXT_PUBLIC_FIREBASE_*` | **Yes** | — | Firebase Web client config |
 | `NEXT_PUBLIC_SITE_URL` | No | `https://globalbridge.app` | Public site URL (SEO, sitemap) |
-| `OPENAI_API_KEY` | **Yes†** | — | OpenAI API key (server-side routes) |
-| `UPSTASH_REDIS_REST_URL` | No | — | Upstash Redis REST URL (translation cache) |
-| `UPSTASH_REDIS_REST_TOKEN` | No | — | Upstash Redis REST token |
+| `GOOGLE_GENERATIVE_AI_API_KEY` or `GEMINI_API_KEY` | **Yes†** | — | Gemini for `/api/ai/*` routes |
+| `GEMINI_MODEL` | No | `gemini-2.5-flash` | Default chat/doc-check model |
+| `UPSTASH_REDIS_REST_*` | No | — | Optional cache (unused by i18n today) |
 
-\* Required for Firebase auth.
-† Required for AI features (chat, translation, essay scoring, doc check, country comparison).
+† Required for AI features (chat, essay scoring, doc check, country comparison, scam shield).
 
 ## Notes
 
-- **Backend** uses a validated Zod schema in `backend/src/env.ts`. The server will warn on missing required vars.
-- **Frontend** accesses env vars via `process.env` (Next.js convention). Vars prefixed with `NEXT_PUBLIC_` are inlined at build time and visible to the browser.
-- `JWT_EXPIRES_IN=7d` appears in `backend/.env` but is not referenced in source code (legacy).
+- **Backend** uses a validated Zod schema in `backend/src/env.ts`.
+- **Frontend** vars prefixed with `NEXT_PUBLIC_` are visible in the browser.
 - The backend degrades gracefully without `DATABASE_URL` and `REDIS_URL`.
-- See per-directory `.env.example` files for placeholder templates.
+- See `backend/.env.example` for placeholder templates.
 
 ## Web Push (optional)
 
