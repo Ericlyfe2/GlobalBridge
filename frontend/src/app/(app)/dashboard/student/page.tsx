@@ -12,6 +12,7 @@ import { useTranslation } from "@/i18n/hooks/useTranslation";
 import { useMascot } from "@/mascot/MascotProvider";
 import { formatDateOnly } from "@/lib/utils";
 import { AtlasPortrait } from "@/components/mascot/AtlasPortrait";
+import { OnboardingTour, STUDENT_TOUR_STEPS } from "@/components/OnboardingTour";
 
 type Dashboard = {
   profile: { completion: number; missingFields: string[]; verificationStatus: string };
@@ -132,8 +133,9 @@ export default function StudentDashboard() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-5 md:p-8">
+      <OnboardingTour role="student" steps={STUDENT_TOUR_STEPS} accent="clay" />
       {/* Welcome */}
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <header data-tour="welcome-header" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">
             {t("dashboard.welcome", { name: firstName })} 👋
@@ -175,10 +177,12 @@ export default function StudentDashboard() {
 
       {/* Visa roadmap — promoted to its own section: for a student mid-journey
           this is the single most consequential tracker on the page. */}
-      <VisaRoadmapCard visa={data.visa} />
+      <div data-tour="visa-roadmap">
+        <VisaRoadmapCard visa={data.visa} />
+      </div>
 
       {/* Quick actions */}
-      <section>
+      <section data-tour="quick-actions">
         <h2 className="mb-3 text-sm font-semibold text-ink-700 dark:text-gray-300">{t("dashboard.quickActions")}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {QUICK_ACTIONS.map((a) => (
@@ -306,7 +310,7 @@ function ProfileCard({ completion, missing }: { completion: number; missing: str
   const { t } = useTranslation();
   const r = 34, c = 2 * Math.PI * r, offset = c - (completion / 100) * c;
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-cream-200 bg-white dark:bg-[var(--color-surface)] p-5 dark:border-gray-800 dark:bg-gray-900">
+    <div data-tour="profile-card" className="flex items-center gap-4 rounded-xl border border-cream-200 bg-white dark:bg-[var(--color-surface)] p-5 dark:border-gray-800 dark:bg-gray-900">
       <div className="relative grid h-20 w-20 shrink-0 place-items-center">
         <svg className="h-20 w-20 -rotate-90" viewBox="0 0 80 80">
           <circle cx="40" cy="40" r={r} fill="none" strokeWidth="7" className="stroke-cream-200 dark:stroke-gray-700" />
@@ -379,7 +383,7 @@ const AI_SUITE = [
 
 function AiSuiteBanner() {
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-clay-500/20 bg-gradient-to-br from-clay-500/5 via-white to-cream-100 p-5 dark:from-clay-500/10 dark:via-gray-900 dark:to-gray-900">
+    <section data-tour="ai-suite" className="relative overflow-hidden rounded-2xl border border-clay-500/20 bg-gradient-to-br from-clay-500/5 via-white to-cream-100 p-5 dark:from-clay-500/10 dark:via-gray-900 dark:to-gray-900">
       <AtlasPortrait size={96} className="pointer-events-none absolute -right-3 -top-3 opacity-90" />
       <div className="mb-4 flex items-center gap-2">
         <span className="inline-flex items-center gap-1 rounded-full bg-clay-600 px-2.5 py-0.5 text-[11px] font-semibold text-white">
@@ -419,7 +423,7 @@ function AiSuiteBanner() {
 function SafetyBanner() {
   const { t } = useTranslation();
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+    <div data-tour="safety-banner" className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
       <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-amber-500/20 text-amber-600">
         <ShieldAlert size={18} />
       </span>

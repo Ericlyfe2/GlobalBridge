@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { authFetch, getUser } from "@/lib/auth";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
+import { OnboardingTour, EMPLOYER_TOUR_STEPS } from "@/components/OnboardingTour";
 
 type EmployerDashboard = {
   stats: { activeListings: number; interestedCandidates: number; totalViews: number; sponsorshipListings: number; sponsorshipRate: number };
@@ -70,7 +71,8 @@ export default function EmployerDashboard() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-5 md:p-8">
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <OnboardingTour role="employer" steps={EMPLOYER_TOUR_STEPS} accent="emerald" />
+      <header data-tour="welcome-header" className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[#0A2540] dark:text-white">{company}</h1>
           <p className="mt-1 text-sm text-ink-500 dark:text-gray-400">Your hiring pipeline at a glance.</p>
@@ -81,7 +83,7 @@ export default function EmployerDashboard() {
       </header>
 
       {/* Overview */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div data-tour="stats" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat icon={Briefcase} label={t("dashboard.activeListings")} value={data.stats.activeListings} />
         <Stat icon={Users} label={t("dashboard.interestedCandidates")} value={data.stats.interestedCandidates} />
         <Stat icon={Eye} label={t("dashboard.totalViews")} value={data.stats.totalViews} />
@@ -89,7 +91,7 @@ export default function EmployerDashboard() {
       </div>
 
       {/* Manage */}
-      <section>
+      <section data-tour="quick-actions">
         <h2 className="mb-3 text-sm font-semibold text-ink-700 dark:text-gray-300">{t("dashboard.quickActions")}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {MANAGE.map((a) => (
@@ -104,7 +106,8 @@ export default function EmployerDashboard() {
 
       <div className="grid gap-5 lg:grid-cols-3">
         {/* Listings */}
-        <SectionCard title="Your job listings" href="/jobs" className="lg:col-span-2">
+        <div data-tour="listings" className="lg:col-span-2">
+        <SectionCard title="Your job listings" href="/jobs">
           {data.listings.length === 0 ? (
             <Empty>No active listings. Post your first job to start hiring.</Empty>
           ) : (
@@ -131,9 +134,11 @@ export default function EmployerDashboard() {
             </ul>
           )}
         </SectionCard>
+        </div>
 
         {/* Sponsorship */}
-        <SectionCard title="Visa sponsorship" className="lg:col-span-1">
+        <div data-tour="sponsorship" className="lg:col-span-1">
+        <SectionCard title="Visa sponsorship">
           <div className="flex flex-col items-center py-2 text-center">
             <Ring value={data.stats.sponsorshipRate} />
             <p className="mt-3 text-sm font-medium text-ink-700 dark:text-gray-300">
@@ -142,6 +147,7 @@ export default function EmployerDashboard() {
             <p className="mt-1 text-xs text-ink-400">Share of your roles open to international talent.</p>
           </div>
         </SectionCard>
+        </div>
       </div>
     </div>
   );

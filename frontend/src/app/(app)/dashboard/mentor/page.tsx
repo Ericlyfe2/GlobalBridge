@@ -9,6 +9,7 @@ import {
 import { authFetch, getUser } from "@/lib/auth";
 import { useTranslation } from "@/i18n/hooks/useTranslation";
 import { formatDateOnly } from "@/lib/utils";
+import { OnboardingTour, MENTOR_TOUR_STEPS } from "@/components/OnboardingTour";
 
 type MentorDashboard = {
   stats: { activeMentees: number; pendingRequests: number; totalSessions: number; hoursMentored: number };
@@ -77,13 +78,14 @@ export default function MentorDashboard() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-5 md:p-8">
-      <header>
+      <OnboardingTour role="mentor" steps={MENTOR_TOUR_STEPS} accent="emerald" />
+      <header data-tour="welcome-header">
         <h1 className="text-2xl font-bold tracking-tight text-[#0A2540] dark:text-white">{t("dashboard.welcome", { name: firstName })}</h1>
         <p className="mt-1 text-sm text-ink-500 dark:text-gray-400">Your mentorship impact at a glance.</p>
       </header>
 
       {/* Overview stats */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div data-tour="stats" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat icon={Users} label={t("dashboard.activeMentees")} value={data.stats.activeMentees} />
         <Stat icon={Inbox} label={t("dashboard.pendingRequests")} value={data.stats.pendingRequests} accent={data.stats.pendingRequests > 0} />
         <Stat icon={CalendarCheck} label={t("dashboard.totalSessions")} value={data.stats.totalSessions} />
@@ -91,7 +93,7 @@ export default function MentorDashboard() {
       </div>
 
       {/* Management */}
-      <section>
+      <section data-tour="quick-actions">
         <h2 className="mb-3 text-sm font-semibold text-ink-700 dark:text-gray-300">{t("dashboard.quickActions")}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {MANAGE.map((a) => (
@@ -106,7 +108,8 @@ export default function MentorDashboard() {
 
       <div className="grid gap-5 lg:grid-cols-3">
         {/* Upcoming sessions */}
-        <SectionCard title={t("dashboard.upcomingSessions")} href="/messages" className="lg:col-span-2">
+        <div data-tour="upcoming-sessions" className="lg:col-span-2">
+        <SectionCard title={t("dashboard.upcomingSessions")} href="/messages">
           {data.upcomingSessions.length === 0 ? (
             <Empty>{t("dashboard.noUpcomingSessions")}</Empty>
           ) : (
@@ -131,9 +134,11 @@ export default function MentorDashboard() {
             </ul>
           )}
         </SectionCard>
+        </div>
 
         {/* Community impact */}
-        <SectionCard title="Community impact" className="lg:col-span-1">
+        <div data-tour="community-impact" className="lg:col-span-1">
+        <SectionCard title="Community impact">
           <div className="space-y-3">
             <ImpactRow icon={MessageSquare} label={t("dashboard.communityAnswers")} value={data.community.answers} />
             <ImpactRow icon={BadgeCheck} label={t("dashboard.acceptedAnswers")} value={data.community.acceptedAnswers} />
@@ -141,9 +146,11 @@ export default function MentorDashboard() {
             <ImpactRow icon={Clock} label={t("dashboard.hoursMentored")} value={data.stats.hoursMentored} />
           </div>
         </SectionCard>
+        </div>
       </div>
 
       {/* Pending requests */}
+      <div data-tour="pending-requests">
       <SectionCard title="Pending mentee requests" href="/messages">
         {data.pendingRequests.length === 0 ? (
           <Empty>No pending requests right now.</Empty>
@@ -161,6 +168,7 @@ export default function MentorDashboard() {
           </ul>
         )}
       </SectionCard>
+      </div>
     </div>
   );
 }

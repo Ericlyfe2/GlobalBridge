@@ -250,12 +250,18 @@ export async function register(payload: {
     // shape /api/auth/me does (PROFILE_COLUMNS on both) — use it directly
     // instead of a second round trip that would just re-fetch the same row.
     const { user } = await res.json() as { user: Partial<SessionUser> & { full_name?: string; role?: SessionUser["role"] } };
+    const resolvedRole = user.role ?? payload.role;
     setSession(token, {
       id: user.id ?? cred.user.uid,
       email: user.email ?? payload.email,
       full_name: user.full_name ?? payload.full_name,
-      role: user.role ?? payload.role,
+      role: resolvedRole,
     });
+    // Flags this as a brand-new account for OnboardingTour to pick up on
+    // first dashboard load — a returning login never sets this, so the tour
+    // only ever fires once, right after signup. payload.role only ever takes
+    // one of the three values below, so this always applies to a signup.
+    try { localStorage.setItem("gb-tour-pending", "1"); } catch { /* ignore */ }
   } catch (err) {
     throw friendlyError(err);
   }
