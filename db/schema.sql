@@ -626,7 +626,16 @@ INSERT INTO platform_settings (key, value) VALUES
     ('ai_doc_check_enabled', 'true'),
     ('ai_scam_detection_enabled', 'true'),
     ('ai_translation_enabled', 'true'),
-    ('ai_model', '"gemini-3.5-flash"'),
+    -- Found live: a fresh install seeded this row with "gemini-3.5-flash", a
+    -- name that predates the current model lineup. AI_MODELS in
+    -- (admin)/admin/settings/page.tsx and DEFAULTS in lib/aiConfig.ts both
+    -- treat gemini-2.5-flash as the real default; this was the one place that
+    -- still disagreed. chatComplete()'s normalizeModel() maps the old name
+    -- back to a working one, so no request ever actually failed from this --
+    -- but every fresh database silently started on a model that isn't the one
+    -- the admin UI shows as selected, until someone happened to open Settings
+    -- and re-save it once.
+    ('ai_model', '"gemini-2.5-flash"'),
     ('ai_temperature', '0.3'),
     ('ai_escalation_threshold', '0.6'),
     ('ai_system_prompt', '"You are GlobalBridge''s immigration assistant. Always cite the official government source URL when you quote a rule. If you are not 100% sure, say so and escalate to a verified human mentor. Never give legal advice. Be concise — short sentences, numbered steps."'),
