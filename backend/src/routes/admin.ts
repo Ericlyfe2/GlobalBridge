@@ -655,25 +655,18 @@ adminRouter.post("/employer-verifications/:id/reopen", requireAuth, requireAdmin
 // ============================================================
 // CONTENT MODERATION
 // ============================================================
-adminRouter.get("/content", requireAuth, requireAdmin(), async (req, res, next) => {
+adminRouter.get("/content", requireAuth, requireAdmin(), async (_req, res, next) => {
   try {
-    const type = req.query.type as string | undefined;
-    const status = req.query.status as string | undefined;
-    const conditions: string[] = [];
-    const params: unknown[] = [];
-    let idx = 1;
-
-    if (type && type !== "all") { conditions.push(`type = $${idx++}`); params.push(type); }
-
     const [housing, opportunities, jobs, forumPosts, stories] = await Promise.all([
       query(
         `SELECT id, title, 'housing' AS type, status, created_at, 'landlord' AS author_field FROM housing_listings`
       ),
       query(
-        `SELECT o.id, o.title, 'opportunity' AS type, 
-                CASE WHEN o.is_verified THEN 'active' ELSE 'pending_review' END AS status, 
+        `SELECT o.id, o.title, 'opportunity' AS type,
+                CASE WHEN o.is_verified THEN 'active' ELSE 'pending_review' END AS status,
                 o.created_at, u.full_name AS author_field
-         FROM opportunities o LEFT JOIN users u ON u.id = o.posted_by`
+         FROM opportunities o LEFT JOIN users u ON u.id = o.posted_by
+         WHERE o.type NOT IN ('job', 'internship')`
       ),
       query(
         `SELECT o.id, o.title, 'job' AS type,

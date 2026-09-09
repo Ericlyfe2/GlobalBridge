@@ -143,6 +143,7 @@ export default function ListingsPage() {
             <div className="mt-4 flex items-center justify-between text-xs">
               <div className="flex items-center gap-3">
                 <StateChip state={l.state} />
+                {!l.real && <span className="badge !bg-ink-200 !text-ink-600">Sample</span>}
                 <span className="text-ink-500 flex items-center gap-1"><Eye size={11} /> {l.views}</span>
                 {l.reports > 0 && (
                   <span className="text-red-600 font-medium flex items-center gap-1">
@@ -155,7 +156,7 @@ export default function ListingsPage() {
                   <button
                     onClick={() => l.real && setStatus(l.id, "active")}
                     disabled={!l.real || busyId === l.id}
-                    title={l.real ? "Approve listing" : "Demo row — sign in for real listings"}
+                    title={l.real ? "Approve listing" : "Sample row for layout preview — not backed by real data"}
                     className="text-xs px-2 py-1 rounded-md text-leaf-600 hover:bg-leaf-500/10 transition flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {busyId === l.id ? <Loader2 size={11} className="animate-spin" /> : <ShieldCheck size={11} />} Approve
@@ -165,7 +166,7 @@ export default function ListingsPage() {
                   <button
                     onClick={() => l.real && setStatus(l.id, "archived")}
                     disabled={!l.real || busyId === l.id}
-                    title={l.real ? "Reject / take down" : "Demo row"}
+                    title={l.real ? "Reject / take down" : "Sample row for layout preview — not backed by real data"}
                     className="text-xs px-2 py-1 rounded-md text-red-600 hover:bg-red-500/10 transition disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Take down

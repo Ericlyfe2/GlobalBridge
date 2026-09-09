@@ -236,6 +236,11 @@ export default function AIConfigPage() {
     return rows.map((r) => ({ ...r, pct: Math.round((r.count / total) * 100) }));
   }, [stats, breakdownTab]);
 
+  const topModel = useMemo(() => {
+    if (!stats?.byModel?.length) return null;
+    return [...stats.byModel].sort((a, b) => b.count - a.count)[0]?.model ?? null;
+  }, [stats]);
+
   const ratingTotal = stats?.ratingDistribution.reduce((s, r) => s + r.count, 0) || 1;
   const ringPct = stats ? Math.max(0, Math.min(100, (stats.feedback.avg_rating / 5) * 100)) : 0;
   const ringCirc = 2 * Math.PI * 54;
@@ -277,7 +282,7 @@ export default function AIConfigPage() {
             <div>
               <span className="mb-3.5 inline-flex items-center gap-2 rounded-full border border-cyan-400/35 bg-cyan-400/[0.08] px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-cyan-200">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-300 shadow-[0_0_10px_#3ee6ff]" />
-                Live · Model: claude-sonnet-4.5 · Region us-east-1
+                {topModel ? `Live · Model: ${topModel}` : "Live · No requests yet"}
               </span>
               <h1 className="font-display text-[32px] font-bold leading-tight tracking-tight text-white sm:text-[34px]">
                 <Bot className="mr-2 inline -translate-y-1 text-[#8b6bff]" size={28} /> AI Control Center

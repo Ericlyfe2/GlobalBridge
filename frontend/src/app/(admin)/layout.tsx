@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Users, ShieldCheck, Flag, FileText, Bot, ScrollText,
-  ArrowLeft, Bell, Settings, BarChart3, Building2, Search,
+  ArrowLeft, Bell, Settings, BarChart3, Building2, Search, ClipboardList,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { UserMenu } from "@/components/UserMenu";
@@ -24,6 +24,7 @@ const navItemsFn = (t: (key: string) => string) => [
   { section: "Overview", href: "/admin/mentor-verifications", icon: ShieldCheck, label: "Mentor Verifications" },
   { section: "Overview", href: "/admin/employer-verifications", icon: Building2, label: "Employer Verifications" },
   { section: "Overview", href: "/admin/content", icon: FileText, label: "Content Moderation" },
+  { section: "Overview", href: "/admin/listings", icon: ClipboardList, label: "Listings" },
   { section: "Overview", href: "/admin/reports", icon: Flag, label: t("nav.reports") },
   { section: "Intelligence", href: "/admin/analytics", icon: BarChart3, label: "Analytics" },
   { section: "Intelligence", href: "/admin/ai", icon: Bot, label: "AI Control Center" },
@@ -34,8 +35,8 @@ const navItemsFn = (t: (key: string) => string) => [
 
 const CRUMB_LABELS: Record<string, string> = {
   admin: "admin", users: "users", "mentor-verifications": "mentor-verifications",
-  "employer-verifications": "employer-verifications", content: "content", reports: "reports",
-  analytics: "analytics", ai: "ai · control-center", notifications: "notifications",
+  "employer-verifications": "employer-verifications", content: "content", listings: "listings",
+  reports: "reports", analytics: "analytics", ai: "ai · control-center", notifications: "notifications",
   settings: "settings", audit: "audit-log",
 };
 

@@ -6,19 +6,25 @@ import {
   Menu, X,
   LayoutDashboard, Bot, Home, Users, Briefcase, Award, MessageSquare, Bell, LifeBuoy,
   ShieldCheck, Flag, FileText, AlertOctagon, FileCheck, Sparkles, ClipboardList,
-  ShieldAlert, Route, Gauge,
+  ShieldAlert, Route, Gauge, Building2, BarChart3, Settings, ScrollText,
 } from "lucide-react";
 import { Logo } from "./Logo";
 
 export type SidebarPreset = "app" | "admin";
 
 const ADMIN_NAV = [
-  { href: "/admin",                label: "Overview",      Icon: LayoutDashboard },
-  { href: "/admin/users",          label: "Users",         Icon: Users },
-  { href: "/admin/verifications",  label: "Verifications", Icon: ShieldCheck },
-  { href: "/admin/listings",       label: "Listings",      Icon: FileText },
-  { href: "/admin/reports",        label: "Reports",       Icon: Flag },
-  { href: "/admin/ai",             label: "AI Config",     Icon: Bot },
+  { href: "/admin",                        label: "Overview",               Icon: LayoutDashboard },
+  { href: "/admin/users",                  label: "Users",                  Icon: Users },
+  { href: "/admin/mentor-verifications",   label: "Mentor Verifications",   Icon: ShieldCheck },
+  { href: "/admin/employer-verifications", label: "Employer Verifications", Icon: Building2 },
+  { href: "/admin/listings",               label: "Listings",               Icon: FileText },
+  { href: "/admin/content",                label: "Content Moderation",     Icon: FileCheck },
+  { href: "/admin/reports",                label: "Reports",                Icon: Flag },
+  { href: "/admin/analytics",              label: "Analytics",              Icon: BarChart3 },
+  { href: "/admin/ai",                     label: "AI Config",              Icon: Bot },
+  { href: "/admin/notifications",          label: "Notifications",          Icon: Bell },
+  { href: "/admin/settings",               label: "Settings",               Icon: Settings },
+  { href: "/admin/audit",                  label: "Audit Log",              Icon: ScrollText },
 ];
 
 const STUDENT_NAV = [
